@@ -22,15 +22,20 @@ class FeedState extends Equatable {
   final String search;
   final ViewState<ListingPage> view;
 
-  ListingQuery get query => ListingQuery(type: type, filter: filter, search: search);
+  ListingQuery get query =>
+      ListingQuery(type: type, filter: filter, search: search);
 
-  FeedState copyWith({ListingType? type, ListingFilter? filter, String? search, ViewState<ListingPage>? view}) =>
-      FeedState(
-        type: type ?? this.type,
-        filter: filter ?? this.filter,
-        search: search ?? this.search,
-        view: view ?? this.view,
-      );
+  FeedState copyWith({
+    ListingType? type,
+    ListingFilter? filter,
+    String? search,
+    ViewState<ListingPage>? view,
+  }) => FeedState(
+    type: type ?? this.type,
+    filter: filter ?? this.filter,
+    search: search ?? this.search,
+    view: view ?? this.view,
+  );
 
   @override
   List<Object?> get props => [type, filter, search, view];
@@ -53,12 +58,14 @@ class FeedCubit extends Cubit<FeedState> {
     if (!silent) emit(state.copyWith(view: const ViewLoading()));
     final result = await _getListings(state.query);
     if (isClosed || id != _request) return;
-    emit(state.copyWith(
-      view: result.fold<ViewState<ListingPage>>(
-        (f) => ViewError(f),
-        (page) => page.items.isEmpty ? const ViewEmpty() : ViewLoaded(page),
+    emit(
+      state.copyWith(
+        view: result.fold<ViewState<ListingPage>>(
+          (f) => ViewError(f),
+          (page) => page.items.isEmpty ? const ViewEmpty() : ViewLoaded(page),
+        ),
       ),
-    ));
+    );
   }
 
   void setType(ListingType type) {
@@ -68,8 +75,9 @@ class FeedCubit extends Cubit<FeedState> {
   }
 
   /// Category chips: null = all, otherwise exactly one category.
-  void setCategory(ItemCategory? category) =>
-      setFilter(state.filter.copyWith(categories: category == null ? const {} : {category}));
+  void setCategory(ItemCategory? category) => setFilter(
+    state.filter.copyWith(categories: category == null ? const {} : {category}),
+  );
 
   void setFilter(ListingFilter filter) {
     if (filter == state.filter) return;
@@ -92,3 +100,5 @@ class FeedCubit extends Cubit<FeedState> {
     return super.close();
   }
 }
+
+//
