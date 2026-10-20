@@ -238,7 +238,8 @@ class _CupertinoItem extends StatelessWidget {
       child: CupertinoButton(
         padding: EdgeInsets.zero,
         minimumSize: const Size(TSize.tapTarget, _CupertinoNav._height),
-        pressedOpacity: 0.5,
+        // No dimming on press (app-wide rule: no tap overlays).
+        pressedOpacity: null,
         onPressed: onTap,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

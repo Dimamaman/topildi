@@ -35,7 +35,9 @@ abstract final class TFeedback {
               Expanded(child: Text(message)),
             ],
           ),
-          action: action == null ? null : SnackBarAction(label: action, onPressed: onAction ?? () {}, textColor: cs.inversePrimary),
+          action: action == null
+              ? null
+              : SnackBarAction(label: action, onPressed: onAction ?? () {}, textColor: cs.inversePrimary),
         ),
       );
   }
@@ -53,13 +55,18 @@ abstract final class TFeedback {
     final result = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(title, style: Theme.of(ctx).textTheme.titleLarge!.copyWith(fontSize: 18, fontWeight: FontWeight.w700)),
+        title: Text(
+          title,
+          style: Theme.of(ctx).textTheme.titleLarge!.copyWith(fontSize: 18, fontWeight: FontWeight.w700),
+        ),
         content: Text(body, style: Theme.of(ctx).textTheme.bodyMedium!.copyWith(color: cs.secondary, height: 1.45)),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(cancelLabel)),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            style: destructive ? TextButton.styleFrom(foregroundColor: cs.error) : null,
+            style: destructive
+                ? TextButton.styleFrom(overlayColor: Colors.transparent, foregroundColor: cs.error)
+                : null,
             child: Text(confirmLabel),
           ),
         ],

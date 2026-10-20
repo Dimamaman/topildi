@@ -53,15 +53,17 @@ class _ChatView extends StatelessWidget {
           body: switch (view) {
             ViewLoading() || ViewEmpty() => const Center(child: CircularProgressIndicator()),
             ViewError(:final isOffline) => SafeArea(
-                child: isOffline ? OfflineState(onRetry: () => cubit.load(chatId)) : ErrorState(onRetry: () => cubit.load(chatId)),
-              ),
+              child: isOffline
+                  ? OfflineState(onRetry: () => cubit.load(chatId))
+                  : ErrorState(onRetry: () => cubit.load(chatId)),
+            ),
             ViewLoaded(:final data) => Column(
-                children: [
-                  _Header(thread: data.thread, returning: state.returning),
-                  Expanded(child: _Messages(messages: data.messages)),
-                  if (!data.thread.returned) const _Composer() else const _ClosedNote(),
-                ],
-              ),
+              children: [
+                _Header(thread: data.thread, returning: state.returning),
+                Expanded(child: _Messages(messages: data.messages)),
+                if (!data.thread.returned) const _Composer() else const _ClosedNote(),
+              ],
+            ),
           },
         );
       },
@@ -94,7 +96,9 @@ class _Header extends StatelessWidget {
     return Material(
       color: cs.surfaceContainerLowest,
       child: Container(
-        decoration: BoxDecoration(border: Border(bottom: BorderSide(color: cs.outlineVariant))),
+        decoration: BoxDecoration(
+          border: Border(bottom: BorderSide(color: cs.outlineVariant)),
+        ),
         child: SafeArea(
           bottom: false,
           child: Column(
@@ -159,7 +163,10 @@ class _Header extends StatelessWidget {
               Container(
                 margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
                 padding: const EdgeInsets.all(TSpace.xs),
-                decoration: BoxDecoration(color: cs.surfaceContainerHigh, borderRadius: BorderRadius.circular(TRadius.md)),
+                decoration: BoxDecoration(
+                  color: cs.surfaceContainerHigh,
+                  borderRadius: BorderRadius.circular(TRadius.md),
+                ),
                 child: Row(
                   children: [
                     PhotoPlaceholder(
@@ -192,6 +199,7 @@ class _Header extends StatelessWidget {
                       FilledButton.icon(
                         onPressed: returning ? null : () => _confirmReturned(context),
                         style: FilledButton.styleFrom(
+                          overlayColor: Colors.transparent,
                           minimumSize: const Size(0, 44),
                           padding: const EdgeInsets.symmetric(horizontal: 12),
                           backgroundColor: tc.success,
@@ -200,7 +208,10 @@ class _Header extends StatelessWidget {
                           textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
                         ),
                         icon: returning
-                            ? SizedBox.square(dimension: 16, child: CircularProgressIndicator(strokeWidth: 2, color: cs.surface))
+                            ? SizedBox.square(
+                                dimension: 16,
+                                child: CircularProgressIndicator(strokeWidth: 2, color: cs.surface),
+                              )
                             : const Icon(Symbols.check_rounded, size: 18),
                         label: const Text('Qaytarildi'),
                       )
@@ -268,10 +279,7 @@ class _SystemNote extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (safety) ...[
-                Icon(Symbols.shield_rounded, size: 16, color: cs.secondary),
-                const SizedBox(width: 6),
-              ],
+              if (safety) ...[Icon(Symbols.shield_rounded, size: 16, color: cs.secondary), const SizedBox(width: 6)],
               Flexible(
                 child: Text(
                   message.text,
@@ -323,7 +331,10 @@ class _Bubble extends StatelessWidget {
               Align(
                 alignment: Alignment.centerLeft,
                 widthFactor: 1,
-                child: Text(message.text, style: TextStyle(fontSize: 15, height: 21 / 15, color: fg)),
+                child: Text(
+                  message.text,
+                  style: TextStyle(fontSize: 15, height: 21 / 15, color: fg),
+                ),
               ),
               const SizedBox(height: 4),
               Text(TDate.time(message.sentAt), style: TextStyle(fontSize: 11, color: fg.withValues(alpha: 0.75))),
@@ -377,6 +388,7 @@ class _ComposerState extends State<_Composer> {
               IconButton(
                 tooltip: 'Joylashuv yuborish',
                 style: IconButton.styleFrom(
+                  overlayColor: Colors.transparent,
                   backgroundColor: cs.surfaceContainerHigh,
                   fixedSize: const Size(48, 48),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(TRadius.md)),
@@ -414,7 +426,7 @@ class _ComposerState extends State<_Composer> {
               const SizedBox(width: TSpace.xs),
               IconButton.filled(
                 tooltip: 'Yuborish',
-                style: IconButton.styleFrom(fixedSize: const Size(48, 48)),
+                style: IconButton.styleFrom(overlayColor: Colors.transparent, fixedSize: const Size(48, 48)),
                 onPressed: _send,
                 icon: const Icon(Symbols.send_rounded),
               ),

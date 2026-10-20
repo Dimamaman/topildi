@@ -17,20 +17,50 @@ class TButton extends StatelessWidget {
     this.expand = true,
   });
 
-  const TButton.primary({super.key, required this.label, required this.onPressed, this.icon, this.loading = false, this.expand = true})
-      : variant = TButtonVariant.primary;
-  const TButton.secondary({super.key, required this.label, required this.onPressed, this.icon, this.loading = false, this.expand = true})
-      : variant = TButtonVariant.secondary;
-  const TButton.outline({super.key, required this.label, required this.onPressed, this.icon, this.loading = false, this.expand = true})
-      : variant = TButtonVariant.outline;
-  const TButton.text({super.key, required this.label, required this.onPressed, this.icon, this.loading = false, this.expand = false})
-      : variant = TButtonVariant.text;
-  const TButton.danger({super.key, required this.label, required this.onPressed, this.icon, this.loading = false, this.expand = true})
-      : variant = TButtonVariant.danger;
+  const TButton.primary({
+    super.key,
+    required this.label,
+    required this.onPressed,
+    this.icon,
+    this.loading = false,
+    this.expand = true,
+  }) : variant = TButtonVariant.primary;
+  const TButton.secondary({
+    super.key,
+    required this.label,
+    required this.onPressed,
+    this.icon,
+    this.loading = false,
+    this.expand = true,
+  }) : variant = TButtonVariant.secondary;
+  const TButton.outline({
+    super.key,
+    required this.label,
+    required this.onPressed,
+    this.icon,
+    this.loading = false,
+    this.expand = true,
+  }) : variant = TButtonVariant.outline;
+  const TButton.text({
+    super.key,
+    required this.label,
+    required this.onPressed,
+    this.icon,
+    this.loading = false,
+    this.expand = false,
+  }) : variant = TButtonVariant.text;
+  const TButton.danger({
+    super.key,
+    required this.label,
+    required this.onPressed,
+    this.icon,
+    this.loading = false,
+    this.expand = true,
+  }) : variant = TButtonVariant.danger;
   const TButton.google({super.key, required this.onPressed, this.loading = false, this.expand = true})
-      : label = 'Google orqali davom etish',
-        icon = null,
-        variant = TButtonVariant.google;
+    : label = 'Google orqali davom etish',
+      icon = null,
+      variant = TButtonVariant.google;
 
   final String label;
   final VoidCallback? onPressed;
@@ -62,12 +92,22 @@ class TButton extends StatelessWidget {
               height: 22,
               alignment: Alignment.center,
               decoration: BoxDecoration(color: cs.surfaceContainerHigh, shape: BoxShape.circle),
-              child: Text('G', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: cs.onSurface)),
+              child: Text(
+                'G',
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: cs.onSurface),
+              ),
             )
           : (icon != null ? Icon(icon, size: 20) : null);
       final text = Text(label, overflow: TextOverflow.ellipsis, textAlign: TextAlign.center);
       if (leading == null) return text;
-      return Row(mainAxisSize: MainAxisSize.min, children: [leading, const SizedBox(width: 10), Flexible(child: text)]);
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          leading,
+          const SizedBox(width: 10),
+          Flexible(child: text),
+        ],
+      );
     }
 
     switch (variant) {
@@ -76,6 +116,7 @@ class TButton extends StatelessWidget {
         return FilledButton(
           onPressed: onTap,
           style: FilledButton.styleFrom(
+            overlayColor: Colors.transparent,
             minimumSize: minSize,
             disabledBackgroundColor: loading ? cs.primary : cs.surfaceContainerHigh,
             disabledForegroundColor: loading ? cs.onPrimary : cs.onSurfaceVariant,
@@ -86,6 +127,7 @@ class TButton extends StatelessWidget {
         return FilledButton(
           onPressed: onTap,
           style: FilledButton.styleFrom(
+            overlayColor: Colors.transparent,
             minimumSize: minSize,
             backgroundColor: cs.primaryContainer,
             foregroundColor: cs.onPrimaryContainer,
@@ -97,19 +139,29 @@ class TButton extends StatelessWidget {
       case TButtonVariant.outline:
         return OutlinedButton(
           onPressed: onTap,
-          style: OutlinedButton.styleFrom(minimumSize: minSize, foregroundColor: cs.onSurface),
+          style: OutlinedButton.styleFrom(
+            overlayColor: Colors.transparent,
+            minimumSize: minSize,
+            foregroundColor: cs.onSurface,
+          ),
           child: child(cs.onSurface),
         );
       case TButtonVariant.danger:
         return OutlinedButton(
           onPressed: onTap,
-          style: OutlinedButton.styleFrom(minimumSize: minSize, foregroundColor: cs.error, side: BorderSide(color: cs.error)),
+          style: OutlinedButton.styleFrom(
+            overlayColor: Colors.transparent,
+            minimumSize: minSize,
+            foregroundColor: cs.error,
+            side: BorderSide(color: cs.error),
+          ),
           child: child(cs.error),
         );
       case TButtonVariant.google:
         return OutlinedButton(
           onPressed: onTap,
           style: OutlinedButton.styleFrom(
+            overlayColor: Colors.transparent,
             minimumSize: minSize,
             foregroundColor: cs.onSurface,
             backgroundColor: cs.surfaceContainerLowest,
@@ -119,7 +171,10 @@ class TButton extends StatelessWidget {
       case TButtonVariant.text:
         return TextButton(
           onPressed: onTap,
-          style: TextButton.styleFrom(minimumSize: expand ? const Size.fromHeight(TSize.tapTarget) : null),
+          style: TextButton.styleFrom(
+            overlayColor: Colors.transparent,
+            minimumSize: expand ? const Size.fromHeight(TSize.tapTarget) : null,
+          ),
           child: child(cs.primary),
         );
     }

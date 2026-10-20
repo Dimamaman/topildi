@@ -23,7 +23,10 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(create: (_) => getIt<FeedCubit>()..load(), child: const _HomeView());
+    return BlocProvider(
+      create: (_) => getIt<FeedCubit>()..load(),
+      child: const _HomeView(),
+    );
   }
 }
 
@@ -42,22 +45,28 @@ class _HomeView extends StatelessWidget {
                 final cubit = context.read<FeedCubit>();
                 return switch (state.view) {
                   ViewLoading() => const CardsSkeleton(),
-                  ViewEmpty() when !state.filter.isDefault || state.search.isNotEmpty => EmptyState(
-                    icon: Symbols.search_off_rounded,
-                    title: 'Hech narsa topilmadi',
-                    body: 'Filtrlarni oʻzgartiring yoki boshqa soʻz bilan qidiring.',
-                    cta: 'Filtrlarni tozalash',
-                    onCta: cubit.resetFilter,
-                  ),
+                  ViewEmpty()
+                      when !state.filter.isDefault || state.search.isNotEmpty =>
+                    EmptyState(
+                      icon: Symbols.search_off_rounded,
+                      title: 'Hech narsa topilmadi',
+                      body:
+                          'Filtrlarni oʻzgartiring yoki boshqa soʻz bilan qidiring.',
+                      cta: 'Filtrlarni tozalash',
+                      onCta: cubit.resetFilter,
+                    ),
                   ViewEmpty() => EmptyState(
                     icon: Symbols.inventory_2_rounded,
                     title: 'Hozircha eʼlon yoʻq',
-                    body: 'Bu hududda hali hech kim eʼlon bermagan. Birinchi boʻling!',
+                    body:
+                        'Bu hududda hali hech kim eʼlon bermagan. Birinchi boʻling!',
                     cta: 'Eʼlon berish',
                     onCta: () => context.push(Routes.create),
                   ),
                   ViewError(:final isOffline) =>
-                    isOffline ? OfflineState(onRetry: cubit.load) : ErrorState(onRetry: cubit.load),
+                    isOffline
+                        ? OfflineState(onRetry: cubit.load)
+                        : ErrorState(onRetry: cubit.load),
                   ViewLoaded(:final data) => _FeedList(
                     page: data,
                     type: state.type,
@@ -79,7 +88,12 @@ class _Header extends StatelessWidget {
   Future<void> _openFilters(BuildContext context) async {
     final cubit = context.read<FeedCubit>();
     final s = cubit.state;
-    final picked = await showFiltersSheet(context, filter: s.filter, type: s.type, search: s.search);
+    final picked = await showFiltersSheet(
+      context,
+      filter: s.filter,
+      type: s.type,
+      search: s.search,
+    );
     if (picked != null) cubit.setFilter(picked);
   }
 
@@ -88,7 +102,9 @@ class _Header extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     final text = Theme.of(context).textTheme;
     final cubit = context.read<FeedCubit>();
-    final filter = context.select<FeedCubit, ListingFilter>((c) => c.state.filter);
+    final filter = context.select<FeedCubit, ListingFilter>(
+      (c) => c.state.filter,
+    );
 
     return Material(
       color: cs.surfaceContainerLowest,
@@ -104,7 +120,9 @@ class _Header extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: TSpace.screen),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: TSpace.screen,
+                  ),
                   child: Row(
                     children: [
                       Expanded(
@@ -127,13 +145,21 @@ class _Header extends StatelessWidget {
                                 children: [
                                   Flexible(
                                     child: Text(
-                                      filter.district == null ? filter.city : '${filter.city}, ${filter.district}',
+                                      filter.district == null
+                                          ? filter.city
+                                          : '${filter.city}, ${filter.district}',
                                       overflow: TextOverflow.ellipsis,
-                                      style: text.titleMedium!.copyWith(fontSize: 18, fontWeight: FontWeight.w700),
+                                      style: text.titleMedium!.copyWith(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w700,
+                                      ),
                                     ),
                                   ),
                                   const SizedBox(width: 4),
-                                  const Icon(Symbols.keyboard_arrow_down_rounded, size: 20),
+                                  const Icon(
+                                    Symbols.keyboard_arrow_down_rounded,
+                                    size: 20,
+                                  ),
                                 ],
                               ),
                             ],
@@ -144,7 +170,9 @@ class _Header extends StatelessWidget {
                       BlocBuilder<NotificationBadgeCubit, int>(
                         builder: (context, unread) => _SquareButton(
                           icon: Symbols.notifications_rounded,
-                          semantic: unread > 0 ? 'Bildirishnomalar, $unread ta yangi' : 'Bildirishnomalar',
+                          semantic: unread > 0
+                              ? 'Bildirishnomalar, $unread ta yangi'
+                              : 'Bildirishnomalar',
                           dot: unread > 0,
                           onTap: () => context.push(Routes.notifications),
                         ),
@@ -154,7 +182,9 @@ class _Header extends StatelessWidget {
                 ),
                 const SizedBox(height: 14),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: TSpace.screen),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: TSpace.screen,
+                  ),
                   child: Row(
                     children: [
                       Expanded(
@@ -167,8 +197,14 @@ class _Header extends StatelessWidget {
                             decoration: InputDecoration(
                               hintText: 'Nimani qidiryapsiz?',
                               fillColor: cs.surfaceContainerHigh,
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 14),
-                              prefixIcon: Icon(Symbols.search_rounded, size: 20, color: cs.onSurfaceVariant),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                              ),
+                              prefixIcon: Icon(
+                                Symbols.search_rounded,
+                                size: 20,
+                                color: cs.onSurfaceVariant,
+                              ),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(TRadius.md),
                                 borderSide: BorderSide.none,
@@ -184,7 +220,9 @@ class _Header extends StatelessWidget {
                       const SizedBox(width: TSpace.xs),
                       _SquareButton(
                         icon: Symbols.tune_rounded,
-                        semantic: filter.isDefault ? 'Filtrlar' : 'Filtrlar, faol',
+                        semantic: filter.isDefault
+                            ? 'Filtrlar'
+                            : 'Filtrlar, faol',
                         color: cs.primary,
                         dot: !filter.isDefault,
                         dotColor: cs.primary,
@@ -197,25 +235,35 @@ class _Header extends StatelessWidget {
                 BlocSelector<FeedCubit, FeedState, ListingType>(
                   selector: (s) => s.type,
                   builder: (context, type) => Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: TSpace.screen),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: TSpace.screen,
+                    ),
                     child: TTypeTabs(
                       isFound: type == ListingType.found,
-                      onChanged: (found) => cubit.setType(found ? ListingType.found : ListingType.lost),
+                      onChanged: (found) => cubit.setType(
+                        found ? ListingType.found : ListingType.lost,
+                      ),
                     ),
                   ),
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 10),
                 BlocSelector<FeedCubit, FeedState, Set<ItemCategory>>(
                   selector: (s) => s.filter.categories,
                   builder: (context, cats) => TChipRow(
-                    labels: ['Hammasi', for (final c in feedCategories) c.label],
+                    labels: [
+                      'Hammasi',
+                      for (final c in feedCategories) c.label,
+                    ],
                     // Several categories from Filters → no single chip is selected.
                     selected: cats.isEmpty
                         ? 0
-                        : cats.length == 1 && feedCategories.contains(cats.first)
+                        : cats.length == 1 &&
+                              feedCategories.contains(cats.first)
                         ? feedCategories.indexOf(cats.first) + 1
                         : -1,
-                    onSelected: (i) => cubit.setCategory(i == 0 ? null : feedCategories[i - 1]),
+                    onSelected: (i) => cubit.setCategory(
+                      i == 0 ? null : feedCategories[i - 1],
+                    ),
                   ),
                 ),
               ],
@@ -275,7 +323,10 @@ class _SquareButton extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: dotColor ?? cs.error,
                         shape: BoxShape.circle,
-                        border: Border.all(color: cs.surfaceContainerLowest, width: 2),
+                        border: Border.all(
+                          color: cs.surfaceContainerLowest,
+                          width: 2,
+                        ),
                       ),
                     ),
                   ),
@@ -289,7 +340,11 @@ class _SquareButton extends StatelessWidget {
 }
 
 class _FeedList extends StatelessWidget {
-  const _FeedList({required this.page, required this.type, required this.onRefresh});
+  const _FeedList({
+    required this.page,
+    required this.type,
+    required this.onRefresh,
+  });
 
   final ListingPage page;
   final ListingType type;
@@ -305,14 +360,23 @@ class _FeedList extends StatelessWidget {
       onRefresh: onRefresh,
       slivers: [
         SliverPadding(
-          padding: const EdgeInsets.fromLTRB(TSpace.screen, TSpace.sm, TSpace.screen, TSpace.xs),
+          padding: const EdgeInsets.fromLTRB(
+            TSpace.screen,
+            TSpace.sm,
+            TSpace.screen,
+            TSpace.xs,
+          ),
           sliver: SliverToBoxAdapter(
             child: Row(
               children: [
                 Expanded(
                   child: Text(
                     countLabel,
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: cs.onSurfaceVariant),
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: cs.onSurfaceVariant,
+                    ),
                   ),
                 ),
                 // TSegmented(
@@ -327,7 +391,12 @@ class _FeedList extends StatelessWidget {
           ),
         ),
         SliverPadding(
-          padding: const EdgeInsets.fromLTRB(TSpace.screen, 0, TSpace.screen, TSpace.md),
+          padding: const EdgeInsets.fromLTRB(
+            TSpace.screen,
+            0,
+            TSpace.screen,
+            TSpace.md,
+          ),
           sliver: SliverList.separated(
             itemCount: page.items.length,
             separatorBuilder: (_, _) => const SizedBox(height: 10),
@@ -336,7 +405,8 @@ class _FeedList extends StatelessWidget {
               return ListingCard(
                 title: l.title,
                 category: l.category.label,
-                meta: '${l.areaName.split(',').first} · ${TDate.relative(l.happenedAt)}',
+                meta:
+                    '${l.areaName.split(',').first} · ${TDate.relative(l.happenedAt)}',
                 isFound: l.isFound,
                 icon: l.category.icon,
                 tint: l.tint,

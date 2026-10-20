@@ -72,6 +72,7 @@ class _ProfileView extends StatelessWidget {
                   removeTop: true,
                   child: TRefreshScrollView(
                     onRefresh: () => cubit.load(silent: true),
+                    overscrollColor: Theme.of(context).colorScheme.surfaceContainerLowest,
                     slivers: [
                       SliverList.list(
                         children: [
@@ -79,9 +80,17 @@ class _ProfileView extends StatelessWidget {
                             p: data,
                             since: '${_months[data.memberSince.month - 1]} ${data.memberSince.year} dan beri aʼzo',
                           ),
-                          _MyListings(p: data, showReturned: state.showReturned),
-                          _Settings(notificationsOn: data.notificationsOn),
-                          const SizedBox(height: TSpace.xl),
+                          // Opaque, so the header-coloured overscroll fill shows above the header only.
+                          ColoredBox(
+                            color: Theme.of(context).colorScheme.surface,
+                            child: Column(
+                              children: [
+                                _MyListings(p: data, showReturned: state.showReturned),
+                                _Settings(notificationsOn: data.notificationsOn),
+                                const SizedBox(height: TSpace.xl),
+                              ],
+                            ),
+                          ),
                         ],
                       ),
                     ],
@@ -166,6 +175,7 @@ class _Header extends StatelessWidget {
                     IconButton.outlined(
                       tooltip: 'Profilni tahrirlash',
                       style: IconButton.styleFrom(
+                        overlayColor: Colors.transparent,
                         side: BorderSide(color: cs.outlineVariant),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(TRadius.md)),
                         fixedSize: const Size(48, 48),

@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../core/di/injection.dart';
+import '../core/theme/no_ripple.dart';
 import '../core/theme/theme_cubit.dart';
 
 import '../core/theme/topildi_theme.dart';
@@ -36,8 +37,8 @@ class _TopildiAppState extends State<TopildiApp> {
         builder: (context, mode) => MaterialApp.router(
           title: 'Topildi',
           debugShowCheckedModeBanner: false,
-          theme: topildiLight,
-          darkTheme: topildiDark,
+          theme: topildiLight.withoutRipples(),
+          darkTheme: topildiDark.withoutRipples(),
           themeMode: mode,
           routerConfig: _router,
         ),

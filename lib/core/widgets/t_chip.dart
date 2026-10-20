@@ -82,48 +82,52 @@ class TChipRow extends StatelessWidget {
   }
 }
 
-/// Found / Lost underline tabs. Each tab shows a coloured dot *and* text.
+/// Found / Lost segmented control, iOS style: a rounded track with a
+/// sliding thumb. Tap or drag across to switch. Each segment shows a
+/// coloured dot *and* text, so the choice never relies on colour alone.
 class TTypeTabs extends StatelessWidget {
   const TTypeTabs({super.key, required this.isFound, required this.onChanged});
 
   final bool isFound;
   final ValueChanged<bool> onChanged;
 
+  static const _height = TSize.tapTarget;
+  static const _inset = 4.0;
+  static const _duration = Duration(milliseconds: 220);
+
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final tc = context.tc;
-    Widget tab(bool found, String label, Color color) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final track = dark ? cs.surface : cs.surfaceContainerHigh;
+    final thumb = dark ? cs.surfaceContainerHighest : cs.surfaceContainerLowest;
+
+    Widget segment(bool found, String label, Color color) {
       final active = found == isFound;
       return Expanded(
         child: Semantics(
           selected: active,
           button: true,
-          child: InkWell(
+          inMutuallyExclusiveGroup: true,
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
             onTap: () => onChanged(found),
-            child: Container(
-              height: 48,
-              decoration: BoxDecoration(
-                border: Border(bottom: BorderSide(color: active ? color : Colors.transparent, width: 3)),
-              ),
+            child: Center(
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Container(
-                    width: 8,
-                    height: 8,
-                    decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-                  ),
+                  Container(width: 8, height: 8, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
                   const SizedBox(width: 8),
                   Flexible(
-                    child: Text(
-                      label,
-                      overflow: TextOverflow.ellipsis,
+                    child: AnimatedDefaultTextStyle(
+                      duration: _duration,
                       style: TextStyle(
                         fontSize: 15,
-                        fontWeight: FontWeight.w700,
+                        fontWeight: active ? FontWeight.w700 : FontWeight.w600,
                         color: active ? color : cs.onSurfaceVariant,
                       ),
+                      child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
                     ),
                   ),
                 ],
@@ -134,11 +138,45 @@ class TTypeTabs extends StatelessWidget {
       );
     }
 
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        border: Border(bottom: BorderSide(color: cs.outlineVariant)),
+    return LayoutBuilder(
+      builder: (context, c) => GestureDetector(
+        // Drag across the track to switch, like UISegmentedControl.
+        onHorizontalDragUpdate: (d) {
+          final toFound = d.localPosition.dx < c.maxWidth / 2;
+          if (toFound != isFound) onChanged(toFound);
+        },
+        child: Container(
+          height: _height,
+          padding: const EdgeInsets.all(_inset),
+          decoration: BoxDecoration(color: track, borderRadius: BorderRadius.circular(TRadius.md + _inset)),
+          child: Stack(
+            children: [
+              AnimatedAlign(
+                duration: _duration,
+                curve: Curves.easeOutCubic,
+                alignment: isFound ? Alignment.centerLeft : Alignment.centerRight,
+                child: FractionallySizedBox(
+                  widthFactor: 0.5,
+                  heightFactor: 1,
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: thumb,
+                      borderRadius: BorderRadius.circular(TRadius.md),
+                      boxShadow: dark
+                          ? null
+                          : [
+                              BoxShadow(color: cs.scrim.withValues(alpha: 0.10), blurRadius: 8, offset: const Offset(0, 2)),
+                              BoxShadow(color: cs.scrim.withValues(alpha: 0.04), blurRadius: 1, offset: const Offset(0, 1)),
+                            ],
+                    ),
+                  ),
+                ),
+              ),
+              Row(children: [segment(true, 'Topilgan', tc.found), segment(false, 'Yoʻqolgan', tc.lost)]),
+            ],
+          ),
+        ),
       ),
-      child: Row(children: [tab(true, 'Topilgan', tc.found), tab(false, 'Yoʻqolgan', tc.lost)]),
     );
   }
 }

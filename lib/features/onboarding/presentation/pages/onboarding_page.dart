@@ -21,10 +21,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
   int _index = 0;
 
   static const _slides = [
-    (
-      'Nimadir topdingizmi?',
-      'Rasmga oling va eʼlon bering. Egasi sizni ilova orqali topadi, raqamingiz koʻrinmaydi.',
-    ),
+    ('Nimadir topdingizmi?', 'Rasmga oling va eʼlon bering. Egasi sizni ilova orqali topadi, raqamingiz koʻrinmaydi.'),
     (
       'Nimadir yoʻqotdingizmi?',
       'Lentadan qidiring yoki “Yoʻqolgan” eʼlonini bering. Yangi mos eʼlon chiqsa, sizga xabar beramiz.',
@@ -42,9 +39,8 @@ class _OnboardingPageState extends State<OnboardingPage> {
     context.go(Routes.signIn);
   }
 
-  void _next() => _isLast
-      ? _finish()
-      : _pages.nextPage(duration: const Duration(milliseconds: 280), curve: Curves.easeOutCubic);
+  void _next() =>
+      _isLast ? _finish() : _pages.nextPage(duration: const Duration(milliseconds: 280), curve: Curves.easeOutCubic);
 
   @override
   void dispose() {
@@ -75,7 +71,10 @@ class _OnboardingPageState extends State<OnboardingPage> {
                       ignoring: _isLast,
                       child: TextButton(
                         onPressed: _finish,
-                        style: TextButton.styleFrom(foregroundColor: cs.onSurfaceVariant),
+                        style: TextButton.styleFrom(
+                          overlayColor: Colors.transparent,
+                          foregroundColor: cs.onSurfaceVariant,
+                        ),
                         child: const Text('Oʻtkazib yuborish', style: TextStyle(fontSize: 15)),
                       ),
                     ),
@@ -97,7 +96,10 @@ class _OnboardingPageState extends State<OnboardingPage> {
                       ),
                       Text(_slides[i].$1, style: text.headlineMedium!.copyWith(letterSpacing: -0.28)),
                       const SizedBox(height: TSpace.sm),
-                      Text(_slides[i].$2, style: text.bodyLarge!.copyWith(fontSize: 17, height: 26 / 17, color: cs.secondary)),
+                      Text(
+                        _slides[i].$2,
+                        style: text.bodyLarge!.copyWith(fontSize: 17, height: 26 / 17, color: cs.secondary),
+                      ),
                       const SizedBox(height: 28),
                     ],
                   ),

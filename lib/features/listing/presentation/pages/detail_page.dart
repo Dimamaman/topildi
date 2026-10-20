@@ -61,17 +61,18 @@ class _DetailView extends StatelessWidget {
           ),
           body: switch (view) {
             ViewLoading() || ViewEmpty() => const Center(child: CircularProgressIndicator()),
-            ViewError(:final failure, :final isOffline) => isOffline
-                ? OfflineState(onRetry: () => cubit.load(listingId))
-                : failure is NotFoundFailure
-                    ? EmptyState(
-                        icon: Symbols.search_off_rounded,
-                        title: 'Eʼlon topilmadi',
-                        body: 'Bu eʼlon oʻchirilgan yoki egasiga qaytarilgan boʻlishi mumkin.',
-                        cta: 'Lentaga qaytish',
-                        onCta: () => context.go(Routes.home),
-                      )
-                    : ErrorState(onRetry: () => cubit.load(listingId)),
+            ViewError(:final failure, :final isOffline) =>
+              isOffline
+                  ? OfflineState(onRetry: () => cubit.load(listingId))
+                  : failure is NotFoundFailure
+                  ? EmptyState(
+                      icon: Symbols.search_off_rounded,
+                      title: 'Eʼlon topilmadi',
+                      body: 'Bu eʼlon oʻchirilgan yoki egasiga qaytarilgan boʻlishi mumkin.',
+                      cta: 'Lentaga qaytish',
+                      onCta: () => context.go(Routes.home),
+                    )
+                  : ErrorState(onRetry: () => cubit.load(listingId)),
             ViewLoaded(:final data) => _Content(listing: data, photoIndex: state.photoIndex),
           },
           bottomNavigationBar: view is ViewLoaded<Listing> ? _Cta(listing: view.data, isMine: state.isMine) : null,
@@ -110,7 +111,10 @@ class _Content extends StatelessWidget {
               Wrap(
                 spacing: 6,
                 runSpacing: 6,
-                children: [TypeBadge(isFound: listing.isFound), CategoryBadge(label: listing.category.label)],
+                children: [
+                  TypeBadge(isFound: listing.isFound),
+                  CategoryBadge(label: listing.category.label),
+                ],
               ),
               const SizedBox(height: TSpace.sm),
               Text(listing.title, style: text.headlineSmall!.copyWith(letterSpacing: -0.24)),
@@ -132,13 +136,20 @@ class _Content extends StatelessWidget {
                       children: [
                         Text(author.displayName, style: text.titleMedium!.copyWith(fontSize: 15)),
                         const SizedBox(height: 2),
-                        Text('$roleLabel$returned', style: text.bodySmall!.copyWith(fontSize: 13, color: cs.onSurfaceVariant)),
+                        Text(
+                          '$roleLabel$returned',
+                          style: text.bodySmall!.copyWith(fontSize: 13, color: cs.onSurfaceVariant),
+                        ),
                       ],
                     ),
                   ),
                   TextButton.icon(
                     onPressed: () => _report(context),
-                    style: TextButton.styleFrom(foregroundColor: cs.onSurfaceVariant, padding: const EdgeInsets.symmetric(horizontal: 8)),
+                    style: TextButton.styleFrom(
+                      overlayColor: Colors.transparent,
+                      foregroundColor: cs.onSurfaceVariant,
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                    ),
                     icon: const Icon(Symbols.flag_rounded, size: 18),
                     label: const Text('Shikoyat', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
                   ),
@@ -281,10 +292,7 @@ class _Cta extends StatelessWidget {
         else if (listing.isFound)
           TButton.primary(label: 'Bu meniki', onPressed: () => context.push(Routes.claim(listing.id)))
         else
-          TButton.primary(
-            label: 'Men topdim',
-            onPressed: () => TFeedback.success(context, 'Egasiga xabar yuborildi'),
-          ),
+          TButton.primary(label: 'Men topdim', onPressed: () => TFeedback.success(context, 'Egasiga xabar yuborildi')),
       ],
     );
   }
