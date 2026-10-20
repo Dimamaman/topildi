@@ -38,7 +38,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
   bool get _isLast => _index == _slides.length - 1;
 
   void _finish() {
-    getIt<Session>().onboardingSeen = true;
+    getIt<Session>().markOnboardingSeen();
     context.go(Routes.signIn);
   }
 

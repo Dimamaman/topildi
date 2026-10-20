@@ -56,6 +56,7 @@ class ClaimRepositoryImpl implements ClaimRepository {
           claimant: PublicUser(id: _session.userId, displayName: _session.displayName),
           answer: params.answer.trim(),
           hasProofPhoto: params.hasProofPhoto,
+          proofPath: params.proofPath,
           createdAt: DateTime.now(),
         ));
       });

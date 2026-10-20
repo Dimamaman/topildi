@@ -14,6 +14,7 @@ class ListingModel {
     required this.author,
     required this.hiddenDetail,
     this.photoCount = 1,
+    this.photos = const [],
     this.tint = 0,
     this.status = ListingStatus.active,
     this.city = 'Toshkent',
@@ -34,6 +35,7 @@ class ListingModel {
   final DateTime happenedAt;
   final PublicUser author;
   final int photoCount, tint;
+  final List<String> photos;
   final ListingStatus status;
 
   ListingModel copyWith({ListingStatus? status}) => ListingModel(
@@ -47,6 +49,7 @@ class ListingModel {
         author: author,
         hiddenDetail: hiddenDetail,
         photoCount: photoCount,
+        photos: photos,
         tint: tint,
         status: status ?? this.status,
         city: city,
@@ -65,6 +68,7 @@ class ListingModel {
         happenedAt: happenedAt,
         author: author,
         photoCount: photoCount,
+        photos: photos,
         tint: tint,
         status: status,
         city: city,

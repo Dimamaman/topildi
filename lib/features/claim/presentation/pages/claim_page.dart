@@ -10,6 +10,7 @@ import '../../../../core/theme/topildi_surfaces.dart';
 import '../../../../core/theme/topildi_theme.dart';
 import '../../../../core/view_state.dart';
 import '../../../../core/widgets/photo_placeholder.dart';
+import '../../../../core/widgets/photo_source_sheet.dart';
 import '../../../../core/widgets/state_views.dart';
 import '../../../../core/widgets/t_button.dart';
 import '../../../../core/widgets/t_feedback.dart';
@@ -188,7 +189,21 @@ class _Form extends StatelessWidget {
           ],
         ),
         const SizedBox(height: TSpace.md),
-        _ProofButton(attached: state.hasProofPhoto, onTap: cubit.toggleProofPhoto),
+        if (state.proofPath != null) ...[
+          ClipRRect(
+            borderRadius: BorderRadius.circular(TRadius.md),
+            child: PhotoPlaceholder(icon: Symbols.image_rounded, path: state.proofPath, height: 140, width: double.infinity),
+          ),
+          const SizedBox(height: TSpace.xs),
+        ],
+        _ProofButton(
+          attached: state.hasProofPhoto,
+          onTap: () async {
+            if (state.hasProofPhoto) return cubit.setProofPhoto(null);
+            final path = await pickPhoto(context, title: 'Dalil rasm');
+            if (path != null) cubit.setProofPhoto(path);
+          },
+        ),
       ],
     );
   }
@@ -224,7 +239,7 @@ class _ProofButton extends StatelessWidget {
               Flexible(
                 child: Text.rich(
                   TextSpan(
-                    text: attached ? 'Dalil rasm qoʻshildi' : 'Dalil rasm qoʻshish ',
+                    text: attached ? 'Dalil rasmni olib tashlash' : 'Dalil rasm qoʻshish ',
                     style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: attached ? tc.success : cs.onSurface),
                     children: [
                       if (!attached)

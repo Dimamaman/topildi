@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 
+import '../../../../core/location/geo_point.dart';
+
 enum ListingType { found, lost }
 
 enum ItemCategory { documents, phones, keys, wallets, bags, electronics, clothes, kids, other }
@@ -35,6 +37,7 @@ class Listing extends Equatable {
     required this.happenedAt,
     required this.author,
     this.photoCount = 1,
+    this.photos = const [],
     this.tint = 0,
     this.status = ListingStatus.active,
     this.city = 'Toshkent',
@@ -55,15 +58,24 @@ class Listing extends Equatable {
   final PublicUser author;
   final int photoCount;
 
+  /// Photo locations (local paths until uploads exist). Empty → placeholders.
+  final List<String> photos;
+
+  int get galleryCount => photos.isEmpty ? photoCount : photos.length;
+
+  String? photoAt(int i) => i < photos.length ? photos[i] : null;
+
   /// Placeholder tint index until real photos exist.
   final int tint;
   final ListingStatus status;
 
   bool get isFound => type == ListingType.found;
 
+  GeoPoint get area => GeoPoint(lat, lng);
+
   @override
   List<Object?> get props =>
-      [id, type, category, title, description, areaName, happenedAt, author, photoCount, tint, status, city, district, lat, lng];
+      [id, type, category, title, description, areaName, happenedAt, author, photoCount, photos, tint, status, city, district, lat, lng];
 }
 
 /// Feed filters chosen in the Filters sheet (and the category chips).

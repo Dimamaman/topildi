@@ -2,11 +2,16 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:go_router/go_router.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
 import '../../../../app/routes.dart';
 import '../../../../core/di/injection.dart';
+import '../../../../core/location/geo_point.dart';
+import '../../../../core/location/location_service.dart';
+import '../../../../core/map/map_tiles.dart';
 import '../../../../core/theme/topildi_surfaces.dart';
 import '../../../../core/theme/topildi_theme.dart';
 import '../../../../core/utils/date_format.dart';
@@ -15,13 +20,14 @@ import '../../../../core/widgets/photo_placeholder.dart';
 import '../../../../core/widgets/state_views.dart';
 import '../../../../core/widgets/status_badge.dart';
 import '../../../../core/widgets/t_button.dart';
+import '../../../../core/widgets/t_feedback.dart';
 import '../../domain/entities/listing.dart';
 import '../category_ui.dart';
 import '../cubit/map_cubit.dart';
 import '../widgets/filters_sheet.dart';
 
-/// Map tab. Until a map SDK is added this draws a stylised city and places
-/// pins at each listing's approximate area centre.
+/// Map tab: OpenStreetMap tiles, pins at each listing's approximate area
+/// centre (never the exact spot), screen-space clustering.
 class MapPage extends StatelessWidget {
   const MapPage({super.key});
 
@@ -42,6 +48,8 @@ class _PinColors {
       : const _PinColors(Color(0xFF1E8E5A), Color(0xFFD9692F), Color(0xFFFFFFFF), Color(0x2E2B5FD9));
 }
 
+LatLng _ll(GeoPoint g) => LatLng(g.lat, g.lng);
+
 class _MapView extends StatefulWidget {
   const _MapView();
 
@@ -49,52 +57,39 @@ class _MapView extends StatefulWidget {
   State<_MapView> createState() => _MapViewState();
 }
 
-class _MapViewState extends State<_MapView> with SingleTickerProviderStateMixin {
-  final _transform = TransformationController();
-  late final _anim = AnimationController(vsync: this, duration: const Duration(milliseconds: 300));
-  Animation<Matrix4>? _zoom;
-
-  // Rough bounding box of Tashkent used to project lat/lng onto the canvas.
-  static const _north = 41.375, _south = 41.215, _west = 69.175, _east = 69.355;
+class _MapViewState extends State<_MapView> {
+  final _map = MapController();
+  MapCamera? _camera;
 
   @override
   void initState() {
     super.initState();
-    _transform.addListener(() => setState(() {}));
-    _anim.addListener(() {
-      if (_zoom != null) _transform.value = _zoom!.value;
-    });
+    WidgetsBinding.instance.addPostFrameCallback((_) => _locate(initial: true));
   }
 
   @override
   void dispose() {
-    _transform.dispose();
-    _anim.dispose();
+    _map.dispose();
     super.dispose();
   }
 
-  /// Projects into the area between the top controls and the preview card.
-  Offset _project(double lat, double lng, Size size) {
-    const left = 28.0, right = 28.0, top = 170.0, bottom = 260.0;
-    final w = size.width - left - right;
-    final h = math.max(1.0, size.height - top - bottom);
-    return Offset(left + (lng - _west) / (_east - _west) * w, top + (_north - lat) / (_north - _south) * h);
-  }
-
-  void _animateTo(Matrix4 target) {
-    _zoom = Matrix4Tween(
-      begin: _transform.value,
-      end: target,
-    ).animate(CurvedAnimation(parent: _anim, curve: Curves.easeOut));
-    _anim.forward(from: 0);
-  }
-
-  void _zoomInto(Offset canvasPoint, Size size) {
-    final scale = (_transform.value.getMaxScaleOnAxis() * 2).clamp(1.0, 4.0);
-    final target = Matrix4.identity()
-      ..translateByDouble(size.width / 2 - canvasPoint.dx * scale, size.height / 2 - canvasPoint.dy * scale, 0, 1)
-      ..scaleByDouble(scale, scale, 1, 1);
-    _animateTo(target);
+  Future<void> _locate({bool initial = false}) async {
+    final cubit = context.read<MapCubit>();
+    final g = await cubit.locate();
+    if (!mounted) return;
+    if (g != null) {
+      if (_camera != null) _map.move(_ll(g), initial ? 14 : math.max(_camera!.zoom, 14));
+      return;
+    }
+    // On first open stay quiet and show the city; explain only when asked.
+    final problem = cubit.state.locationProblem;
+    if (initial || problem == null) return;
+    TFeedback.error(
+      context,
+      problem.message,
+      action: problem == LocationProblem.deniedForever || problem == LocationProblem.serviceOff ? 'Sozlamalar' : null,
+      onAction: cubit.openLocationSettings,
+    );
   }
 
   Future<void> _openFilters(BuildContext context) async {
@@ -111,10 +106,13 @@ class _MapViewState extends State<_MapView> with SingleTickerProviderStateMixin 
   @override
   Widget build(BuildContext context) {
     final ts = context.ts;
+    final cs = Theme.of(context).colorScheme;
     final cubit = context.read<MapCubit>();
+    final pc = _PinColors.of(context);
 
     return Scaffold(
       backgroundColor: ts.map,
+      resizeToAvoidBottomInset: false,
       body: BlocBuilder<MapCubit, MapState>(
         builder: (context, state) {
           if (state.view case ViewError(:final isOffline)) {
@@ -122,138 +120,168 @@ class _MapViewState extends State<_MapView> with SingleTickerProviderStateMixin 
               child: isOffline ? OfflineState(onRetry: cubit.load) : ErrorState(onRetry: cubit.load),
             );
           }
-          return LayoutBuilder(
-            builder: (context, c) {
-              final size = c.biggest;
-              final matrix = _transform.value;
-              final selected = state.selected;
-              final pins = _clusters(state.visible, size, matrix, keepApart: selected?.id);
-              return Stack(
-                children: [
-                  Positioned.fill(
-                    child: InteractiveViewer(
-                      transformationController: _transform,
-                      minScale: 1,
-                      maxScale: 4,
-                      child: SizedBox.fromSize(size: size, child: const _CityDrawing()),
-                    ),
+          final selected = state.selected;
+          final groups = _camera == null
+              ? const <_PinGroup>[]
+              : _clusters(state.visible, _camera!, keepApart: selected?.id);
+          return Stack(
+            children: [
+              Positioned.fill(
+                child: FlutterMap(
+                  mapController: _map,
+                  options: MapOptions(
+                    initialCenter: _ll(GeoPoint.tashkent),
+                    initialZoom: 12.5,
+                    minZoom: 9,
+                    maxZoom: 18,
+                    backgroundColor: ts.map,
+                    interactionOptions: const InteractionOptions(flags: InteractiveFlag.all & ~InteractiveFlag.rotate),
+                    onMapReady: () => setState(() => _camera = _map.camera),
+                    onPositionChanged: (camera, _) => setState(() => _camera = camera),
                   ),
-                  // "You are here".
-                  _positioned(
-                    MatrixUtils.transformPoint(matrix, _project(MapCubit.myLat, MapCubit.myLng, size)),
-                    18,
-                    Semantics(
-                      label: 'Siz shu yerdasiz',
-                      child: _MeDot(colors: _PinColors.of(context)),
-                    ),
-                  ),
-                  for (final p in pins)
-                    if (p.items.first.id == selected?.id)
-                      _positioned(
-                        p.screen,
-                        52,
-                        _Pin(
-                          listing: p.items.first,
-                          selected: true,
-                          hiddenNearby: p.items.length - 1,
-                          onTap: () => p.items.length > 1 ? _zoomInto(p.canvas, size) : null,
-                        ),
-                      )
-                    else
-                      _positioned(
-                        p.screen,
-                        p.items.length > 1 ? 44 : 40,
-                        p.items.length > 1
-                            ? _ClusterBubble(count: p.items.length, onTap: () => _zoomInto(p.canvas, size))
-                            : _Pin(
-                                listing: p.items.first,
-                                selected: false,
-                                onTap: () => cubit.select(p.items.first.id),
-                              ),
-                      ),
-                  if (state.view is ViewLoading) const Center(child: _LoadingPill()),
-                  SafeArea(
-                    child: Padding(
-                      padding: const EdgeInsets.all(TSpace.md),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _TopBar(
-                            onBack: () => context.go(Routes.home),
-                            onSearch: cubit.setSearch,
-                            onFilters: () => _openFilters(context),
-                            filtersActive: !state.filter.isDefault,
+                  children: [
+                    const TopildiTileLayer(),
+                    if (selected != null)
+                      CircleLayer(
+                        circles: [
+                          CircleMarker(
+                            point: _ll(selected.area),
+                            radius: GeoPoint.areaMeters / 2,
+                            useRadiusInMeter: true,
+                            color: cs.primary.withValues(alpha: 0.12),
+                            borderColor: cs.primary.withValues(alpha: 0.5),
+                            borderStrokeWidth: 1.5,
                           ),
-                          const SizedBox(height: 10),
-                          Wrap(
-                            spacing: TSpace.xs,
-                            runSpacing: TSpace.xs,
-                            children: [
-                              _TypeToggle(
-                                label: 'Topilgan · ${state.count(ListingType.found)}',
-                                color: context.tc.found,
-                                dot: _PinColors.of(context).found,
-                                on: state.showFound,
-                                onTap: cubit.toggleFound,
-                              ),
-                              _TypeToggle(
-                                label: 'Yoʻqolgan · ${state.count(ListingType.lost)}',
-                                color: context.tc.lost,
-                                dot: _PinColors.of(context).lost,
-                                on: state.showLost,
-                                onTap: cubit.toggleLost,
-                              ),
-                            ],
-                          ),
-                          const Spacer(),
-                          Align(
-                            alignment: Alignment.centerRight,
-                            child: _FloatingButton(
-                              icon: Symbols.my_location_rounded,
-                              tooltip: 'Mening joylashuvim',
-                              onTap: () {
-                                _animateTo(Matrix4.identity());
-                                cubit.selectNearest();
-                              },
-                            ),
-                          ),
-                          const SizedBox(height: TSpace.md),
-                          if (selected != null)
-                            _PreviewCard(listing: selected, onTap: () => context.push(Routes.listing(selected.id)))
-                          else if (state.view is ViewEmpty || (state.view is ViewLoaded && state.visible.isEmpty))
-                            _EmptyCard(
-                              onWiden: () {
-                                cubit.setFilter(const ListingFilter());
-                                if (!state.showFound) cubit.toggleFound();
-                                if (!state.showLost) cubit.toggleLost();
-                              },
-                            ),
                         ],
                       ),
+                    MarkerLayer(
+                      markers: [
+                        if (state.hasFix)
+                          Marker(
+                            point: _ll(state.me),
+                            width: 18,
+                            height: 18,
+                            child: Semantics(
+                              label: 'Siz shu yerdasiz',
+                              child: _MeDot(colors: pc),
+                            ),
+                          ),
+                        for (final g in groups)
+                          if (g.items.first.id == selected?.id)
+                            Marker(
+                              point: g.point,
+                              width: 52,
+                              height: 52,
+                              child: _Pin(
+                                listing: g.items.first,
+                                selected: true,
+                                hiddenNearby: g.items.length - 1,
+                                onTap: () => g.items.length > 1 ? _zoomInto(g.point) : null,
+                              ),
+                            )
+                          else if (g.items.length > 1)
+                            Marker(
+                              point: g.point,
+                              width: 44,
+                              height: 44,
+                              child: _ClusterBubble(count: g.items.length, onTap: () => _zoomInto(g.point)),
+                            )
+                          else
+                            Marker(
+                              point: g.point,
+                              width: 40,
+                              height: 40,
+                              child: _Pin(
+                                listing: g.items.first,
+                                selected: false,
+                                onTap: () => cubit.select(g.items.first.id),
+                              ),
+                            ),
+                      ],
                     ),
+                  ],
+                ),
+              ),
+              if (state.view is ViewLoading) const Center(child: _LoadingPill()),
+              SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.all(TSpace.md),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _TopBar(
+                        onBack: () => context.go(Routes.home),
+                        onSearch: cubit.setSearch,
+                        onFilters: () => _openFilters(context),
+                        filtersActive: !state.filter.isDefault,
+                      ),
+                      const SizedBox(height: 10),
+                      Wrap(
+                        spacing: TSpace.xs,
+                        runSpacing: TSpace.xs,
+                        children: [
+                          _TypeToggle(
+                            label: 'Topilgan · ${state.count(ListingType.found)}',
+                            color: context.tc.found,
+                            dot: pc.found,
+                            on: state.showFound,
+                            onTap: cubit.toggleFound,
+                          ),
+                          _TypeToggle(
+                            label: 'Yoʻqolgan · ${state.count(ListingType.lost)}',
+                            color: context.tc.lost,
+                            dot: pc.lost,
+                            on: state.showLost,
+                            onTap: cubit.toggleLost,
+                          ),
+                        ],
+                      ),
+                      const Spacer(),
+                      Row(
+                        children: [
+                          const Expanded(child: OsmAttribution()),
+                          _FloatingButton(
+                            icon: Symbols.my_location_rounded,
+                            tooltip: 'Mening joylashuvim',
+                            onTap: _locate,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: TSpace.md),
+                      if (selected != null)
+                        _PreviewCard(
+                          listing: selected,
+                          distance: state.distanceTo(selected),
+                          onTap: () => context.push(Routes.listing(selected.id)),
+                        )
+                      else if (state.view is ViewEmpty || (state.view is ViewLoaded && state.visible.isEmpty))
+                        _EmptyCard(
+                          onWiden: () {
+                            cubit.setFilter(const ListingFilter());
+                            if (!state.showFound) cubit.toggleFound();
+                            if (!state.showLost) cubit.toggleLost();
+                            _map.move(_ll(state.me), 12);
+                          },
+                        ),
+                    ],
                   ),
-                ],
-              );
-            },
+                ),
+              ),
+            ],
           );
         },
       ),
-      resizeToAvoidBottomInset: false,
     );
   }
 
-  Widget _positioned(Offset center, double size, Widget child) =>
-      Positioned(left: center.dx - size / 2, top: center.dy - size / 2, width: size, height: size, child: child);
+  void _zoomInto(LatLng point) => _map.move(point, math.min(18, (_camera?.zoom ?? 12) + 2));
 
-  /// Screen-space clustering: groups closer than [radius] keep merging
-  /// until none overlap. The selected listing never joins a cluster and is
-  /// returned last so it draws on top.
-  List<_PinGroup> _clusters(List<Listing> items, Size size, Matrix4 m, {String? keepApart}) {
+  /// Screen-space clustering: groups closer than [radius] keep merging until
+  /// none overlap. The selected listing never joins a cluster; anything
+  /// hidden under it is folded in as "+N". It is returned last (drawn on top).
+  List<_PinGroup> _clusters(List<Listing> items, MapCamera camera, {String? keepApart}) {
     const radius = 52.0;
-    _PinGroup group(Listing l) {
-      final canvas = _project(l.lat, l.lng, size);
-      return _PinGroup(MatrixUtils.transformPoint(m, canvas), canvas, [l]);
-    }
+    _PinGroup group(Listing l) => _PinGroup(camera.latLngToScreenOffset(_ll(l.area)), [l]);
 
     final selected = [
       for (final l in items)
@@ -277,7 +305,6 @@ class _MapViewState extends State<_MapView> with SingleTickerProviderStateMixin 
         }
       }
     }
-    // Anything hidden under the selected pin is folded into it as "+N".
     if (selected.isNotEmpty) {
       final sel = selected.first;
       final under = groups.where((g) => (g.screen - sel.screen).distance < radius).toList();
@@ -291,72 +318,23 @@ class _MapViewState extends State<_MapView> with SingleTickerProviderStateMixin 
 }
 
 class _PinGroup {
-  _PinGroup(this.screen, this.canvas, this.items);
+  _PinGroup(this.screen, this.items);
 
-  final Offset screen, canvas;
+  final Offset screen;
   final List<Listing> items;
 
-  /// Centroid weighted by item count.
+  /// Average of the members' area centres.
+  LatLng get point {
+    final first = items.first;
+    if (items.length == 1) return _ll(first.area);
+    final lat = items.map((l) => l.lat).reduce((a, b) => a + b) / items.length;
+    final lng = items.map((l) => l.lng).reduce((a, b) => a + b) / items.length;
+    return LatLng(lat, lng);
+  }
+
   _PinGroup merge(_PinGroup o) {
     final n = items.length, k = o.items.length;
-    Offset mid(Offset a, Offset b) => (a * n.toDouble() + b * k.toDouble()) / (n + k).toDouble();
-    return _PinGroup(mid(screen, o.screen), mid(canvas, o.canvas), [...items, ...o.items]);
-  }
-}
-
-class _CityDrawing extends StatelessWidget {
-  const _CityDrawing();
-
-  @override
-  Widget build(BuildContext context) {
-    final ts = context.ts;
-    return ExcludeSemantics(
-      child: LayoutBuilder(
-        builder: (context, c) {
-          final w = c.maxWidth, h = c.maxHeight;
-          Widget block(double l, double t, double bw, double bh, Color color, {double r = 0, double angle = 0}) =>
-              Positioned(
-                left: l * w,
-                top: t * h,
-                width: bw * w,
-                height: bh,
-                child: Transform.rotate(
-                  angle: angle,
-                  child: Container(
-                    decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(r)),
-                  ),
-                ),
-              );
-          Widget vRoad(double l, double width, {double angle = 0}) => Positioned(
-            left: l * w,
-            top: -40,
-            bottom: -40,
-            width: width,
-            child: Transform.rotate(
-              angle: angle,
-              child: ColoredBox(color: ts.road),
-            ),
-          );
-          return Container(
-            color: ts.map,
-            child: Stack(
-              clipBehavior: Clip.hardEdge,
-              children: [
-                block(-0.1, 0.56, 1.3, 70, ts.water, angle: -0.21),
-                block(0.08, 0.30, 0.33, 110, ts.park, r: 28),
-                block(0.64, 0.70, 0.31, 90, ts.park, r: 24),
-                block(-0.05, 0.24, 1.1, 14, ts.road, angle: 0.14),
-                block(-0.05, 0.47, 1.1, 10, ts.road),
-                block(-0.05, 0.73, 1.1, 10, ts.road, angle: -0.07),
-                vRoad(0.31, 12),
-                vRoad(0.69, 10, angle: 0.1),
-                vRoad(0.5, 8),
-              ],
-            ),
-          );
-        },
-      ),
-    );
+    return _PinGroup((screen * n.toDouble() + o.screen * k.toDouble()) / (n + k).toDouble(), [...items, ...o.items]);
   }
 }
 
@@ -616,22 +594,18 @@ class _TypeToggle extends StatelessWidget {
 }
 
 class _PreviewCard extends StatelessWidget {
-  const _PreviewCard({required this.listing, required this.onTap});
+  const _PreviewCard({required this.listing, required this.distance, required this.onTap});
 
   final Listing listing;
+  final double distance;
   final VoidCallback onTap;
-
-  static String _distance(double m) {
-    if (m < 1000) return '${(m / 50).round() * 50} m';
-    return '${(m / 1000).toStringAsFixed(1).replaceAll('.', ',')} km';
-  }
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final meta =
         '${listing.areaName.split(',').first} · ${TDate.relative(listing.happenedAt)} · '
-        '${_distance(MapCubit.distanceTo(listing))}';
+        '${formatDistance(distance)}';
     return _Floating(
       radius: TRadius.lg,
       child: InkWell(
@@ -644,6 +618,7 @@ class _PreviewCard extends StatelessWidget {
               PhotoPlaceholder(
                 icon: listing.category.icon,
                 tint: listing.tint,
+                path: listing.photoAt(0),
                 width: 132,
                 height: 132,
                 radius: 10,

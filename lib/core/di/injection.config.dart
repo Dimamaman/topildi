@@ -10,10 +10,17 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 
+import 'package:flutter_secure_storage/flutter_secure_storage.dart' as _i558;
 import 'package:get_it/get_it.dart' as _i174;
 import 'package:injectable/injectable.dart' as _i526;
+import 'package:shared_preferences/shared_preferences.dart' as _i460;
+import 'package:topildi/core/location/location_service.dart' as _i305;
+import 'package:topildi/core/map/map_tiles.dart' as _i297;
+import 'package:topildi/core/media/app_dirs.dart' as _i706;
+import 'package:topildi/core/media/photo_picker.dart' as _i688;
 import 'package:topildi/core/network/network_info.dart' as _i263;
 import 'package:topildi/core/session/session.dart' as _i554;
+import 'package:topildi/core/storage/stores.dart' as _i1037;
 import 'package:topildi/core/theme/theme_cubit.dart' as _i271;
 import 'package:topildi/features/auth/data/repositories/auth_repository_impl.dart'
     as _i597;
@@ -127,15 +134,18 @@ import 'package:topildi/features/profile/domain/usecases/profile_usecases.dart'
 import 'package:topildi/features/profile/presentation/cubit/profile_cubit.dart'
     as _i533;
 
+const String _test = 'test';
+const String _prod = 'prod';
+
 extension GetItInjectableX on _i174.GetIt {
   // initializes the registration of main-scope dependencies inside of GetIt
-  _i174.GetIt init({
+  Future<_i174.GetIt> init({
     String? environment,
     _i526.EnvironmentFilter? environmentFilter,
-  }) {
+  }) async {
     final gh = _i526.GetItHelper(this, environment, environmentFilter);
-    gh.lazySingleton<_i554.Session>(() => _i554.Session());
-    gh.lazySingleton<_i271.ThemeCubit>(() => _i271.ThemeCubit());
+    final appDirsModule = _$AppDirsModule();
+    final storageModule = _$StorageModule();
     gh.lazySingleton<_i584.ChatMockDataSource>(
       () => _i584.ChatMockDataSource(),
     );
@@ -148,18 +158,94 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i669.NotificationMockDataSource>(
       () => _i669.NotificationMockDataSource(),
     );
-    gh.lazySingleton<_i263.NetworkInfo>(() => _i263.AlwaysOnlineNetworkInfo());
+    gh.lazySingleton<_i688.PhotoPicker>(
+      () => _i688.FakePhotoPicker(),
+      registerFor: {_test},
+    );
+    gh.lazySingleton<_i305.LocationService>(
+      () => _i305.FakeLocationService(),
+      registerFor: {_test},
+    );
+    gh.lazySingleton<_i1037.KeyValueStore>(
+      () => _i1037.MemoryKeyValueStore(),
+      registerFor: {_test},
+    );
+    gh.lazySingleton<_i305.Geocoder>(
+      () => _i305.FakeGeocoder(),
+      registerFor: {_test},
+    );
+    gh.lazySingleton<_i297.MapTileConfig>(
+      () => _i297.NoTiles(),
+      registerFor: {_test},
+    );
+    gh.lazySingleton<_i1037.SecureStore>(
+      () => _i1037.MemorySecureStore(),
+      registerFor: {_test},
+    );
+    gh.lazySingleton<_i263.NetworkInfo>(
+      () => _i263.AlwaysOnlineNetworkInfo(),
+      registerFor: {_test},
+    );
+    gh.factory<_i706.AppDirs>(
+      () => appDirsModule.testDirs,
+      registerFor: {_test},
+    );
+    gh.lazySingleton<_i263.NetworkInfo>(
+      () => _i263.ConnectivityNetworkInfo(),
+      registerFor: {_prod},
+    );
+    await gh.factoryAsync<_i706.AppDirs>(
+      () => appDirsModule.dirs,
+      registerFor: {_prod},
+      preResolve: true,
+    );
+    await gh.factoryAsync<_i460.SharedPreferences>(
+      () => storageModule.prefs,
+      registerFor: {_prod},
+      preResolve: true,
+    );
+    gh.factory<_i558.FlutterSecureStorage>(
+      () => storageModule.secureStorage,
+      registerFor: {_prod},
+    );
+    gh.lazySingleton<_i305.LocationService>(
+      () => _i305.DeviceLocationService(),
+      registerFor: {_prod},
+    );
+    gh.lazySingleton<_i297.MapTileConfig>(
+      () => _i297.NetworkTiles(),
+      registerFor: {_prod},
+    );
+    gh.lazySingleton<_i688.PhotoPicker>(
+      () => _i688.DevicePhotoPicker(gh<_i706.AppDirs>()),
+      registerFor: {_prod},
+    );
+    gh.lazySingleton<_i305.Geocoder>(
+      () => _i305.DeviceGeocoder(),
+      registerFor: {_prod},
+    );
+    gh.lazySingleton<_i1037.SecureStore>(
+      () => _i1037.DeviceSecureStore(gh<_i558.FlutterSecureStorage>()),
+      registerFor: {_prod},
+    );
     gh.lazySingleton<_i1040.NotificationRepository>(
       () => _i985.NotificationRepositoryImpl(
         gh<_i669.NotificationMockDataSource>(),
         gh<_i263.NetworkInfo>(),
       ),
     );
+    gh.lazySingleton<_i1037.KeyValueStore>(
+      () => _i1037.PrefsKeyValueStore(gh<_i460.SharedPreferences>()),
+      registerFor: {_prod},
+    );
     gh.lazySingleton<_i856.ListingRepository>(
       () => _i786.ListingRepositoryImpl(
         gh<_i904.ListingMockDataSource>(),
         gh<_i263.NetworkInfo>(),
       ),
+    );
+    gh.lazySingleton<_i271.ThemeCubit>(
+      () => _i271.ThemeCubit(gh<_i1037.KeyValueStore>()),
     );
     gh.factory<_i445.GetListingDetail>(
       () => _i445.GetListingDetail(gh<_i856.ListingRepository>()),
@@ -173,12 +259,51 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i592.WatchListings>(
       () => _i592.WatchListings(gh<_i856.ListingRepository>()),
     );
-    gh.factory<_i446.MapCubit>(
-      () =>
-          _i446.MapCubit(gh<_i619.GetMapListings>(), gh<_i592.WatchListings>()),
-    );
     gh.factory<_i534.FiltersCubit>(
       () => _i534.FiltersCubit(gh<_i1022.GetListings>()),
+    );
+    gh.factory<_i516.FeedCubit>(
+      () =>
+          _i516.FeedCubit(gh<_i1022.GetListings>(), gh<_i592.WatchListings>()),
+    );
+    gh.factory<_i446.MapCubit>(
+      () => _i446.MapCubit(
+        gh<_i619.GetMapListings>(),
+        gh<_i305.LocationService>(),
+        gh<_i592.WatchListings>(),
+      ),
+    );
+    gh.factory<_i582.GetNotifications>(
+      () => _i582.GetNotifications(gh<_i1040.NotificationRepository>()),
+    );
+    gh.factory<_i582.MarkAllNotificationsRead>(
+      () => _i582.MarkAllNotificationsRead(gh<_i1040.NotificationRepository>()),
+    );
+    gh.factory<_i582.MarkNotificationRead>(
+      () => _i582.MarkNotificationRead(gh<_i1040.NotificationRepository>()),
+    );
+    gh.factory<_i582.WatchUnreadNotifications>(
+      () => _i582.WatchUnreadNotifications(gh<_i1040.NotificationRepository>()),
+    );
+    gh.factory<_i567.NotificationsCubit>(
+      () => _i567.NotificationsCubit(
+        gh<_i582.GetNotifications>(),
+        gh<_i582.MarkAllNotificationsRead>(),
+        gh<_i582.MarkNotificationRead>(),
+      ),
+    );
+    gh.lazySingleton<_i554.Session>(
+      () => _i554.Session(
+        gh<_i1037.KeyValueStore>(),
+        gh<_i1037.SecureStore>(),
+        gh<_i706.AppDirs>(),
+      ),
+    );
+    gh.factory<_i567.NotificationBadgeCubit>(
+      () => _i567.NotificationBadgeCubit(gh<_i582.WatchUnreadNotifications>()),
+    );
+    gh.factory<_i64.DetailCubit>(
+      () => _i64.DetailCubit(gh<_i445.GetListingDetail>(), gh<_i554.Session>()),
     );
     gh.lazySingleton<_i28.ClaimRepository>(
       () => _i763.ClaimRepositoryImpl(
@@ -204,36 +329,12 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i774.SubmitClaim>(
       () => _i774.SubmitClaim(gh<_i28.ClaimRepository>()),
     );
-    gh.lazySingleton<_i749.ProfileRepository>(
-      () => _i708.ProfileRepositoryImpl(
-        gh<_i904.ListingMockDataSource>(),
-        gh<_i283.ClaimMockDataSource>(),
-        gh<_i554.Session>(),
-        gh<_i263.NetworkInfo>(),
-      ),
-    );
-    gh.factory<_i516.FeedCubit>(
-      () =>
-          _i516.FeedCubit(gh<_i1022.GetListings>(), gh<_i592.WatchListings>()),
-    );
     gh.lazySingleton<_i762.CreateListingRepository>(
       () => _i434.CreateListingRepositoryImpl(
         gh<_i904.ListingMockDataSource>(),
         gh<_i263.NetworkInfo>(),
         gh<_i554.Session>(),
       ),
-    );
-    gh.factory<_i582.GetNotifications>(
-      () => _i582.GetNotifications(gh<_i1040.NotificationRepository>()),
-    );
-    gh.factory<_i582.MarkAllNotificationsRead>(
-      () => _i582.MarkAllNotificationsRead(gh<_i1040.NotificationRepository>()),
-    );
-    gh.factory<_i582.MarkNotificationRead>(
-      () => _i582.MarkNotificationRead(gh<_i1040.NotificationRepository>()),
-    );
-    gh.factory<_i582.WatchUnreadNotifications>(
-      () => _i582.WatchUnreadNotifications(gh<_i1040.NotificationRepository>()),
     );
     gh.lazySingleton<_i679.AuthRepository>(
       () => _i597.AuthRepositoryImpl(
@@ -264,6 +365,15 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i554.Session>(),
       ),
     );
+    gh.lazySingleton<_i749.ProfileRepository>(
+      () => _i708.ProfileRepositoryImpl(
+        gh<_i904.ListingMockDataSource>(),
+        gh<_i283.ClaimMockDataSource>(),
+        gh<_i554.Session>(),
+        gh<_i263.NetworkInfo>(),
+        gh<_i1037.KeyValueStore>(),
+      ),
+    );
     gh.factory<_i468.GetChatThread>(
       () => _i468.GetChatThread(gh<_i956.ChatRepository>()),
     );
@@ -284,13 +394,6 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.factory<_i956.WatchChats>(
       () => _i956.WatchChats(gh<_i956.ChatRepository>()),
-    );
-    gh.factory<_i567.NotificationsCubit>(
-      () => _i567.NotificationsCubit(
-        gh<_i582.GetNotifications>(),
-        gh<_i582.MarkAllNotificationsRead>(),
-        gh<_i582.MarkNotificationRead>(),
-      ),
     );
     gh.factory<_i480.SignInCubit>(
       () => _i480.SignInCubit(
@@ -321,18 +424,12 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i905.MarkReturned>(),
       ),
     );
-    gh.factory<_i567.NotificationBadgeCubit>(
-      () => _i567.NotificationBadgeCubit(gh<_i582.WatchUnreadNotifications>()),
-    );
     gh.factory<_i64.CreateFlowCubit>(
       () => _i64.CreateFlowCubit(gh<_i113.PostListing>()),
     );
     gh.factory<_i176.ClaimCubit>(
       () =>
           _i176.ClaimCubit(gh<_i164.GetClaimTarget>(), gh<_i774.SubmitClaim>()),
-    );
-    gh.factory<_i64.DetailCubit>(
-      () => _i64.DetailCubit(gh<_i445.GetListingDetail>(), gh<_i554.Session>()),
     );
     gh.factory<_i573.ClaimsCubit>(
       () => _i573.ClaimsCubit(
@@ -362,3 +459,7 @@ extension GetItInjectableX on _i174.GetIt {
     return this;
   }
 }
+
+class _$AppDirsModule extends _i706.AppDirsModule {}
+
+class _$StorageModule extends _i1037.StorageModule {}

@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 
+import '../../../../core/location/geo_point.dart';
 import '../../../listing/domain/entities/listing.dart';
 
 enum DraftDay { today, yesterday, other }
@@ -9,12 +10,14 @@ enum DraftDay { today, yesterday, other }
 class CreateDraft extends Equatable {
   const CreateDraft({
     this.type = ListingType.found,
-    this.photoTints = const [],
+    this.photos = const [],
     this.title = '',
     this.category,
     this.description = '',
     this.hiddenDetail = '',
     this.areaName,
+    this.point,
+    this.district,
     this.day = DraftDay.today,
     this.date,
     this.hour = 9,
@@ -26,14 +29,18 @@ class CreateDraft extends Equatable {
 
   final ListingType type;
 
-  /// Placeholder photos (tint indexes) until a real picker exists.
-  final List<int> photoTints;
+  /// Local paths of picked photos; the first one is the main photo.
+  final List<String> photos;
   final String title;
   final ItemCategory? category;
   final String description, hiddenDetail;
 
   /// Approximate (~300 m) area name chosen on the map.
   final String? areaName;
+
+  /// Centre of the chosen ~300 m cell (already approximated).
+  final GeoPoint? point;
+  final String? district;
   final DraftDay day;
 
   /// Explicit date when [day] is [DraftDay.other].
@@ -53,12 +60,14 @@ class CreateDraft extends Equatable {
 
   CreateDraft copyWith({
     ListingType? type,
-    List<int>? photoTints,
+    List<String>? photos,
     String? title,
     ItemCategory? category,
     String? description,
     String? hiddenDetail,
     String? areaName,
+    GeoPoint? point,
+    String? district,
     DraftDay? day,
     DateTime? date,
     int? hour,
@@ -66,12 +75,14 @@ class CreateDraft extends Equatable {
   }) =>
       CreateDraft(
         type: type ?? this.type,
-        photoTints: photoTints ?? this.photoTints,
+        photos: photos ?? this.photos,
         title: title ?? this.title,
         category: category ?? this.category,
         description: description ?? this.description,
         hiddenDetail: hiddenDetail ?? this.hiddenDetail,
         areaName: areaName ?? this.areaName,
+        point: point ?? this.point,
+        district: district ?? this.district,
         day: day ?? this.day,
         date: date ?? this.date,
         hour: hour ?? this.hour,
@@ -80,7 +91,7 @@ class CreateDraft extends Equatable {
 
   @override
   List<Object?> get props =>
-      [type, photoTints, title, category, description, hiddenDetail, areaName, day, date, hour, minute];
+      [type, photos, title, category, description, hiddenDetail, areaName, point, district, day, date, hour, minute];
 }
 
 /// Field-level validation for step 2 and 3. Messages are user-facing.
@@ -93,7 +104,7 @@ abstract final class DraftValidator {
   static String? hiddenDetail(CreateDraft d) =>
       d.isFound && d.hiddenDetail.trim().length < 5 ? 'Yashirin belgini yozing: egasini shu orqali tekshirasiz' : null;
 
-  static String? area(CreateDraft d) => d.areaName == null ? 'Xaritada joyni belgilang' : null;
+  static String? area(CreateDraft d) => d.areaName == null || d.point == null ? 'Xaritada joyni belgilang' : null;
 
   static bool detailsValid(CreateDraft d) => title(d) == null && category(d) == null && hiddenDetail(d) == null;
 

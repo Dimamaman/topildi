@@ -15,6 +15,7 @@ class ListingCard extends StatelessWidget {
     required this.isFound,
     required this.icon,
     this.tint = 0,
+    this.imagePath,
     this.trailingBadge,
     this.onTap,
   });
@@ -23,6 +24,7 @@ class ListingCard extends StatelessWidget {
   final bool isFound;
   final IconData icon;
   final int tint;
+  final String? imagePath;
   final Widget? trailingBadge;
   final VoidCallback? onTap;
 
@@ -39,7 +41,7 @@ class ListingCard extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              PhotoPlaceholder(icon: icon, tint: tint, width: TSize.cardPhoto, height: TSize.cardPhoto),
+              PhotoPlaceholder(icon: icon, tint: tint, path: imagePath, width: TSize.cardPhoto, height: TSize.cardPhoto),
               const SizedBox(width: 14),
               Expanded(
                 child: Padding(

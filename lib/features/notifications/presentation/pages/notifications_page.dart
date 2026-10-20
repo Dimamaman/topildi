@@ -10,6 +10,7 @@ import '../../../../core/theme/topildi_theme.dart';
 import '../../../../core/utils/date_format.dart';
 import '../../../../core/view_state.dart';
 import '../../../../core/widgets/state_views.dart';
+import '../../../../core/widgets/t_refresh_scroll_view.dart';
 import '../../domain/entities/app_notification.dart';
 import '../cubit/notifications_cubit.dart';
 
@@ -38,7 +39,9 @@ class _NotificationsView extends StatelessWidget {
             child: Material(
               color: cs.surfaceContainerLowest,
               child: Container(
-                decoration: BoxDecoration(border: Border(bottom: BorderSide(color: cs.outlineVariant))),
+                decoration: BoxDecoration(
+                  border: Border(bottom: BorderSide(color: cs.outlineVariant)),
+                ),
                 child: SafeArea(
                   bottom: false,
                   child: SizedBox(
@@ -54,8 +57,11 @@ class _NotificationsView extends StatelessWidget {
                           ),
                           const SizedBox(width: 4),
                           const Expanded(
-                            child: Text('Bildirishnomalar',
-                                overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
+                            child: Text(
+                              'Bildirishnomalar',
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+                            ),
                           ),
                           if (hasUnread) TextButton(onPressed: cubit.markAllRead, child: const Text('Oʻqildi')),
                         ],
@@ -69,17 +75,18 @@ class _NotificationsView extends StatelessWidget {
           body: switch (state) {
             ViewLoading() => const RowsSkeleton(),
             ViewEmpty() => EmptyState(
-                icon: Symbols.notifications_rounded,
-                title: 'Yangi xabar yoʻq',
-                body: 'Mos eʼlon yoki yangi soʻrov chiqsa, shu yerda koʻrasiz.',
-                cta: 'Sozlamalar',
-                onCta: () => context.go(Routes.profile),
-              ),
-            ViewError(:final isOffline) => isOffline ? OfflineState(onRetry: cubit.load) : ErrorState(onRetry: cubit.load),
-            ViewLoaded(:final data) => RefreshIndicator(
-                onRefresh: () => cubit.load(silent: true),
-                child: ListView(children: _grouped(context, data)),
-              ),
+              icon: Symbols.notifications_rounded,
+              title: 'Yangi xabar yoʻq',
+              body: 'Mos eʼlon yoki yangi soʻrov chiqsa, shu yerda koʻrasiz.',
+              cta: 'Sozlamalar',
+              onCta: () => context.go(Routes.profile),
+            ),
+            ViewError(:final isOffline) =>
+              isOffline ? OfflineState(onRetry: cubit.load) : ErrorState(onRetry: cubit.load),
+            ViewLoaded(:final data) => TRefreshScrollView(
+              onRefresh: () => cubit.load(silent: true),
+              slivers: [SliverList.list(children: _grouped(context, data))],
+            ),
           },
         );
       },
@@ -103,7 +110,10 @@ class _NotificationsView extends StatelessWidget {
             header: true,
             child: Padding(
               padding: const EdgeInsets.fromLTRB(TSpace.screen, TSpace.md, TSpace.screen, 6),
-              child: Text(g.key, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: cs.onSurfaceVariant)),
+              child: Text(
+                g.key,
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: cs.onSurfaceVariant),
+              ),
             ),
           ),
           for (final n in g.value) _Row(n: n),
@@ -177,8 +187,14 @@ class _Row extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(n.text,
-                          style: TextStyle(fontSize: 15, height: 21 / 15, fontWeight: unread ? FontWeight.w600 : FontWeight.w400)),
+                      Text(
+                        n.text,
+                        style: TextStyle(
+                          fontSize: 15,
+                          height: 21 / 15,
+                          fontWeight: unread ? FontWeight.w600 : FontWeight.w400,
+                        ),
+                      ),
                       const SizedBox(height: 4),
                       Text(_time(n.createdAt), style: TextStyle(fontSize: 13, color: cs.onSurfaceVariant)),
                     ],

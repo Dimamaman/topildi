@@ -66,5 +66,11 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>NSCameraUsageDescription</key>
+	<string>Topilgan buyumni suratga olish uchun kamera kerak.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Eʼlon yoki dalil uchun rasm tanlash uchun galereyaga ruxsat kerak.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Yaqin atrofdagi eʼlonlarni koʻrsatish va taxminiy hududni belgilash uchun joylashuvingiz kerak. Aniq joyingiz boshqalarga koʻrsatilmaydi.</string>
 </dict>
 </plist>

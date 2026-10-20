@@ -2,10 +2,17 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:go_router/go_router.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
 import '../../../../app/routes.dart';
+import '../../../../core/di/injection.dart';
+import '../../../../core/location/geo_point.dart';
+import '../../../../core/location/location_service.dart';
+import '../../../../core/map/map_tiles.dart';
+import '../../../../core/widgets/t_feedback.dart';
 import '../../../../core/theme/topildi_surfaces.dart';
 import '../../../../core/theme/topildi_theme.dart';
 import '../../../../core/utils/date_format.dart';
@@ -27,26 +34,56 @@ class CreateLocationPage extends StatefulWidget {
 }
 
 class _CreateLocationPageState extends State<CreateLocationPage> {
-  // Mock areas until a real map/geocoder is wired in.
-  static const _areas = ['Chilonzor-9, metro bekati yonida', 'Chilonzor-7, bozor yonida', 'Novza, metro chiqishi'];
-  int _areaIndex = 0;
-
   late final CreateFlowCubit _cubit = context.read<CreateFlowCubit>();
+  final _map = MapController();
+  final _location = getIt<LocationService>();
+  final _geocoder = getIt<Geocoder>();
+  late GeoPoint _center = _cubit.state.draft.point ?? GeoPoint.tashkent;
+  bool _resolving = false;
+  int _request = 0;
 
   @override
   void initState() {
     super.initState();
-    final current = _cubit.state.draft.areaName;
-    if (current == null) {
-      _cubit.setArea(_areas.first);
-    } else {
-      _areaIndex = math.max(0, _areas.indexOf(current));
+    if (_cubit.state.draft.point == null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _locate(quiet: true));
     }
   }
 
-  void _moveArea() {
-    setState(() => _areaIndex = (_areaIndex + 1) % _areas.length);
-    _cubit.setArea(_areas[_areaIndex]);
+  @override
+  void dispose() {
+    _map.dispose();
+    super.dispose();
+  }
+
+  Future<void> _locate({bool quiet = false}) async {
+    final r = await _location.current();
+    if (!mounted) return;
+    r.match(
+      (problem) {
+        // No permission: start from the city centre; the user can still pan.
+        if (!quiet) TFeedback.error(context, problem.message);
+        _resolve(_center);
+      },
+      (g) {
+        _map.move(LatLng(g.lat, g.lng), 16);
+        _resolve(g);
+      },
+    );
+  }
+
+  /// Snaps the map centre to its ~300 m cell and names it.
+  Future<void> _resolve(GeoPoint center) async {
+    final cell = center.approximate();
+    final id = ++_request;
+    setState(() {
+      _center = center;
+      _resolving = true;
+    });
+    final info = await _geocoder.areaFor(cell);
+    if (!mounted || id != _request) return;
+    setState(() => _resolving = false);
+    _cubit.setArea(info?.name ?? 'Belgilangan hudud', cell, district: info?.district);
   }
 
   Future<void> _pickDate() async {
@@ -62,7 +99,10 @@ class _CreateLocationPageState extends State<CreateLocationPage> {
 
   Future<void> _pickTime() async {
     final d = _cubit.state.draft;
-    final picked = await showTimePicker(context: context, initialTime: TimeOfDay(hour: d.hour, minute: d.minute));
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay(hour: d.hour, minute: d.minute),
+    );
     if (picked != null) _cubit.setTime(picked.hour, picked.minute);
   }
 
@@ -82,7 +122,10 @@ class _CreateLocationPageState extends State<CreateLocationPage> {
           final happened = d.happenedAt(DateTime.now());
           return ListView(
             children: [
-              SizedBox(height: 330, child: _AreaPicker(onMove: _moveArea, onLocate: _moveArea)),
+              SizedBox(
+                height: 330,
+                child: _AreaPicker(controller: _map, initial: _center, onMoved: _resolve, onLocate: _locate),
+              ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: TSpace.screen, vertical: TSpace.md),
                 child: Column(
@@ -94,7 +137,7 @@ class _CreateLocationPageState extends State<CreateLocationPage> {
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            d.areaName ?? 'Joy belgilanmagan',
+                            _resolving ? 'Hudud aniqlanmoqda…' : (d.areaName ?? 'Joy belgilanmagan'),
                             style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                           ),
                         ),
@@ -114,7 +157,11 @@ class _CreateLocationPageState extends State<CreateLocationPage> {
                     Wrap(
                       spacing: TSpace.xs,
                       children: [
-                        TChip(label: 'Bugun', selected: d.day == DraftDay.today, onTap: () => _cubit.setDay(DraftDay.today)),
+                        TChip(
+                          label: 'Bugun',
+                          selected: d.day == DraftDay.today,
+                          onTap: () => _cubit.setDay(DraftDay.today),
+                        ),
                         TChip(
                           label: 'Kecha',
                           selected: d.day == DraftDay.yesterday,
@@ -126,9 +173,13 @@ class _CreateLocationPageState extends State<CreateLocationPage> {
                     const SizedBox(height: 6),
                     Row(
                       children: [
-                        Expanded(child: _PickerField(label: 'Sana', value: TDate.dayMonth(happened), onTap: _pickDate)),
+                        Expanded(
+                          child: _PickerField(label: 'Sana', value: TDate.dayMonth(happened), onTap: _pickDate),
+                        ),
                         const SizedBox(width: 10),
-                        Expanded(child: _PickerField(label: 'Taxminiy vaqt', value: TDate.time(happened), onTap: _pickTime)),
+                        Expanded(
+                          child: _PickerField(label: 'Taxminiy vaqt', value: TDate.time(happened), onTap: _pickTime),
+                        ),
                       ],
                     ),
                   ],
@@ -157,7 +208,10 @@ class _PickerField extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     return Material(
       color: cs.surfaceContainerLowest,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(TRadius.md), side: BorderSide(color: cs.outline)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(TRadius.md),
+        side: BorderSide(color: cs.outline),
+      ),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: onTap,
@@ -180,95 +234,86 @@ class _PickerField extends StatelessWidget {
   }
 }
 
-/// Stylised map with a fixed ~300 m area circle in the centre.
-/// Tapping/dragging the map simulates moving the area.
+/// Interactive map; the ~300 m area stays fixed in the middle while the
+/// user pans underneath it.
 class _AreaPicker extends StatelessWidget {
-  const _AreaPicker({required this.onMove, required this.onLocate});
+  const _AreaPicker({required this.controller, required this.initial, required this.onMoved, required this.onLocate});
 
-  final VoidCallback onMove, onLocate;
+  final MapController controller;
+  final GeoPoint initial;
+  final ValueChanged<GeoPoint> onMoved;
+  final VoidCallback onLocate;
 
   @override
   Widget build(BuildContext context) {
-    final ts = context.ts;
     final cs = Theme.of(context).colorScheme;
-    return GestureDetector(
-      onTap: onMove,
-      onPanEnd: (_) => onMove(),
-      child: Container(
-        color: ts.map,
-        child: Stack(
-          clipBehavior: Clip.hardEdge,
-          children: [
-            ExcludeSemantics(
-              child: Stack(
-                children: [
-                  Positioned(
-                    left: 20,
-                    top: 40,
-                    child: Container(
-                      width: 120,
-                      height: 90,
-                      decoration: BoxDecoration(color: ts.park, borderRadius: BorderRadius.circular(24)),
-                    ),
-                  ),
-                  Positioned(
-                    left: -20,
-                    right: -20,
-                    top: 230,
-                    child: Transform.rotate(angle: -0.14, child: Container(height: 50, color: ts.water)),
-                  ),
-                  Positioned(
-                    left: -20,
-                    right: -20,
-                    top: 150,
-                    child: Transform.rotate(angle: 0.09, child: Container(height: 12, color: ts.road)),
-                  ),
-                  Positioned(top: 0, bottom: 0, left: 200, width: 12, child: ColoredBox(color: ts.road)),
-                ],
-              ),
+    return Stack(
+      children: [
+        Positioned.fill(
+          child: FlutterMap(
+            mapController: controller,
+            options: MapOptions(
+              initialCenter: LatLng(initial.lat, initial.lng),
+              initialZoom: 15.5,
+              minZoom: 12,
+              maxZoom: 18,
+              backgroundColor: context.ts.map,
+              interactionOptions: const InteractionOptions(flags: InteractiveFlag.all & ~InteractiveFlag.rotate),
+              onMapEvent: (e) {
+                if (e is MapEventMoveEnd || e is MapEventFlingAnimationEnd || e is MapEventDoubleTapZoomEnd) {
+                  onMoved(GeoPoint(e.camera.center.latitude, e.camera.center.longitude));
+                }
+              },
             ),
-            Center(
-              child: CustomPaint(
-                painter: _DashedCirclePainter(fill: cs.primary.withValues(alpha: 0.14), stroke: cs.primary),
-                child: SizedBox.square(
-                  dimension: 160,
-                  child: Icon(Symbols.location_on_rounded, size: 40, color: cs.primary, fill: 1),
-                ),
-              ),
-            ),
-            Positioned(
-              top: 14,
-              left: 0,
-              right: 0,
-              child: Center(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  decoration: BoxDecoration(color: cs.inverseSurface, borderRadius: BorderRadius.circular(18)),
-                  child: Text(
-                    'Xaritani surib, joyni belgilang',
-                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: cs.onInverseSurface),
-                  ),
-                ),
-              ),
-            ),
-            Positioned(
-              right: 14,
-              bottom: 14,
-              child: Material(
-                color: cs.surfaceContainerLowest,
-                elevation: 2,
-                shadowColor: cs.scrim.withValues(alpha: 0.3),
-                borderRadius: BorderRadius.circular(TRadius.md),
-                child: IconButton(
-                  tooltip: 'Mening joylashuvim',
-                  onPressed: onLocate,
-                  icon: Icon(Symbols.my_location_rounded, color: cs.primary),
-                ),
-              ),
-            ),
-          ],
+            children: const [TopildiTileLayer()],
+          ),
         ),
-      ),
+        // Fixed centre overlay: dashed ~300 m circle + pin.
+        IgnorePointer(
+          child: Center(
+            child: CustomPaint(
+              painter: _DashedCirclePainter(fill: cs.primary.withValues(alpha: 0.14), stroke: cs.primary),
+              child: SizedBox.square(
+                dimension: 160,
+                child: Icon(Symbols.location_on_rounded, size: 40, color: cs.primary, fill: 1),
+              ),
+            ),
+          ),
+        ),
+        Positioned(
+          top: 14,
+          left: 0,
+          right: 0,
+          child: IgnorePointer(
+            child: Center(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(color: cs.inverseSurface, borderRadius: BorderRadius.circular(18)),
+                child: Text(
+                  'Xaritani surib, joyni belgilang',
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: cs.onInverseSurface),
+                ),
+              ),
+            ),
+          ),
+        ),
+        const Positioned(left: 0, bottom: 0, child: OsmAttribution()),
+        Positioned(
+          right: 14,
+          bottom: 14,
+          child: Material(
+            color: cs.surfaceContainerLowest,
+            elevation: 2,
+            shadowColor: cs.scrim.withValues(alpha: 0.3),
+            borderRadius: BorderRadius.circular(TRadius.md),
+            child: IconButton(
+              tooltip: 'Mening joylashuvim',
+              onPressed: onLocate,
+              icon: Icon(Symbols.my_location_rounded, color: cs.primary),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

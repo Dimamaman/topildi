@@ -9,6 +9,7 @@ import '../../../../core/error/failure.dart';
 import '../../../../core/theme/topildi_surfaces.dart';
 import '../../../../core/theme/topildi_theme.dart';
 import '../../../../core/view_state.dart';
+import '../../../../core/widgets/photo_placeholder.dart';
 import '../../../../core/widgets/state_views.dart';
 import '../../../../core/widgets/status_badge.dart';
 import '../../../../core/widgets/t_avatar.dart';
@@ -278,6 +279,15 @@ class _ClaimCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(claim.answer, style: const TextStyle(fontSize: 15, height: 22 / 15)),
+                  if (claim.proofPath != null) ...[
+                    const SizedBox(height: TSpace.xs),
+                    PhotoPlaceholder(
+                      icon: Symbols.image_rounded,
+                      path: claim.proofPath,
+                      height: 120,
+                      width: double.infinity,
+                    ),
+                  ],
                 ],
               ),
             ),

@@ -1,15 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
+import '../../../../core/location/geo_point.dart';
+import '../../../../core/map/map_tiles.dart';
 import '../../../../core/theme/topildi_surfaces.dart';
 import '../../../../core/theme/topildi_theme.dart';
 
 /// Approximate-area card: stylised map thumbnail + area name + time.
 /// Never shows an exact pin, only the ~300 m area.
 class AreaMapCard extends StatelessWidget {
-  const AreaMapCard({super.key, required this.area, required this.time});
+  const AreaMapCard({super.key, required this.area, required this.time, required this.point});
 
   final String area, time;
+  final GeoPoint point;
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +29,7 @@ class AreaMapCard extends StatelessWidget {
       // Stack sizes to the text column; the map fills the left strip.
       child: Stack(
         children: [
-          const Positioned(left: 0, top: 0, bottom: 0, width: 108, child: MapStub(compact: true)),
+          Positioned(left: 0, top: 0, bottom: 0, width: 108, child: AreaMiniMap(point: point, zoom: 13)),
           Padding(
             padding: const EdgeInsets.fromLTRB(108 + 12, 10, 12, 10),
             child: Column(
@@ -52,53 +57,41 @@ class AreaMapCard extends StatelessWidget {
       );
 }
 
-/// Decorative map placeholder with roads and an approximate-area circle.
-class MapStub extends StatelessWidget {
-  const MapStub({super.key, this.compact = false});
+/// Small non-interactive map with the ~300 m area circle.
+class AreaMiniMap extends StatelessWidget {
+  const AreaMiniMap({super.key, required this.point, this.zoom = 14});
 
-  final bool compact;
+  final GeoPoint point;
+  final double zoom;
 
   @override
   Widget build(BuildContext context) {
-    final ts = context.ts;
     final cs = Theme.of(context).colorScheme;
+    final center = LatLng(point.lat, point.lng);
     return ExcludeSemantics(
-      child: Container(
-        color: ts.map,
-        child: LayoutBuilder(
-          builder: (context, c) {
-            final road = compact ? 6.0 : 10.0;
-            final area = compact ? 44.0 : 140.0;
-            return Stack(
-              children: [
-                Positioned(left: 0, right: 0, top: c.maxHeight * 0.38, height: road, child: ColoredBox(color: ts.road)),
-                Positioned(top: 0, bottom: 0, left: c.maxWidth * 0.37, width: road, child: ColoredBox(color: ts.road)),
-                if (!compact)
-                  Positioned(top: 0, bottom: 0, left: c.maxWidth * 0.72, width: road * 0.8, child: ColoredBox(color: ts.road)),
-                Center(
-                  child: Container(
-                    width: area,
-                    height: area,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: cs.primary.withValues(alpha: 0.16),
-                      border: Border.all(color: cs.primary.withValues(alpha: 0.5), width: 1.5),
-                    ),
-                    alignment: Alignment.center,
-                    child: Container(
-                      width: compact ? 14 : 20,
-                      height: compact ? 14 : 20,
-                      decoration: BoxDecoration(
-                        color: cs.primary,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: cs.surfaceContainerLowest, width: 3),
-                      ),
-                    ),
-                  ),
+      child: IgnorePointer(
+        child: FlutterMap(
+          options: MapOptions(
+            initialCenter: center,
+            initialZoom: zoom,
+            backgroundColor: context.ts.map,
+            interactionOptions: const InteractionOptions(flags: InteractiveFlag.none),
+          ),
+          children: [
+            const TopildiTileLayer(),
+            CircleLayer(
+              circles: [
+                CircleMarker(
+                  point: center,
+                  radius: GeoPoint.areaMeters / 2,
+                  useRadiusInMeter: true,
+                  color: cs.primary.withValues(alpha: 0.18),
+                  borderColor: cs.primary.withValues(alpha: 0.6),
+                  borderStrokeWidth: 1.5,
                 ),
               ],
-            );
-          },
+            ),
+          ],
         ),
       ),
     );

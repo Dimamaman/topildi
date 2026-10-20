@@ -30,11 +30,15 @@ class CreateListingRepositoryImpl implements CreateListingRepository {
         title: draft.title.trim(),
         description: draft.description.trim(),
         areaName: draft.areaName!,
+        // Only the approximate cell centre is stored publicly.
+        lat: draft.point!.approximate().lat,
+        lng: draft.point!.approximate().lng,
+        district: draft.district ?? 'Chilonzor',
         happenedAt: draft.happenedAt(DateTime.now()),
         author: PublicUser(id: _session.userId, displayName: _session.displayName),
         hiddenDetail: draft.hiddenDetail.trim(),
-        photoCount: draft.photoTints.isEmpty ? 1 : draft.photoTints.length,
-        tint: draft.photoTints.isEmpty ? 0 : draft.photoTints.first,
+        photoCount: draft.photos.isEmpty ? 1 : draft.photos.length,
+        photos: draft.photos,
       );
       final saved = await _source.insert(model);
       return right(saved.id);

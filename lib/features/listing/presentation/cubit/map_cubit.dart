@@ -1,10 +1,11 @@
 import 'dart:async';
-import 'dart:math' as math;
 
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 
+import '../../../../core/location/geo_point.dart';
+import '../../../../core/location/location_service.dart';
 import '../../../../core/view_state.dart';
 import '../../domain/entities/listing.dart';
 import '../../domain/usecases/get_map_listings.dart';
@@ -18,7 +19,15 @@ class MapState extends Equatable {
     this.showLost = true,
     this.search = '',
     this.selectedId,
+    this.me = GeoPoint.tashkent,
+    this.hasFix = false,
+    this.locationProblem,
   });
+
+  /// Device position (stays on-device; only used for distances and centring).
+  final GeoPoint me;
+  final bool hasFix;
+  final LocationProblem? locationProblem;
 
   final ViewState<List<Listing>> view;
   final ListingFilter filter;
@@ -56,6 +65,9 @@ class MapState extends Equatable {
     bool? showLost,
     String? search,
     String? Function()? selectedId,
+    GeoPoint? me,
+    bool? hasFix,
+    LocationProblem? locationProblem,
   }) =>
       MapState(
         view: view ?? this.view,
@@ -64,22 +76,25 @@ class MapState extends Equatable {
         showLost: showLost ?? this.showLost,
         search: search ?? this.search,
         selectedId: selectedId != null ? selectedId() : this.selectedId,
+        me: me ?? this.me,
+        hasFix: hasFix ?? this.hasFix,
+        locationProblem: locationProblem,
       );
 
+  double distanceTo(Listing l) => me.distanceTo(l.area);
+
   @override
-  List<Object?> get props => [view, filter, showFound, showLost, search, selectedId];
+  List<Object?> get props => [view, filter, showFound, showLost, search, selectedId, me, hasFix, locationProblem];
 }
 
 @injectable
 class MapCubit extends Cubit<MapState> {
-  MapCubit(this._get, WatchListings watch) : super(const MapState()) {
+  MapCubit(this._get, this._location, WatchListings watch) : super(const MapState()) {
     _sub = watch().listen((_) => load(silent: true));
   }
 
-  /// Mock "my location" (Chilonzor metro) until location permission exists.
-  static const myLat = 41.2856, myLng = 69.2034;
-
   final GetMapListings _get;
+  final LocationService _location;
   late final StreamSubscription<void> _sub;
 
   Future<void> load({bool silent = false}) async {
@@ -97,7 +112,7 @@ class MapCubit extends Cubit<MapState> {
   void selectNearest() {
     final v = state.visible;
     if (v.isEmpty) return emit(state.copyWith(selectedId: () => null));
-    v.sort((a, b) => distanceTo(a).compareTo(distanceTo(b)));
+    v.sort((a, b) => state.distanceTo(a).compareTo(state.distanceTo(b)));
     select(v.first.id);
   }
 
@@ -116,15 +131,24 @@ class MapCubit extends Cubit<MapState> {
     load();
   }
 
-  /// Metres from "my location" to the area centre.
-  static double distanceTo(Listing l) {
-    const r = 6371000.0;
-    double rad(double d) => d * math.pi / 180;
-    final dLat = rad(l.lat - myLat);
-    final dLng = rad(l.lng - myLng);
-    final a = math.pow(math.sin(dLat / 2), 2) + math.cos(rad(myLat)) * math.cos(rad(l.lat)) * math.pow(math.sin(dLng / 2), 2);
-    return 2 * r * math.asin(math.sqrt(a));
+  /// Updates "my location"; returns the fix, or null with [MapState.locationProblem] set.
+  Future<GeoPoint?> locate() async {
+    final r = await _location.current();
+    if (isClosed) return null;
+    return r.match(
+      (p) {
+        emit(state.copyWith(locationProblem: p));
+        return null;
+      },
+      (g) {
+        emit(state.copyWith(me: g, hasFix: true));
+        selectNearest();
+        return g;
+      },
+    );
   }
+
+  Future<void> openLocationSettings() => _location.openSettings();
 
   @override
   Future<void> close() {

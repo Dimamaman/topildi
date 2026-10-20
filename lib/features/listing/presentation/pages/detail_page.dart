@@ -120,7 +120,7 @@ class _Content extends StatelessWidget {
                 style: text.bodyLarge!.copyWith(fontSize: 15, height: 23 / 15, color: cs.secondary),
               ),
               const SizedBox(height: TSpace.sm),
-              AreaMapCard(area: listing.areaName, time: TDate.full(listing.happenedAt)),
+              AreaMapCard(area: listing.areaName, time: TDate.full(listing.happenedAt), point: listing.area),
               const SizedBox(height: TSpace.sm),
               Row(
                 children: [
@@ -173,7 +173,7 @@ class _Gallery extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final ts = context.ts;
-    final count = listing.photoCount;
+    final count = listing.galleryCount;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -185,6 +185,7 @@ class _Gallery extends StatelessWidget {
               PhotoPlaceholder(
                 icon: listing.category.icon,
                 tint: listing.tint + index,
+                path: listing.photoAt(index),
                 height: 236,
                 width: double.infinity,
                 iconSize: 72,
@@ -221,10 +222,17 @@ class _Gallery extends StatelessWidget {
                     child: Container(
                       width: 64,
                       height: 64,
+                      padding: EdgeInsets.all(i == index ? 2 : 1),
                       decoration: BoxDecoration(
-                        color: ts.placeholder(listing.tint + i),
+                        color: i == index ? cs.primary : cs.outlineVariant,
                         borderRadius: BorderRadius.circular(TRadius.sm),
-                        border: Border.all(color: i == index ? cs.primary : cs.outlineVariant, width: i == index ? 2 : 1),
+                      ),
+                      child: PhotoPlaceholder(
+                        icon: listing.category.icon,
+                        tint: listing.tint + i,
+                        path: listing.photoAt(i),
+                        iconSize: 22,
+                        radius: TRadius.sm - 1,
                       ),
                     ),
                   ),

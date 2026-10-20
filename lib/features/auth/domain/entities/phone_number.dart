@@ -32,11 +32,11 @@ class AuthResult extends Equatable {
 }
 
 class ProfileInput extends Equatable {
-  const ProfileInput({required this.firstName, this.lastName = '', this.hasPhoto = false});
+  const ProfileInput({required this.firstName, this.lastName = '', this.photoPath});
 
   final String firstName, lastName;
-  final bool hasPhoto;
+  final String? photoPath;
 
   @override
-  List<Object?> get props => [firstName, lastName, hasPhoto];
+  List<Object?> get props => [firstName, lastName, photoPath];
 }

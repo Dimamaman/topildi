@@ -11,10 +11,13 @@ import '../../domain/repositories/auth_repository.dart';
 /// Mock auth: any 6-digit code except 000000 is accepted.
 @LazySingleton(as: AuthRepository)
 class AuthRepositoryImpl implements AuthRepository {
-  const AuthRepositoryImpl(this._session, this._network);
+  AuthRepositoryImpl(this._session, this._network);
 
   final Session _session;
   final NetworkInfo _network;
+
+  /// Number awaiting SMS verification; persisted only after it is verified.
+  String? _pendingPhone;
 
   static const _latency = Duration(milliseconds: 600);
 
@@ -32,29 +35,29 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   FutureEither<void> requestCode(PhoneNumber phone) => _guard(() async {
         await Future<void>.delayed(_latency);
-        _session.phone = phone.digits;
+        _pendingPhone = phone.digits;
       });
 
   @override
   FutureEither<AuthResult> verifyCode(PhoneNumber phone, String code) => _guard(() async {
         await Future<void>.delayed(_latency);
         if (code == '000000') throw const ValidationFailure('Kod notoʻgʻri. Qayta tekshiring');
-        _session.signedIn = true;
+        await _session.signIn(phone: _pendingPhone ?? phone.digits);
+        _pendingPhone = null;
         return const AuthResult(needsProfile: true);
       });
 
   @override
   FutureEither<AuthResult> signInWithGoogle() => _guard(() async {
         await Future<void>.delayed(_latency);
-        _session.signedIn = true;
+        await _session.signIn();
         return const AuthResult(needsProfile: true);
       });
 
   @override
   FutureEither<void> saveProfile(ProfileInput input) => _guard(() async {
         await Future<void>.delayed(_latency);
-        _session
-          ..firstName = input.firstName.trim()
-          ..lastName = input.lastName.trim();
+        await _session.setName(input.firstName.trim(), input.lastName.trim());
+        await _session.setAvatar(input.photoPath);
       });
 }

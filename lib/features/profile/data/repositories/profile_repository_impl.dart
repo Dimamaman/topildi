@@ -4,6 +4,7 @@ import 'package:injectable/injectable.dart';
 import '../../../../core/error/failure.dart';
 import '../../../../core/network/network_info.dart';
 import '../../../../core/session/session.dart';
+import '../../../../core/storage/stores.dart';
 import '../../../../core/usecase/usecase.dart';
 import '../../../claim/data/datasources/claim_mock_datasource.dart';
 import '../../../listing/data/datasources/listing_mock_datasource.dart';
@@ -13,13 +14,15 @@ import '../../domain/repositories/profile_repository.dart';
 
 @LazySingleton(as: ProfileRepository)
 class ProfileRepositoryImpl implements ProfileRepository {
-  ProfileRepositoryImpl(this._listings, this._claims, this._session, this._network);
+  ProfileRepositoryImpl(this._listings, this._claims, this._session, this._network, this._kv);
 
   final ListingMockDataSource _listings;
   final ClaimMockDataSource _claims;
   final Session _session;
   final NetworkInfo _network;
-  bool _notificationsOn = true;
+  final KeyValueStore _kv;
+
+  bool get _notificationsOn => _kv.getBool(StoreKeys.notificationsOn) ?? true;
 
   @override
   FutureEither<ProfileSummary> getMine() async {
@@ -43,6 +46,7 @@ class ProfileRepositoryImpl implements ProfileRepository {
         returned: returned.where((m) => m.listing.isFound).toList(),
         gotBack: returned.where((m) => !m.listing.isFound).length,
         notificationsOn: _notificationsOn,
+        avatarPath: _session.avatarPath,
       ));
     } catch (e) {
       return left(ServerFailure(e.toString()));
@@ -51,15 +55,13 @@ class ProfileRepositoryImpl implements ProfileRepository {
 
   @override
   FutureEither<void> setNotifications(bool on) async {
-    _notificationsOn = on;
+    await _kv.setBool(StoreKeys.notificationsOn, on);
     return right(null);
   }
 
   @override
   FutureEither<void> signOut() async {
-    _session
-      ..signedIn = false
-      ..phone = null;
+    await _session.signOut();
     return right(null);
   }
 }

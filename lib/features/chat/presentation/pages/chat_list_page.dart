@@ -10,6 +10,7 @@ import '../../../../core/utils/date_format.dart';
 import '../../../../core/view_state.dart';
 import '../../../../core/widgets/state_views.dart';
 import '../../../../core/widgets/t_avatar.dart';
+import '../../../../core/widgets/t_refresh_scroll_view.dart';
 import '../../domain/entities/chat.dart';
 import '../cubit/chat_list_cubit.dart';
 
@@ -29,7 +30,9 @@ class ChatListPage extends StatelessWidget {
           Material(
             color: cs.surfaceContainerLowest,
             child: Container(
-              decoration: BoxDecoration(border: Border(bottom: BorderSide(color: cs.outlineVariant))),
+              decoration: BoxDecoration(
+                border: Border(bottom: BorderSide(color: cs.outlineVariant)),
+              ),
               child: SafeArea(
                 bottom: false,
                 child: Padding(
@@ -62,20 +65,23 @@ class ChatListPage extends StatelessWidget {
               builder: (context, state) => switch (state) {
                 ViewLoading() => const RowsSkeleton(),
                 ViewEmpty() => EmptyState(
-                    icon: Symbols.chat_bubble_rounded,
-                    title: 'Hali chatlar yoʻq',
-                    body: 'Soʻrov qabul qilingach, topuvchi yoki egasi bilan shu yerda yozishasiz.',
-                    cta: 'Lentani koʻrish',
-                    onCta: () => context.go(Routes.home),
-                  ),
-                ViewError(:final isOffline) => isOffline ? OfflineState(onRetry: cubit.load) : ErrorState(onRetry: cubit.load),
-                ViewLoaded(:final data) => RefreshIndicator(
-                    onRefresh: () => cubit.load(silent: true),
-                    child: ListView.builder(
+                  icon: Symbols.chat_bubble_rounded,
+                  title: 'Hali chatlar yoʻq',
+                  body: 'Soʻrov qabul qilingach, topuvchi yoki egasi bilan shu yerda yozishasiz.',
+                  cta: 'Lentani koʻrish',
+                  onCta: () => context.go(Routes.home),
+                ),
+                ViewError(:final isOffline) =>
+                  isOffline ? OfflineState(onRetry: cubit.load) : ErrorState(onRetry: cubit.load),
+                ViewLoaded(:final data) => TRefreshScrollView(
+                  onRefresh: () => cubit.load(silent: true),
+                  slivers: [
+                    SliverList.builder(
                       itemCount: data.length,
                       itemBuilder: (context, i) => _ChatRow(thread: data[i]),
                     ),
-                  ),
+                  ],
+                ),
               },
             ),
           ),
@@ -106,7 +112,9 @@ class _ChatRow extends StatelessWidget {
         onTap: () => context.push(Routes.chat(thread.id)),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: TSpace.screen, vertical: 14),
-          decoration: BoxDecoration(border: Border(bottom: BorderSide(color: cs.outlineVariant))),
+          decoration: BoxDecoration(
+            border: Border(bottom: BorderSide(color: cs.outlineVariant)),
+          ),
           child: Row(
             children: [
               SizedBox(
@@ -140,8 +148,10 @@ class _ChatRow extends StatelessWidget {
                     Row(
                       children: [
                         Expanded(
-                          child: Text(thread.other.displayName,
-                              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                          child: Text(
+                            thread.other.displayName,
+                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                          ),
                         ),
                         Text(time, style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant)),
                       ],

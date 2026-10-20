@@ -5,5 +5,7 @@ import 'injection.config.dart';
 
 final getIt = GetIt.instance;
 
+/// [environment] is [Environment.prod] in the app and [Environment.test] in
+/// widget tests (in-memory storage, fake device services).
 @InjectableInit()
-void configureDependencies() => getIt.init();
+Future<void> configureDependencies({String environment = Environment.prod}) => getIt.init(environment: environment);

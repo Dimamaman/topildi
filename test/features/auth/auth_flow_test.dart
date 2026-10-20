@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:injectable/injectable.dart';
 import 'package:topildi/app/app.dart';
 import 'package:topildi/core/di/injection.dart';
 import 'package:topildi/core/session/session.dart';
@@ -11,7 +12,7 @@ Future<void> _settle(WidgetTester t) async {
 }
 
 void main() {
-  setUpAll(configureDependencies);
+  setUpAll(() => configureDependencies(environment: Environment.test));
 
   testWidgets('Splash → onboarding → sign in → SMS → profile → feed', (tester) async {
     tester.view.physicalSize = const Size(390 * 3, 844 * 3);

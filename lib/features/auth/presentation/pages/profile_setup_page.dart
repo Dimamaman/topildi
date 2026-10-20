@@ -6,6 +6,8 @@ import 'package:material_symbols_icons/symbols.dart';
 import '../../../../app/routes.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/theme/topildi_theme.dart';
+import '../../../../core/widgets/photo_placeholder.dart';
+import '../../../../core/widgets/photo_source_sheet.dart';
 import '../../../../core/widgets/t_button.dart';
 import '../../../../core/widgets/t_feedback.dart';
 import '../../../../core/widgets/t_input.dart';
@@ -44,6 +46,12 @@ class _ProfileSetupViewState extends State<_ProfileSetupView> {
   late final _cubit = context.read<ProfileSetupCubit>();
   late final _first = TextEditingController(text: _cubit.state.first);
   late final _last = TextEditingController(text: _cubit.state.last);
+
+  Future<void> _changePhoto(ProfileSetupState state) async {
+    if (state.hasPhoto) return _cubit.setPhoto(null);
+    final path = await pickPhoto(context, title: 'Profil rasmi');
+    if (path != null) _cubit.setPhoto(path);
+  }
 
   @override
   void dispose() {
@@ -86,11 +94,11 @@ class _ProfileSetupViewState extends State<_ProfileSetupView> {
             Text('Ismingiz va rasmingiz eʼlonlarda koʻrinadi. Bu ishonchni oshiradi.',
                 style: text.bodyLarge!.copyWith(color: cs.secondary)),
             const SizedBox(height: TSpace.x2l),
-            Center(child: _PhotoPicker(hasPhoto: state.hasPhoto, onTap: cubit.togglePhoto)),
+            Center(child: _PhotoPicker(path: state.photoPath, onTap: () => _changePhoto(state))),
             const SizedBox(height: TSpace.sm),
             Center(
               child: TextButton(
-                onPressed: cubit.togglePhoto,
+                onPressed: () => _changePhoto(state),
                 child: Text(state.hasPhoto ? 'Rasmni olib tashlash' : 'Rasm qoʻshish (ixtiyoriy)'),
               ),
             ),
@@ -128,9 +136,11 @@ class _ProfileSetupViewState extends State<_ProfileSetupView> {
 }
 
 class _PhotoPicker extends StatelessWidget {
-  const _PhotoPicker({required this.hasPhoto, required this.onTap});
+  const _PhotoPicker({required this.path, required this.onTap});
 
-  final bool hasPhoto;
+  final String? path;
+
+  bool get hasPhoto => path != null;
   final VoidCallback onTap;
 
   @override
@@ -154,8 +164,10 @@ class _PhotoPicker extends StatelessWidget {
                   border: Border.all(color: cs.outline, width: 2),
                 ),
                 alignment: Alignment.center,
-                child: Icon(hasPhoto ? Symbols.face_rounded : Symbols.person_rounded,
-                    size: 52, color: hasPhoto ? cs.onPrimaryContainer : cs.onSurfaceVariant),
+                clipBehavior: Clip.antiAlias,
+                child: hasPhoto
+                    ? PhotoPlaceholder(icon: Symbols.face_rounded, path: path, width: 120, height: 120, radius: 60)
+                    : Icon(Symbols.person_rounded, size: 52, color: cs.onSurfaceVariant),
               ),
               Positioned(
                 right: 0,

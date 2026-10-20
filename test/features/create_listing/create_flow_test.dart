@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:injectable/injectable.dart';
 import 'package:topildi/app/app.dart';
 import 'package:topildi/app/routes.dart';
 import 'package:topildi/core/di/injection.dart';
 
 void main() {
-  setUpAll(configureDependencies);
+  setUpAll(() => configureDependencies(environment: Environment.test));
 
   testWidgets('Create flow: type → details → location → review → posted → detail', (tester) async {
     await tester.pumpWidget(const TopildiApp(initialLocation: Routes.home));
@@ -14,6 +15,14 @@ void main() {
     await tester.tap(find.text('Qoʻshish'));
     await tester.pumpAndSettle();
     expect(find.text('Nima boʻldi?'), findsOneWidget);
+
+    // Photo via the (fake) picker: camera/gallery sheet → tile added.
+    await tester.tap(find.text('Qoʻshish').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Galereya'));
+    await tester.pumpAndSettle();
+    expect(find.text('1 / 6'), findsOneWidget);
+    expect(find.text('Asosiy'), findsOneWidget);
 
     await tester.tap(find.text('Keyingi'));
     await tester.pumpAndSettle();

@@ -11,9 +11,10 @@ import '../../../../core/view_state.dart';
 import '../../../../core/widgets/listing_card.dart';
 import '../../../../core/widgets/state_views.dart';
 import '../../../../core/widgets/t_chip.dart';
+import '../../../../core/widgets/t_refresh_scroll_view.dart';
+import '../../../notifications/presentation/cubit/notifications_cubit.dart';
 import '../../domain/entities/listing.dart';
 import '../category_ui.dart';
-import '../../../notifications/presentation/cubit/notifications_cubit.dart';
 import '../cubit/feed_cubit.dart';
 import '../widgets/filters_sheet.dart';
 
@@ -22,10 +23,7 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => getIt<FeedCubit>()..load(),
-      child: const _HomeView(),
-    );
+    return BlocProvider(create: (_) => getIt<FeedCubit>()..load(), child: const _HomeView());
   }
 }
 
@@ -45,22 +43,26 @@ class _HomeView extends StatelessWidget {
                 return switch (state.view) {
                   ViewLoading() => const CardsSkeleton(),
                   ViewEmpty() when !state.filter.isDefault || state.search.isNotEmpty => EmptyState(
-                      icon: Symbols.search_off_rounded,
-                      title: 'Hech narsa topilmadi',
-                      body: 'Filtrlarni oʻzgartiring yoki boshqa soʻz bilan qidiring.',
-                      cta: 'Filtrlarni tozalash',
-                      onCta: cubit.resetFilter,
-                    ),
+                    icon: Symbols.search_off_rounded,
+                    title: 'Hech narsa topilmadi',
+                    body: 'Filtrlarni oʻzgartiring yoki boshqa soʻz bilan qidiring.',
+                    cta: 'Filtrlarni tozalash',
+                    onCta: cubit.resetFilter,
+                  ),
                   ViewEmpty() => EmptyState(
-                      icon: Symbols.inventory_2_rounded,
-                      title: 'Hozircha eʼlon yoʻq',
-                      body: 'Bu hududda hali hech kim eʼlon bermagan. Birinchi boʻling!',
-                      cta: 'Eʼlon berish',
-                      onCta: () => context.push(Routes.create),
-                    ),
+                    icon: Symbols.inventory_2_rounded,
+                    title: 'Hozircha eʼlon yoʻq',
+                    body: 'Bu hududda hali hech kim eʼlon bermagan. Birinchi boʻling!',
+                    cta: 'Eʼlon berish',
+                    onCta: () => context.push(Routes.create),
+                  ),
                   ViewError(:final isOffline) =>
                     isOffline ? OfflineState(onRetry: cubit.load) : ErrorState(onRetry: cubit.load),
-                  ViewLoaded(:final data) => _FeedList(page: data, type: state.type, onRefresh: () => cubit.load(silent: true)),
+                  ViewLoaded(:final data) => _FeedList(
+                    page: data,
+                    type: state.type,
+                    onRefresh: () => cubit.load(silent: true),
+                  ),
                 };
               },
             ),
@@ -91,7 +93,9 @@ class _Header extends StatelessWidget {
     return Material(
       color: cs.surfaceContainerLowest,
       child: Container(
-        decoration: BoxDecoration(border: Border(bottom: BorderSide(color: cs.outlineVariant))),
+        decoration: BoxDecoration(
+          border: Border(bottom: BorderSide(color: cs.outlineVariant)),
+        ),
         child: SafeArea(
           bottom: false,
           child: Padding(
@@ -110,8 +114,14 @@ class _Header extends StatelessWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('Joylashuv',
-                                  style: text.bodySmall!.copyWith(fontSize: 13, fontWeight: FontWeight.w500, color: cs.onSurfaceVariant)),
+                              Text(
+                                'Joylashuv',
+                                style: text.bodySmall!.copyWith(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w500,
+                                  color: cs.onSurfaceVariant,
+                                ),
+                              ),
                               const SizedBox(height: 2),
                               Row(
                                 children: [
@@ -159,9 +169,14 @@ class _Header extends StatelessWidget {
                               fillColor: cs.surfaceContainerHigh,
                               contentPadding: const EdgeInsets.symmetric(horizontal: 14),
                               prefixIcon: Icon(Symbols.search_rounded, size: 20, color: cs.onSurfaceVariant),
-                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(TRadius.md), borderSide: BorderSide.none),
-                              enabledBorder:
-                                  OutlineInputBorder(borderRadius: BorderRadius.circular(TRadius.md), borderSide: BorderSide.none),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(TRadius.md),
+                                borderSide: BorderSide.none,
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(TRadius.md),
+                                borderSide: BorderSide.none,
+                              ),
                             ),
                           ),
                         ),
@@ -198,8 +213,8 @@ class _Header extends StatelessWidget {
                     selected: cats.isEmpty
                         ? 0
                         : cats.length == 1 && feedCategories.contains(cats.first)
-                            ? feedCategories.indexOf(cats.first) + 1
-                            : -1,
+                        ? feedCategories.indexOf(cats.first) + 1
+                        : -1,
                     onSelected: (i) => cubit.setCategory(i == 0 ? null : feedCategories[i - 1]),
                   ),
                 ),
@@ -283,54 +298,55 @@ class _FeedList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final countLabel = type == ListingType.found ? '${page.total} ta topilgan buyum' : '${page.total} ta yoʻqolgan buyum';
-    return RefreshIndicator(
+    final countLabel = type == ListingType.found
+        ? '${page.total} ta topilgan buyum'
+        : '${page.total} ta yoʻqolgan buyum';
+    return TRefreshScrollView(
       onRefresh: onRefresh,
-      child: CustomScrollView(
-        slivers: [
-          SliverPadding(
-            padding: const EdgeInsets.fromLTRB(TSpace.screen, TSpace.sm, TSpace.screen, TSpace.xs),
-            sliver: SliverToBoxAdapter(
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      countLabel,
-                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: cs.onSurfaceVariant),
-                    ),
+      slivers: [
+        SliverPadding(
+          padding: const EdgeInsets.fromLTRB(TSpace.screen, TSpace.sm, TSpace.screen, TSpace.xs),
+          sliver: SliverToBoxAdapter(
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    countLabel,
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: cs.onSurfaceVariant),
                   ),
-                  TSegmented(
-                    items: const [(Symbols.list_rounded, 'Roʻyxat'), (Symbols.map_rounded, 'Xarita')],
-                    selected: 0,
-                    onChanged: (i) {
-                      if (i == 1) context.go(Routes.map);
-                    },
-                  ),
-                ],
-              ),
+                ),
+                // TSegmented(
+                //   items: const [(Symbols.list_rounded, 'Roʻyxat'), (Symbols.map_rounded, 'Xarita')],
+                //   selected: 0,
+                //   onChanged: (i) {
+                //     if (i == 1) context.go(Routes.map);
+                //   },
+                // ),
+              ],
             ),
           ),
-          SliverPadding(
-            padding: const EdgeInsets.fromLTRB(TSpace.screen, 0, TSpace.screen, TSpace.md),
-            sliver: SliverList.separated(
-              itemCount: page.items.length,
-              separatorBuilder: (_, _) => const SizedBox(height: 10),
-              itemBuilder: (context, i) {
-                final l = page.items[i];
-                return ListingCard(
-                  title: l.title,
-                  category: l.category.label,
-                  meta: '${l.areaName.split(',').first} · ${TDate.relative(l.happenedAt)}',
-                  isFound: l.isFound,
-                  icon: l.category.icon,
-                  tint: l.tint,
-                  onTap: () => context.push(Routes.listing(l.id)),
-                );
-              },
-            ),
+        ),
+        SliverPadding(
+          padding: const EdgeInsets.fromLTRB(TSpace.screen, 0, TSpace.screen, TSpace.md),
+          sliver: SliverList.separated(
+            itemCount: page.items.length,
+            separatorBuilder: (_, _) => const SizedBox(height: 10),
+            itemBuilder: (context, i) {
+              final l = page.items[i];
+              return ListingCard(
+                title: l.title,
+                category: l.category.label,
+                meta: '${l.areaName.split(',').first} · ${TDate.relative(l.happenedAt)}',
+                isFound: l.isFound,
+                icon: l.category.icon,
+                tint: l.tint,
+                imagePath: l.photoAt(0),
+                onTap: () => context.push(Routes.listing(l.id)),
+              );
+            },
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

@@ -14,6 +14,7 @@ import '../../../../core/widgets/status_badge.dart';
 import '../../../../core/widgets/t_avatar.dart';
 import '../../../../core/widgets/t_chip.dart';
 import '../../../../core/widgets/t_feedback.dart';
+import '../../../../core/widgets/t_refresh_scroll_view.dart';
 import '../../../listing/domain/entities/listing.dart';
 import '../../../listing/presentation/category_ui.dart';
 import '../../domain/entities/profile_summary.dart';
@@ -58,20 +59,36 @@ class _ProfileView extends StatelessWidget {
           ViewError(:final isOffline) => SafeArea(
             child: isOffline ? OfflineState(onRetry: cubit.load) : ErrorState(onRetry: cubit.load),
           ),
-          ViewLoaded(:final data) => RefreshIndicator(
-            onRefresh: () => cubit.load(silent: true),
-            child: ListView(
-              padding: EdgeInsets.zero,
-              children: [
-                _Header(
-                  p: data,
-                  since: '${_months[data.memberSince.month - 1]} ${data.memberSince.year} dan beri aʼzo',
+          // Fixed status-bar strip; the header scrolls (and pulls) beneath it.
+          ViewLoaded(:final data) => Column(
+            children: [
+              ColoredBox(
+                color: Theme.of(context).colorScheme.surfaceContainerLowest,
+                child: SizedBox(height: MediaQuery.paddingOf(context).top, width: double.infinity),
+              ),
+              Expanded(
+                child: MediaQuery.removePadding(
+                  context: context,
+                  removeTop: true,
+                  child: TRefreshScrollView(
+                    onRefresh: () => cubit.load(silent: true),
+                    slivers: [
+                      SliverList.list(
+                        children: [
+                          _Header(
+                            p: data,
+                            since: '${_months[data.memberSince.month - 1]} ${data.memberSince.year} dan beri aʼzo',
+                          ),
+                          _MyListings(p: data, showReturned: state.showReturned),
+                          _Settings(notificationsOn: data.notificationsOn),
+                          const SizedBox(height: TSpace.xl),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-                _MyListings(p: data, showReturned: state.showReturned),
-                _Settings(notificationsOn: data.notificationsOn),
-                const SizedBox(height: TSpace.xl),
-              ],
-            ),
+              ),
+            ],
           ),
         },
       ),
@@ -129,7 +146,12 @@ class _Header extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    TAvatar(initials: TAvatar.initialsOf(p.displayName), size: 64, tone: AvatarTone.lost),
+                    TAvatar(
+                      initials: TAvatar.initialsOf(p.displayName),
+                      size: 64,
+                      tone: AvatarTone.lost,
+                      imagePath: p.avatarPath,
+                    ),
                     const SizedBox(width: 14),
                     Expanded(
                       child: Column(

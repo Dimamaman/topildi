@@ -6,6 +6,8 @@ import 'package:material_symbols_icons/symbols.dart';
 import '../../../../app/routes.dart';
 import '../../../../core/theme/topildi_surfaces.dart';
 import '../../../../core/theme/topildi_theme.dart';
+import '../../../../core/widgets/photo_placeholder.dart';
+import '../../../../core/widgets/photo_source_sheet.dart';
 import '../../../../core/widgets/t_button.dart';
 import '../../../../core/widgets/t_top_bar.dart';
 import '../../../listing/domain/entities/listing.dart';
@@ -70,7 +72,7 @@ class CreateTypePage extends StatelessWidget {
                 textBaseline: TextBaseline.alphabetic,
                 children: [
                   Expanded(child: Text('Rasmlar', style: text.titleMedium!.copyWith(fontSize: 17, fontWeight: FontWeight.w700))),
-                  Text('${d.photoTints.length} / ${CreateDraft.maxPhotos}',
+                  Text('${d.photos.length} / ${CreateDraft.maxPhotos}',
                       style: TextStyle(fontSize: 13, color: cs.onSurfaceVariant)),
                 ],
               ),
@@ -82,9 +84,15 @@ class CreateTypePage extends StatelessWidget {
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 children: [
-                  for (var i = 0; i < d.photoTints.length; i++)
-                    _PhotoTile(tint: d.photoTints[i], isMain: i == 0, onRemove: () => cubit.removePhoto(i)),
-                  if (d.photoTints.length < CreateDraft.maxPhotos) _AddPhotoTile(onTap: cubit.addPhoto),
+                  for (var i = 0; i < d.photos.length; i++)
+                    _PhotoTile(path: d.photos[i], tint: i, isMain: i == 0, onRemove: () => cubit.removePhoto(i)),
+                  if (d.photos.length < CreateDraft.maxPhotos)
+                    _AddPhotoTile(
+                      onTap: () async {
+                        final path = await pickPhoto(context);
+                        if (path != null) cubit.addPhoto(path);
+                      },
+                    ),
                 ],
               ),
               const SizedBox(height: TSpace.sm),
@@ -180,8 +188,9 @@ class _TypeOption extends StatelessWidget {
 }
 
 class _PhotoTile extends StatelessWidget {
-  const _PhotoTile({required this.tint, required this.isMain, required this.onRemove});
+  const _PhotoTile({required this.path, required this.tint, required this.isMain, required this.onRemove});
 
+  final String path;
   final int tint;
   final bool isMain;
   final VoidCallback onRemove;
@@ -194,7 +203,9 @@ class _PhotoTile extends StatelessWidget {
       decoration: BoxDecoration(color: ts.placeholder(tint), borderRadius: BorderRadius.circular(10)),
       child: Stack(
         children: [
-          Center(child: Icon(Symbols.image_rounded, size: 32, color: ts.placeholderIcon, weight: 300)),
+          Positioned.fill(
+            child: PhotoPlaceholder(icon: Symbols.image_rounded, tint: tint, path: path, iconSize: 32, radius: 10),
+          ),
           if (isMain)
             Positioned(
               left: 6,

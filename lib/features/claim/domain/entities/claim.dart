@@ -12,8 +12,12 @@ class Claim extends Equatable {
     required this.answer,
     required this.createdAt,
     this.hasProofPhoto = false,
+    this.proofPath,
     this.status = ClaimStatus.pending,
   });
+
+  /// Optional proof photo; visible to the listing author only.
+  final String? proofPath;
 
   final String id, listingId;
   final PublicUser claimant;
@@ -31,11 +35,12 @@ class Claim extends Equatable {
         answer: answer,
         createdAt: createdAt,
         hasProofPhoto: hasProofPhoto,
+        proofPath: proofPath,
         status: status ?? this.status,
       );
 
   @override
-  List<Object?> get props => [id, listingId, claimant, answer, createdAt, hasProofPhoto, status];
+  List<Object?> get props => [id, listingId, claimant, answer, createdAt, hasProofPhoto, proofPath, status];
 }
 
 /// What the would-be owner sees before claiming.
@@ -66,13 +71,15 @@ class ClaimReview extends Equatable {
 }
 
 class SubmitClaimParams extends Equatable {
-  const SubmitClaimParams({required this.listingId, required this.answer, this.hasProofPhoto = false});
+  const SubmitClaimParams({required this.listingId, required this.answer, this.proofPath});
 
   static const minAnswer = 10;
 
   final String listingId, answer;
-  final bool hasProofPhoto;
+  final String? proofPath;
+
+  bool get hasProofPhoto => proofPath != null;
 
   @override
-  List<Object?> get props => [listingId, answer, hasProofPhoto];
+  List<Object?> get props => [listingId, answer, proofPath];
 }

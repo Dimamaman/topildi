@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
@@ -7,12 +9,22 @@ enum AvatarTone { primary, lost, neutral }
 
 /// Initials avatar. Only first name + surname initial are ever shown publicly.
 class TAvatar extends StatelessWidget {
-  const TAvatar({super.key, this.initials, this.size = 40, this.tone = AvatarTone.primary, this.verified = false});
+  const TAvatar({
+    super.key,
+    this.initials,
+    this.size = 40,
+    this.tone = AvatarTone.primary,
+    this.verified = false,
+    this.imagePath,
+  });
 
   final String? initials;
   final double size;
   final AvatarTone tone;
   final bool verified;
+
+  /// Local photo; falls back to initials when missing.
+  final String? imagePath;
 
   /// "Dilshod A." → "DA".
   static String initialsOf(String displayName) {
@@ -34,7 +46,19 @@ class TAvatar extends StatelessWidget {
       height: size,
       alignment: Alignment.center,
       decoration: BoxDecoration(color: bg, shape: BoxShape.circle),
-      child: initials == null
+      clipBehavior: Clip.antiAlias,
+      child: imagePath != null && imagePath!.startsWith('/')
+          ? Image.file(
+              File(imagePath!),
+              width: size,
+              height: size,
+              fit: BoxFit.cover,
+              errorBuilder: (_, _, _) => Text(
+                initials ?? '',
+                style: TextStyle(fontSize: size * 0.34, fontWeight: FontWeight.w700, color: fg),
+              ),
+            )
+          : initials == null
           ? Icon(Symbols.person_rounded, size: size / 2, color: fg)
           : Text(
               initials!,

@@ -12,7 +12,7 @@ class ClaimState extends Equatable {
   const ClaimState({
     this.view = const ViewLoading(),
     this.answer = '',
-    this.hasProofPhoto = false,
+    this.proofPath,
     this.submitting = false,
     this.showError = false,
     this.submitFailure,
@@ -21,7 +21,10 @@ class ClaimState extends Equatable {
 
   final ViewState<ClaimTarget> view;
   final String answer;
-  final bool hasProofPhoto, submitting, showError, sent;
+  final String? proofPath;
+  final bool submitting, showError, sent;
+
+  bool get hasProofPhoto => proofPath != null;
   final Failure? submitFailure;
 
   String? get answerError => showError && answer.trim().length < SubmitClaimParams.minAnswer
@@ -31,7 +34,7 @@ class ClaimState extends Equatable {
   ClaimState copyWith({
     ViewState<ClaimTarget>? view,
     String? answer,
-    bool? hasProofPhoto,
+    String? Function()? proofPath,
     bool? submitting,
     bool? showError,
     Failure? submitFailure,
@@ -40,7 +43,7 @@ class ClaimState extends Equatable {
       ClaimState(
         view: view ?? this.view,
         answer: answer ?? this.answer,
-        hasProofPhoto: hasProofPhoto ?? this.hasProofPhoto,
+        proofPath: proofPath != null ? proofPath() : this.proofPath,
         submitting: submitting ?? this.submitting,
         showError: showError ?? this.showError,
         submitFailure: submitFailure,
@@ -48,7 +51,7 @@ class ClaimState extends Equatable {
       );
 
   @override
-  List<Object?> get props => [view, answer, hasProofPhoto, submitting, showError, submitFailure, sent];
+  List<Object?> get props => [view, answer, proofPath, submitting, showError, submitFailure, sent];
 }
 
 @injectable
@@ -69,7 +72,7 @@ class ClaimCubit extends Cubit<ClaimState> {
 
   void setAnswer(String v) => emit(state.copyWith(answer: v));
 
-  void toggleProofPhoto() => emit(state.copyWith(hasProofPhoto: !state.hasProofPhoto));
+  void setProofPhoto(String? path) => emit(state.copyWith(proofPath: () => path));
 
   Future<void> submit() async {
     if (state.submitting) return;
@@ -77,7 +80,7 @@ class ClaimCubit extends Cubit<ClaimState> {
     if (state.answerError != null) return;
     emit(state.copyWith(submitting: true));
     final result = await _submit(
-      SubmitClaimParams(listingId: _listingId, answer: state.answer, hasProofPhoto: state.hasProofPhoto),
+      SubmitClaimParams(listingId: _listingId, answer: state.answer, proofPath: state.proofPath),
     );
     if (isClosed) return;
     result.match(

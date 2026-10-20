@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'app/app.dart';
 import 'core/di/injection.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  configureDependencies();
+  await configureDependencies();
   runApp(const TopildiApp());
 }

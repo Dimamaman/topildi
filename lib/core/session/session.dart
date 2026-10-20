@@ -1,17 +1,53 @@
 import 'package:characters/characters.dart';
 import 'package:injectable/injectable.dart';
 
-/// Signed-in user (in memory until a backend and secure storage exist).
-/// The phone number stays here and is never exposed on public entities.
+import '../media/app_dirs.dart';
+import '../storage/stores.dart';
+
+/// Signed-in user. Flags and names live in [KeyValueStore]; the phone
+/// number and token only in [SecureStore], and never on public entities.
 @lazySingleton
 class Session {
+  Session(this._kv, this._secure, this._dirs);
+
+  final KeyValueStore _kv;
+  final SecureStore _secure;
+  final AppDirs _dirs;
+
   String get userId => 'u_me';
 
-  bool signedIn = false;
-  bool onboardingSeen = false;
-  String? phone;
-  String firstName = 'Dilshod';
-  String lastName = 'Aliyev';
+  bool get signedIn => _kv.getBool(StoreKeys.signedIn) ?? false;
+  bool get onboardingSeen => _kv.getBool(StoreKeys.onboardingSeen) ?? false;
+  String get firstName => _kv.getString(StoreKeys.firstName) ?? 'Dilshod';
+  String get lastName => _kv.getString(StoreKeys.lastName) ?? 'Aliyev';
+
+  Future<void> markOnboardingSeen() => _kv.setBool(StoreKeys.onboardingSeen, true);
+
+  Future<void> signIn({String? phone}) async {
+    await _kv.setBool(StoreKeys.signedIn, true);
+    if (phone != null) await _secure.write(StoreKeys.phone, phone);
+    await _secure.write(StoreKeys.authToken, 'mock-token-${DateTime.now().millisecondsSinceEpoch}');
+  }
+
+  /// Local path of the profile photo, if any.
+  String? get avatarPath {
+    final name = _kv.getString(StoreKeys.avatarPath);
+    return name == null ? null : _dirs.resolve(name);
+  }
+
+  Future<void> setName(String first, String last) async {
+    await _kv.setString(StoreKeys.firstName, first);
+    await _kv.setString(StoreKeys.lastName, last);
+  }
+
+  Future<void> setAvatar(String? path) =>
+      path == null ? _kv.remove(StoreKeys.avatarPath) : _kv.setString(StoreKeys.avatarPath, _dirs.nameOf(path));
+
+  Future<void> signOut() async {
+    await _kv.setBool(StoreKeys.signedIn, false);
+    await _secure.delete(StoreKeys.phone);
+    await _secure.delete(StoreKeys.authToken);
+  }
 
   /// Public name: first name + surname initial, e.g. "Malika K.".
   String get displayName => publicName(firstName, lastName);

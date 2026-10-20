@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 
 import '../../../../core/error/failure.dart';
+import '../../../../core/location/geo_point.dart';
 import '../../../listing/domain/entities/listing.dart';
 import '../../domain/entities/create_draft.dart';
 import '../../domain/usecases/post_listing.dart';
@@ -57,19 +58,18 @@ class CreateFlowCubit extends Cubit<CreateFlowState> {
   CreateFlowCubit(this._postListing) : super(const CreateFlowState());
 
   final PostListing _postListing;
-  int _nextTint = 0;
 
   void _draft(CreateDraft Function(CreateDraft d) update) => emit(state.copyWith(draft: update(state.draft)));
 
   // Step 1
   void setType(ListingType type) => _draft((d) => d.copyWith(type: type));
 
-  void addPhoto() {
-    if (state.draft.photoTints.length >= CreateDraft.maxPhotos) return;
-    _draft((d) => d.copyWith(photoTints: [...d.photoTints, _nextTint++ % 4]));
+  void addPhoto(String path) {
+    if (state.draft.photos.length >= CreateDraft.maxPhotos) return;
+    _draft((d) => d.copyWith(photos: [...d.photos, path]));
   }
 
-  void removePhoto(int index) => _draft((d) => d.copyWith(photoTints: [...d.photoTints]..removeAt(index)));
+  void removePhoto(int index) => _draft((d) => d.copyWith(photos: [...d.photos]..removeAt(index)));
 
   // Step 2
   void setTitle(String v) => _draft((d) => d.copyWith(title: v));
@@ -84,7 +84,8 @@ class CreateFlowCubit extends Cubit<CreateFlowState> {
   }
 
   // Step 3
-  void setArea(String area) => _draft((d) => d.copyWith(areaName: area));
+  void setArea(String area, GeoPoint point, {String? district}) =>
+      _draft((d) => d.copyWith(areaName: area, point: point.approximate(), district: district));
   void setDay(DraftDay day, {DateTime? date}) => _draft((d) => d.copyWith(day: day, date: date));
   void setTime(int hour, int minute) => _draft((d) => d.copyWith(hour: hour, minute: minute));
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:injectable/injectable.dart';
 import 'package:topildi/app/app.dart';
 import 'package:topildi/app/routes.dart';
 import 'package:topildi/core/di/injection.dart';
@@ -12,7 +13,7 @@ Future<void> _settle(WidgetTester t) async {
 }
 
 void main() {
-  setUpAll(configureDependencies);
+  setUpAll(() => configureDependencies(environment: Environment.test));
 
   testWidgets('Owner claims someone else’s found item', (tester) async {
     await tester.pumpWidget(const TopildiApp(initialLocation: Routes.home));

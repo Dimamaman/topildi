@@ -48,7 +48,7 @@ class _ReviewPageState extends State<ReviewPage> {
         final d = state.draft;
         final happened = d.happenedAt(DateTime.now());
         final area = d.areaName ?? '';
-        final photos = d.photoTints.isEmpty ? 'rasmsiz' : '${d.photoTints.length} ta rasm';
+        final photos = d.photos.isEmpty ? 'rasmsiz' : '${d.photos.length} ta rasm';
         final rows = [
           ('Tur va rasmlar', '${d.isFound ? 'Topdim' : 'Yoʻqotdim'} · $photos', Routes.create),
           ('Sarlavha va tavsif', d.description.trim().isEmpty ? d.title : '${d.title}. ${d.description}', Routes.createDetails),
@@ -70,7 +70,7 @@ class _ReviewPageState extends State<ReviewPage> {
                 meta: '${area.split(',').first} · ${TDate.relative(happened)}',
                 isFound: d.isFound,
                 icon: d.category?.icon ?? Symbols.category_rounded,
-                tint: d.photoTints.isEmpty ? 0 : d.photoTints.first,
+                imagePath: d.photos.isEmpty ? null : d.photos.first,
               ),
               const SizedBox(height: 14),
               Container(
