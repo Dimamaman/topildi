@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<title>Topildi komponentlar</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#2B5FD9}a:hover{color:#1D45A8}
+</style>
+</helmet>
+<div style="width: 1440px; min-height: 2480px; box-sizing: border-box; padding: 72px; background: #E8ECF3; font-family: 'Inter', system-ui, sans-serif; color: #172033; display: flex; flex-direction: column; gap: 40px">
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div style="font-size: 14px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #556070">Topildi · Aniq</div>
+<h1 style="margin: 0; font-size: 48px; font-weight: 700; letter-spacing: -0.02em">Components</h1>
+</div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 48px">
+<sc-for list="{{themes}}" as="th" hint-placeholder-count="2">
+<div style="border-radius: 24px; background: {{th.t.bg}}; color: {{th.t.tx}}; padding: 32px; display: flex; flex-direction: column; gap: 32px">
+<div style="font-size: 22px; font-weight: 700">{{th.label}}</div>
+
+<!-- Buttons -->
+<div style="display: flex; flex-direction: column; gap: 12px">
+<div style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: {{th.t.mu}}">Buttons</div>
+<button style="height: 52px; border: none; border-radius: 12px; background: {{th.t.pr}}; color: {{th.t.onPr}}; font-family: inherit; font-size: 16px; font-weight: 600">Primary · Davom etish</button>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+<button style="height: 52px; border: none; border-radius: 12px; background: {{th.t.prC}}; color: {{th.t.onPrC}}; font-family: inherit; font-size: 15px; font-weight: 600">Secondary · Xaritada</button>
+<button style="height: 52px; border-radius: 12px; border: 1px solid {{th.t.ol}}; background: transparent; color: {{th.t.tx}}; font-family: inherit; font-size: 15px; font-weight: 600">Outline · Bekor qilish</button>
+<button style="height: 48px; border: none; background: transparent; color: {{th.t.pr}}; font-family: inherit; font-size: 15px; font-weight: 600">Text · Qayta yuborish</button>
+<button disabled style="height: 52px; border: none; border-radius: 12px; background: {{th.t.sf2}}; color: {{th.t.mu}}; font-family: inherit; font-size: 15px; font-weight: 600">Disabled</button>
+<button style="height: 52px; border: none; border-radius: 12px; background: {{th.t.pr}}; color: {{th.t.onPr}}; font-family: inherit; font-size: 15px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 10px"><span style="width: 18px; height: 18px; border-radius: 9px; border: 2.5px solid {{th.t.onPr}}; border-right-color: transparent; box-sizing: border-box"></span>Yuklanmoqda</button>
+<button style="height: 52px; border-radius: 12px; border: 1px solid {{th.t.er}}; background: transparent; color: {{th.t.er}}; font-family: inherit; font-size: 15px; font-weight: 600">Danger · Rad etish</button>
+</div>
+<button style="height: 52px; border-radius: 12px; border: 1px solid {{th.t.ol}}; background: {{th.t.sf}}; color: {{th.t.tx}}; font-family: inherit; font-size: 16px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 10px"><span style="width: 22px; height: 22px; border-radius: 11px; background: {{th.t.sf2}}; color: {{th.t.tx}}; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center">G</span>Google orqali davom etish</button>
+</div>
+
+<!-- Inputs -->
+<div style="display: flex; flex-direction: column; gap: 14px">
+<div style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: {{th.t.mu}}">Inputs</div>
+<label style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 14px; font-weight: 600">Sarlavha</span><input placeholder="Masalan: qora hamyon" style="height: 52px; box-sizing: border-box; padding: 0 14px; border-radius: 12px; border: 1px solid {{th.t.ol}}; background: {{th.t.sf}}; color: {{th.t.tx}}; font-family: inherit; font-size: 16px"></label>
+<label style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 14px; font-weight: 600; color: {{th.t.pr}}">Focus</span><input value="Kalitlar toʻplami" style="height: 52px; box-sizing: border-box; padding: 0 13px; border-radius: 12px; border: 2px solid {{th.t.pr}}; background: {{th.t.sf}}; color: {{th.t.tx}}; font-family: inherit; font-size: 16px"></label>
+<label style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 14px; font-weight: 600">Telefon raqam</span><span style="height: 52px; box-sizing: border-box; padding: 0 14px; border-radius: 12px; border: 2px solid {{th.t.er}}; background: {{th.t.sf}}; display: flex; align-items: center; gap: 10px; font-size: 16px"><b>+998</b><span style="width: 1px; height: 24px; background: {{th.t.ln}}"></span><input value="90 123 45" style="flex: 1; min-width: 0; border: none; outline: none; background: transparent; color: {{th.t.tx}}; font-family: inherit; font-size: 16px"></span><span style="font-size: 13px; color: {{th.t.er}}">Raqam toʻliq emas: 9 ta raqam kiriting</span></label>
+<label style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 6px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg>Yashirin belgi</span><textarea placeholder="Masalan: ichida koʻk rangli bank kartasi bor" style="height: 84px; box-sizing: border-box; padding: 12px 14px; border-radius: 12px; border: 1px dashed {{th.t.ol}}; background: {{th.t.sf2}}; color: {{th.t.tx}}; font-family: inherit; font-size: 16px; resize: none"></textarea><span style="font-size: 13px; color: {{th.t.mu}}">Buni faqat siz koʻrasiz</span></label>
+</div>
+
+<!-- Chips, segmented, badges -->
+<div style="display: flex; flex-direction: column; gap: 14px">
+<div style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: {{th.t.mu}}">Chips · Segment · Badges</div>
+<div style="display: flex; gap: 8px; flex-wrap: wrap">
+<button style="height: 36px; padding: 0 14px; border: none; border-radius: 8px; background: {{th.t.prC}}; color: {{th.t.onPrC}}; font-family: inherit; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 6px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg>Hammasi</button>
+<button style="height: 36px; padding: 0 14px; border-radius: 8px; border: 1px solid {{th.t.ln}}; background: {{th.t.sf}}; color: {{th.t.tx}}; font-family: inherit; font-size: 14px; font-weight: 500">Hujjatlar</button>
+<button style="height: 36px; padding: 0 14px; border-radius: 8px; border: 1px solid {{th.t.ln}}; background: {{th.t.sf}}; color: {{th.t.tx}}; font-family: inherit; font-size: 14px; font-weight: 500">Kalitlar</button>
+<button style="height: 36px; padding: 0 14px; border-radius: 8px; border: 1px solid {{th.t.ln}}; background: {{th.t.sf}}; color: {{th.t.tx}}; font-family: inherit; font-size: 14px; font-weight: 500">Telefonlar</button>
+</div>
+<div style="display: flex; border-bottom: 1px solid {{th.t.ln}}">
+<button style="flex: 1; height: 48px; border: none; border-bottom: 3px solid {{th.t.fd}}; background: transparent; color: {{th.t.fd}}; font-family: inherit; font-size: 15px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px"><span style="width: 8px; height: 8px; border-radius: 4px; background: {{th.t.fd}}"></span>Topilgan</button>
+<button style="flex: 1; height: 48px; border: none; border-bottom: 3px solid transparent; background: transparent; color: {{th.t.mu}}; font-family: inherit; font-size: 15px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px"><span style="width: 8px; height: 8px; border-radius: 4px; background: {{th.t.ls}}"></span>Yoʻqolgan</button>
+</div>
+<div style="display: flex; gap: 8px; flex-wrap: wrap">
+<span style="padding: 4px 10px; border-radius: 6px; background: {{th.t.fdC}}; color: {{th.t.fd}}; font-size: 13px; font-weight: 600">Topilgan</span>
+<span style="padding: 4px 10px; border-radius: 6px; background: {{th.t.lsC}}; color: {{th.t.ls}}; font-size: 13px; font-weight: 600">Yoʻqolgan</span>
+<span style="padding: 4px 10px; border-radius: 6px; background: {{th.t.prC}}; color: {{th.t.onPrC}}; font-size: 13px; font-weight: 600">Faol</span>
+<span style="padding: 4px 10px; border-radius: 6px; background: {{th.t.okC}}; color: {{th.t.ok}}; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 4px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg>Qaytarildi</span>
+<span style="padding: 4px 10px; border-radius: 6px; background: {{th.t.wnC}}; color: {{th.t.wn}}; font-size: 13px; font-weight: 600">Kutilmoqda</span>
+<span style="padding: 4px 10px; border-radius: 6px; background: {{th.t.sf2}}; color: {{th.t.mu}}; font-size: 13px; font-weight: 600">Hujjatlar</span>
+</div>
+</div>
+
+<!-- Listing card + avatars -->
+<div style="display: flex; flex-direction: column; gap: 14px">
+<div style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: {{th.t.mu}}">Listing card · Avatar</div>
+<div style="display: flex; gap: 14px; padding: 10px; border-radius: 12px; background: {{th.t.sf}}; border: 1px solid {{th.t.ln}}">
+<div style="width: 104px; height: 104px; flex-shrink: 0; border-radius: 8px; background: {{th.t.ph1}}; color: {{th.t.phI}}; display: flex; align-items: center; justify-content: center"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h12v4"></path><rect x="3" y="7" width="18" height="13" rx="2"></rect><path d="M16 13.5h.01"></path></svg></div>
+<div style="flex: 1; display: flex; flex-direction: column; gap: 6px; padding-top: 2px"><div style="display: flex; gap: 6px"><span style="padding: 3px 8px; border-radius: 6px; background: {{th.t.fdC}}; color: {{th.t.fd}}; font-size: 12px; font-weight: 600">Topilgan</span><span style="padding: 3px 8px; border-radius: 6px; background: {{th.t.sf2}}; color: {{th.t.tx2}}; font-size: 12px; font-weight: 500">Hamyonlar</span></div><div style="font-size: 16px; font-weight: 600">Qora charm hamyon</div><div style="font-size: 13px; color: {{th.t.mu}}">Chilonzor-9 · Bugun, 09:40</div></div>
+</div>
+<div style="display: flex; align-items: center; gap: 16px">
+<span style="width: 32px; height: 32px; border-radius: 16px; background: {{th.t.prC}}; color: {{th.t.onPrC}}; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center">DA</span>
+<span style="width: 40px; height: 40px; border-radius: 20px; background: {{th.t.lsC}}; color: {{th.t.ls}}; font-size: 14px; font-weight: 700; display: flex; align-items: center; justify-content: center">MK</span>
+<span style="width: 56px; height: 56px; border-radius: 28px; background: {{th.t.ph2}}; color: {{th.t.phI}}; display: flex; align-items: center; justify-content: center; position: relative"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path></svg><span style="position: absolute; right: -2px; bottom: -2px; width: 20px; height: 20px; border-radius: 10px; background: {{th.t.ok}}; border: 2px solid {{th.t.bg}}; color: {{th.t.bg}}; display: flex; align-items: center; justify-content: center"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg></span></span>
+<span style="font-size: 13px; color: {{th.t.mu}}">32 · 40 · 56 — initials, photo, verified</span>
+</div>
+</div>
+
+<!-- Bottom nav -->
+<div style="display: flex; flex-direction: column; gap: 14px">
+<div style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: {{th.t.mu}}">Bottom navigation</div>
+<nav style="height: 80px; border-radius: 12px; background: {{th.t.sf}}; border: 1px solid {{th.t.ln}}; display: flex; align-items: center; justify-content: space-around">
+<span style="width: 64px; display: flex; flex-direction: column; align-items: center; gap: 4px; color: {{th.t.onPrC}}; font-size: 12px; font-weight: 600"><span style="width: 56px; height: 30px; border-radius: 15px; background: {{th.t.prC}}; display: flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"></path></svg></span>Lenta</span>
+<span style="width: 64px; display: flex; flex-direction: column; align-items: center; gap: 4px; color: {{th.t.mu}}; font-size: 12px; font-weight: 500"><span style="height: 30px; display: flex; align-items: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"></path><path d="M9 4v14M15 6v14"></path></svg></span>Xarita</span>
+<span style="width: 64px; display: flex; flex-direction: column; align-items: center; gap: 4px; color: {{th.t.tx}}; font-size: 12px; font-weight: 600"><span style="width: 40px; height: 30px; border-radius: 10px; background: {{th.t.pr}}; color: {{th.t.onPr}}; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></span>Qoʻshish</span>
+<span style="width: 64px; display: flex; flex-direction: column; align-items: center; gap: 4px; color: {{th.t.mu}}; font-size: 12px; font-weight: 500; position: relative"><span style="height: 30px; display: flex; align-items: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"></path></svg></span>Chatlar<span style="position: absolute; top: 0; right: 10px; min-width: 18px; height: 18px; padding: 0 5px; box-sizing: border-box; border-radius: 9px; background: {{th.t.er}}; color: {{th.t.bg}}; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center">2</span></span>
+<span style="width: 64px; display: flex; flex-direction: column; align-items: center; gap: 4px; color: {{th.t.mu}}; font-size: 12px; font-weight: 500"><span style="height: 30px; display: flex; align-items: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path></svg></span>Profil</span>
+</nav>
+</div>
+
+<!-- Sheet + dialog -->
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px">
+<div style="display: flex; flex-direction: column; gap: 14px">
+<div style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: {{th.t.mu}}">Bottom sheet</div>
+<div style="border-radius: 24px 24px 0 0; background: {{th.t.sf}}; box-shadow: 0 -8px 32px {{th.t.sh}}; padding: 10px 20px 20px; display: flex; flex-direction: column; gap: 14px">
+<span style="align-self: center; width: 36px; height: 4px; border-radius: 2px; background: {{th.t.ln}}"></span>
+<div style="font-size: 18px; font-weight: 700">Filtrlar</div>
+<div style="font-size: 14px; color: {{th.t.mu}}">Kategoriya, hudud, sana</div>
+<button style="height: 48px; border: none; border-radius: 12px; background: {{th.t.pr}}; color: {{th.t.onPr}}; font-family: inherit; font-size: 15px; font-weight: 600">Natijalarni koʻrish</button>
+</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 14px">
+<div style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: {{th.t.mu}}">Dialog</div>
+<div style="border-radius: 24px; background: {{th.t.sf}}; box-shadow: 0 8px 32px {{th.t.sh}}; padding: 20px; display: flex; flex-direction: column; gap: 10px">
+<div style="font-size: 18px; font-weight: 700">Soʻrovni rad etasizmi?</div>
+<div style="font-size: 14px; line-height: 1.45; color: {{th.t.tx2}}">Javob yashirin belgiga mos kelmadi. Foydalanuvchiga xabar beramiz.</div>
+<div style="display: flex; justify-content: flex-end; gap: 4px"><button style="height: 44px; padding: 0 12px; border: none; background: transparent; color: {{th.t.pr}}; font-family: inherit; font-size: 14px; font-weight: 600">Yoʻq</button><button style="height: 44px; padding: 0 12px; border: none; background: transparent; color: {{th.t.er}}; font-family: inherit; font-size: 14px; font-weight: 600">Rad etish</button></div>
+</div>
+</div>
+</div>
+
+<!-- Snackbars -->
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: {{th.t.mu}}">Snackbar</div>
+<div style="min-height: 52px; border-radius: 12px; background: {{th.t.inv}}; color: {{th.t.onInv}}; padding: 0 8px 0 16px; display: flex; align-items: center; gap: 10px; font-size: 14px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="{{th.t.invOk}}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg><span style="flex: 1">Eʼlon joylandi</span><button style="height: 44px; padding: 0 10px; border: none; background: transparent; color: {{th.t.invPr}}; font-family: inherit; font-size: 14px; font-weight: 600">Koʻrish</button></div>
+<div style="min-height: 52px; border-radius: 12px; background: {{th.t.inv}}; color: {{th.t.onInv}}; padding: 0 8px 0 16px; display: flex; align-items: center; gap: 10px; font-size: 14px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="{{th.t.invEr}}" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v5M12 16h.01"></path></svg><span style="flex: 1">Internet yoʻq. Qayta urinib koʻring</span><button style="height: 44px; padding: 0 10px; border: none; background: transparent; color: {{th.t.invPr}}; font-family: inherit; font-size: 14px; font-weight: 600">Qayta</button></div>
+</div>
+
+</div>
+</sc-for>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":2480}}'>
+class Component extends DCLogic {
+renderVals() {
+const L={bg:'#F4F6FA',sf:'#FFFFFF',sf2:'#EEF1F6',ln:'#DCE2EC',ol:'#8792A6',tx:'#172033',tx2:'#344055',mu:'#556070',pr:'#2B5FD9',onPr:'#FFFFFF',prC:'#E3EBFC',onPrC:'#1D45A8',fd:'#157347',fdC:'#DFF3E8',ls:'#A4441A',lsC:'#FCEBDD',ok:'#1E7A4E',okC:'#DFF3E8',wn:'#8A5A12',wnC:'#FDF1D8',er:'#C2362B',erC:'#FBE3E0',sh:'rgba(23,32,51,0.16)',ph1:'#DCE4F2',ph2:'#E1EBE5',phI:'#5B6F94',inv:'#172033',onInv:'#E6EBF5',invPr:'#8DB0FF',invOk:'#7ED6A5',invEr:'#FF8A80'};
+const D={bg:'#0F1420',sf:'#182031',sf2:'#212A3D',ln:'#2A3550',ol:'#5D6A84',tx:'#E6EBF5',tx2:'#C2CBDB',mu:'#9AA6BB',pr:'#8DB0FF',onPr:'#0B2A6B',prC:'#233A72',onPrC:'#D6E2FF',fd:'#7ED6A5',fdC:'#17382A',ls:'#F3A77E',lsC:'#43281A',ok:'#7ED6A5',okC:'#17382A',wn:'#F2C46D',wnC:'#3D2E12',er:'#FF8A80',erC:'#4A1D1A',sh:'rgba(0,0,0,0.5)',ph1:'#2A3550',ph2:'#22392F',phI:'#9AA6BB',inv:'#E6EBF5',onInv:'#172033',invPr:'#2B5FD9',invOk:'#157347',invEr:'#C2362B'};
+return { themes: [{label:'Light', t:L},{label:'Dark', t:D}] };
+}
+}
+</script>
+</body>
+</html>

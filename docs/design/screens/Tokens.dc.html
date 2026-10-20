@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<title>Topildi tokenlar</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#2B5FD9}a:hover{color:#1D45A8}
+</style>
+</helmet>
+<div style="width: 1440px; min-height: 2480px; box-sizing: border-box; padding: 72px; background: #F4F6FA; font-family: 'Inter', system-ui, sans-serif; color: #172033; display: flex; flex-direction: column; gap: 56px">
+
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div style="font-size: 14px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #556070">Topildi · Aniq · v1.0</div>
+<h1 style="margin: 0; font-size: 48px; font-weight: 700; letter-spacing: -0.02em">Tokens</h1>
+<p style="margin: 0; max-width: 860px; font-size: 17px; line-height: 1.55; color: #344055">Every value maps directly to Flutter Material 3: roles go into <b>ColorScheme</b>, Found/Lost and the status colours go into a <b>ThemeExtension</b> (TopildiColors), and type goes into <b>TextTheme</b>. Body text meets WCAG AA (4.5:1) in both themes.</p>
+</div>
+
+<!-- Colour roles -->
+<div style="display: flex; flex-direction: column; gap: 16px">
+<h2 style="margin: 0; font-size: 24px; font-weight: 700">1 · Colors · ColorScheme</h2>
+<div style="border-radius: 16px; background: #FFFFFF; border: 1px solid #DCE2EC; overflow: hidden">
+<div style="display: grid; grid-template-columns: 260px 1fr 1fr 1.4fr; padding: 14px 24px; background: #EEF1F6; font-size: 13px; font-weight: 600; color: #556070"><div>Flutter role</div><div>Light</div><div>Dark</div><div>Usage</div></div>
+<sc-for list="{{scheme}}" as="c" hint-placeholder-count="14">
+<div style="display: grid; grid-template-columns: 260px 1fr 1fr 1.4fr; align-items: center; padding: 12px 24px; border-top: 1px solid #DCE2EC; font-size: 14px">
+<div style="font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 500">{{c.role}}</div>
+<div style="display: flex; align-items: center; gap: 12px"><span style="width: 40px; height: 32px; border-radius: 8px; border: 1px solid rgba(0,0,0,0.08); background: {{c.l}}"></span><span style="font-family: 'JetBrains Mono', monospace; font-size: 13px">{{c.l}}</span></div>
+<div style="display: flex; align-items: center; gap: 12px"><span style="width: 40px; height: 32px; border-radius: 8px; border: 1px solid rgba(0,0,0,0.08); background: {{c.d}}"></span><span style="font-family: 'JetBrains Mono', monospace; font-size: 13px">{{c.d}}</span></div>
+<div style="color: #556070">{{c.use}}</div>
+</div>
+</sc-for>
+</div>
+</div>
+
+<!-- Extension -->
+<div style="display: flex; flex-direction: column; gap: 16px">
+<h2 style="margin: 0; font-size: 24px; font-weight: 700">2 · Found / Lost and status · ThemeExtension&lt;TopildiColors&gt;</h2>
+<div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 16px">
+<sc-for list="{{ext}}" as="e" hint-placeholder-count="5">
+<div style="border-radius: 16px; background: #FFFFFF; border: 1px solid #DCE2EC; overflow: hidden">
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr))">
+<div style="height: 96px; padding: 14px; box-sizing: border-box; background: {{e.lc}}; color: {{e.l}}; display: flex; flex-direction: column; justify-content: space-between"><span style="font-size: 12px; font-weight: 600">Light</span><span style="font-size: 18px; font-weight: 700">{{e.label}}</span></div>
+<div style="height: 96px; padding: 14px; box-sizing: border-box; background: {{e.dc}}; color: {{e.d}}; display: flex; flex-direction: column; justify-content: space-between"><span style="font-size: 12px; font-weight: 600">Dark</span><span style="font-size: 18px; font-weight: 700">{{e.label}}</span></div>
+</div>
+<div style="padding: 14px 16px; display: flex; flex-direction: column; gap: 4px">
+<div style="font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 500">{{e.role}}</div>
+<div style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #556070">{{e.l}} / {{e.lc}}</div>
+<div style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #556070">{{e.d}} / {{e.dc}}</div>
+</div>
+</div>
+</sc-for>
+</div>
+<p style="margin: 0; font-size: 14px; color: #556070">Found and Lost are never told apart by colour alone: every badge also carries its word (Topilgan / Yoʻqolgan), and the two colours differ in lightness too.</p>
+</div>
+
+<!-- Type -->
+<div style="display: flex; flex-direction: column; gap: 16px">
+<h2 style="margin: 0; font-size: 24px; font-weight: 700">3 · Typography · Inter · TextTheme</h2>
+<div style="border-radius: 16px; background: #FFFFFF; border: 1px solid #DCE2EC; overflow: hidden">
+<sc-for list="{{type}}" as="ty" hint-placeholder-count="10">
+<div style="display: grid; grid-template-columns: 220px 160px 1fr; align-items: center; gap: 24px; padding: 16px 24px; border-bottom: 1px solid #DCE2EC">
+<div style="font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 500">{{ty.role}}</div>
+<div style="font-size: 13px; color: #556070">{{ty.spec}}</div>
+<div style="font-size: {{ty.size}}; line-height: {{ty.lh}}; font-weight: {{ty.w}}; letter-spacing: {{ty.ls}}">{{ty.sample}}</div>
+</div>
+</sc-for>
+</div>
+<p style="margin: 0; font-size: 14px; color: #556070">Uzbek Latin: oʻ and gʻ use U+02BB (ʻ), and the separator uses U+02BC (ʼ). Inter renders both correctly. Respect system font scaling up to 130% (textScaler).</p>
+</div>
+
+<!-- Spacing / radius / elevation -->
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px">
+<div style="border-radius: 16px; background: #FFFFFF; border: 1px solid #DCE2EC; padding: 24px; display: flex; flex-direction: column; gap: 14px">
+<h2 style="margin: 0; font-size: 20px; font-weight: 700">4 · Spacing (4pt)</h2>
+<sc-for list="{{space}}" as="s" hint-placeholder-count="9">
+<div style="display: flex; align-items: center; gap: 14px"><span style="width: 84px; font-family: 'JetBrains Mono', monospace; font-size: 13px">{{s.k}}</span><span style="height: 16px; border-radius: 4px; background: #2B5FD9; width: {{s.px}}"></span><span style="font-size: 13px; color: #556070">{{s.v}}</span></div>
+</sc-for>
+<div style="font-size: 13px; color: #556070; line-height: 1.5">Screen padding 20 · between cards 10–12 · between sections 24</div>
+</div>
+<div style="border-radius: 16px; background: #FFFFFF; border: 1px solid #DCE2EC; padding: 24px; display: flex; flex-direction: column; gap: 14px">
+<h2 style="margin: 0; font-size: 20px; font-weight: 700">5 · Corner radius</h2>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px">
+<sc-for list="{{radii}}" as="r" hint-placeholder-count="6">
+<div style="display: flex; flex-direction: column; gap: 6px; align-items: center"><div style="width: 72px; height: 72px; background: #E3EBFC; border: 2px solid #2B5FD9; border-radius: {{r.px}}"></div><div style="font-family: 'JetBrains Mono', monospace; font-size: 12px">{{r.k}}</div><div style="font-size: 12px; color: #556070">{{r.use}}</div></div>
+</sc-for>
+</div>
+</div>
+<div style="border-radius: 16px; background: #FFFFFF; border: 1px solid #DCE2EC; padding: 24px; display: flex; flex-direction: column; gap: 16px">
+<h2 style="margin: 0; font-size: 20px; font-weight: 700">6 · Elevation and sizes</h2>
+<div style="display: flex; gap: 16px">
+<div style="flex: 1; height: 64px; border-radius: 12px; background: #FFFFFF; border: 1px solid #DCE2EC; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600">e0 · border</div>
+<div style="flex: 1; height: 64px; border-radius: 12px; background: #FFFFFF; box-shadow: 0 2px 8px rgba(23,32,51,0.10); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600">e1 · map card</div>
+<div style="flex: 1; height: 64px; border-radius: 12px; background: #FFFFFF; box-shadow: 0 -8px 32px rgba(23,32,51,0.18); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600">e2 · sheet</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px; font-size: 14px">
+<div style="display: flex; justify-content: space-between; border-bottom: 1px solid #EEF1F6; padding-bottom: 8px"><span>Min. tap target</span><b>48 × 48</b></div>
+<div style="display: flex; justify-content: space-between; border-bottom: 1px solid #EEF1F6; padding-bottom: 8px"><span>Button / input height</span><b>52</b></div>
+<div style="display: flex; justify-content: space-between; border-bottom: 1px solid #EEF1F6; padding-bottom: 8px"><span>Bottom navigation</span><b>80</b></div>
+<div style="display: flex; justify-content: space-between; border-bottom: 1px solid #EEF1F6; padding-bottom: 8px"><span>Card photo (list)</span><b>104 × 104</b></div>
+<div style="display: flex; justify-content: space-between"><span>Icons</span><b>Material Symbols Rounded · 24 / 20</b></div>
+</div>
+</div>
+</div>
+
+<!-- Flutter -->
+<div style="display: flex; flex-direction: column; gap: 16px">
+<h2 style="margin: 0; font-size: 24px; font-weight: 700">7 · Flutter mapping</h2>
+<pre style="margin: 0; padding: 28px; border-radius: 16px; background: #0F1420; color: #E6EBF5; font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.6; white-space: pre-wrap">{{code}}</pre>
+</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":2480}}'>
+class Component extends DCLogic {
+renderVals() {
+const scheme = [
+{role:'primary', l:'#2B5FD9', d:'#8DB0FF', use:'Main buttons, active state, links'},
+{role:'onPrimary', l:'#FFFFFF', d:'#0B2A6B', use:'Text on a primary button'},
+{role:'primaryContainer', l:'#E3EBFC', d:'#233A72', use:'Selected chip, active nav pill'},
+{role:'onPrimaryContainer', l:'#1D45A8', d:'#D6E2FF', use:'Text on primaryContainer'},
+{role:'surface', l:'#F4F6FA', d:'#0F1420', use:'Screen background (scaffold)'},
+{role:'surfaceContainerLowest', l:'#FFFFFF', d:'#182031', use:'Cards, app bar, sheets'},
+{role:'surfaceContainerHigh', l:'#EEF1F6', d:'#212A3D', use:'Inputs, neutral badges, skeletons'},
+{role:'onSurface', l:'#172033', d:'#E6EBF5', use:'Headings and body text'},
+{role:'onSurfaceVariant', l:'#556070', d:'#9AA6BB', use:'Secondary text, icons'},
+{role:'outlineVariant', l:'#DCE2EC', d:'#2A3550', use:'Card borders, dividers'},
+{role:'outline', l:'#8792A6', d:'#5D6A84', use:'Input borders (3:1)'},
+{role:'error', l:'#C2362B', d:'#FF8A80', use:'Errors, wrong code'},
+{role:'errorContainer', l:'#FBE3E0', d:'#4A1D1A', use:'Error banner background'},
+{role:'scrim', l:'#0F1420 · 45%', d:'#000000 · 60%', use:'Behind a sheet or dialog'}
+];
+const ext = [
+{role:'found', label:'Topilgan', l:'#157347', lc:'#DFF3E8', d:'#7ED6A5', dc:'#17382A'},
+{role:'lost', label:'Yoʻqolgan', l:'#A4441A', lc:'#FCEBDD', d:'#F3A77E', dc:'#43281A'},
+{role:'success', label:'Qaytarildi', l:'#1E7A4E', lc:'#DFF3E8', d:'#7ED6A5', dc:'#17382A'},
+{role:'warning', label:'Kutilmoqda', l:'#8A5A12', lc:'#FDF1D8', d:'#F2C46D', dc:'#3D2E12'},
+{role:'info', label:'Faol', l:'#1D45A8', lc:'#E3EBFC', d:'#D6E2FF', dc:'#233A72'}
+];
+const type = [
+{role:'displaySmall', spec:'32 / 40 · 700', size:'32px', lh:'40px', w:700, ls:'-0.02em', sample:'Buyum egasiga qaytdi!'},
+{role:'headlineMedium', spec:'28 / 36 · 700', size:'28px', lh:'36px', w:700, ls:'-0.01em', sample:'Nimadir topdingizmi?'},
+{role:'headlineSmall', spec:'24 / 32 · 700', size:'24px', lh:'32px', w:700, ls:'-0.01em', sample:'Qora charm hamyon'},
+{role:'titleLarge', spec:'20 / 28 · 600', size:'20px', lh:'28px', w:600, ls:'0', sample:'Yashirin belgi'},
+{role:'titleMedium', spec:'16 / 24 · 600', size:'16px', lh:'24px', w:600, ls:'0', sample:'Kalitlar toʻplami, 3 dona'},
+{role:'bodyLarge', spec:'16 / 24 · 400', size:'16px', lh:'24px', w:400, ls:'0', sample:'Bekatdagi skameyka ustidan topdim. Ichida hujjatlar bor.'},
+{role:'bodyMedium', spec:'14 / 20 · 400', size:'14px', lh:'20px', w:400, ls:'0', sample:'Chilonzor-9 · Bugun, 09:40 · Gʻijduvon, Oʻrta Chirchiq'},
+{role:'labelLarge', spec:'14 / 20 · 600', size:'14px', lh:'20px', w:600, ls:'0', sample:'Davom etish'},
+{role:'labelMedium', spec:'12 / 16 · 600', size:'12px', lh:'16px', w:600, ls:'0.01em', sample:'TOPILGAN · YOʻQOLGAN'},
+{role:'bodySmall', spec:'12 / 16 · 400', size:'12px', lh:'16px', w:400, ls:'0', sample:'Raqamingiz hech kimga koʻrinmaydi'}
+];
+const space = [['xxs',4],['xs',8],['sm',12],['md',16],['lg',20],['xl',24],['2xl',32],['3xl',40],['4xl',48]].map(([k,v]) => ({k:'space.'+k, v:v+'dp', px:(v*4)+'px'}));
+const radii = [
+{k:'r.xs · 6', px:'6px', use:'Badges'},
+{k:'r.sm · 8', px:'8px', use:'Chips, photos'},
+{k:'r.md · 12', px:'12px', use:'Buttons, cards'},
+{k:'r.lg · 16', px:'16px', use:'Large cards'},
+{k:'r.xl · 24', px:'24px', use:'Sheets, dialogs'},
+{k:'r.full', px:'999px', use:'Avatars, FAB'}
+];
+const code = `final lightScheme = ColorScheme.fromSeed(seedColor: Color(0xFF2B5FD9)).copyWith(
+  primary: Color(0xFF2B5FD9), onPrimary: Colors.white,
+  primaryContainer: Color(0xFFE3EBFC), onPrimaryContainer: Color(0xFF1D45A8),
+  surface: Color(0xFFF4F6FA), surfaceContainerLowest: Colors.white,
+  surfaceContainerHigh: Color(0xFFEEF1F6), onSurface: Color(0xFF172033),
+  onSurfaceVariant: Color(0xFF556070), outline: Color(0xFF8792A6),
+  outlineVariant: Color(0xFFDCE2EC), error: Color(0xFFC2362B),
+);
+
+@immutable
+class TopildiColors extends ThemeExtension<TopildiColors> {
+  final Color found, foundContainer, lost, lostContainer, success, warning;
+  // light: found 0xFF157347 / 0xFFDFF3E8 · lost 0xFFA4441A / 0xFFFCEBDD
+  // dark:  found 0xFF7ED6A5 / 0xFF17382A · lost 0xFFF3A77E / 0xFF43281A
+}
+
+ThemeData(
+  useMaterial3: true, colorScheme: lightScheme, fontFamily: 'Inter',
+  filledButtonTheme: FilledButtonThemeData(style: FilledButton.styleFrom(
+    minimumSize: Size.fromHeight(52),
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)))),
+  cardTheme: CardTheme(elevation: 0, shape: RoundedRectangleBorder(
+    borderRadius: BorderRadius.circular(12), side: BorderSide(color: Color(0xFFDCE2EC)))),
+  extensions: [TopildiColors.light],
+);`;
+return { scheme, ext, type, space, radii, code };
+}
+}
+</script>
+</body>
+</html>

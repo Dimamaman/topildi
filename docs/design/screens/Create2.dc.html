@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<title>Eʼlon 2-qadam</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: {{t.bg}}; color: {{t.tx}}; font-family: 'Inter', system-ui, sans-serif; display: flex; flex-direction: column; overflow: hidden">
+<div style="flex-shrink: 0; background: {{t.sf}}; border-bottom: 1px solid {{t.ln}}; padding: 8px 8px 14px; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; align-items: center; gap: 4px">
+<a href="Create1.dc.html" aria-label="Orqaga" style="width: 48px; height: 48px; color: {{t.tx}}; display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg></a>
+<span style="flex: 1; font-size: 17px; font-weight: 700">Yangi eʼlon</span>
+<span style="padding-right: 12px; font-size: 14px; color: {{t.mu}}; font-weight: 500">2 / 3</span>
+</div>
+<div style="padding: 0 12px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px" role="progressbar" aria-valuenow="2" aria-valuemin="1" aria-valuemax="3" aria-label="2-qadam: maʼlumotlar">
+<span style="height: 4px; border-radius: 2px; background: {{t.pr}}"></span><span style="height: 4px; border-radius: 2px; background: {{t.pr}}"></span><span style="height: 4px; border-radius: 2px; background: {{t.ln}}"></span>
+</div>
+</div>
+<div style="flex: 1; overflow: hidden; padding: 18px 20px; display: flex; flex-direction: column; gap: 16px">
+<label style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 14px; font-weight: 600">Sarlavha</span><input value="Qora charm hamyon" style="height: 52px; box-sizing: border-box; padding: 0 14px; border-radius: 12px; border: 1px solid {{t.ol}}; background: {{t.sf}}; color: {{t.tx}}; font-family: inherit; font-size: 16px; outline: none"></label>
+<label style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 14px; font-weight: 600">Kategoriya</span><span style="height: 52px; box-sizing: border-box; padding: 0 12px 0 14px; border-radius: 12px; border: 1px solid {{t.ol}}; background: {{t.sf}}; display: flex; align-items: center; gap: 10px; font-size: 16px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="{{t.mu}}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h12v4M5 7h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7M16 13.5h.01"></path></svg><span style="flex: 1">Hamyonlar</span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="{{t.mu}}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></span></label>
+<label style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 14px; font-weight: 600">Tavsif</span><textarea style="height: 96px; box-sizing: border-box; padding: 12px 14px; border-radius: 12px; border: 1px solid {{t.ol}}; background: {{t.sf}}; color: {{t.tx}}; font-family: inherit; font-size: 15px; line-height: 22px; resize: none; outline: none">Metro bekati yonidagi skameyka ustidan topdim. Ichida hujjatlar bor.</textarea><span style="font-size: 12px; color: {{t.mu}}; align-self: flex-end">68 / 500</span></label>
+<div style="border-radius: 16px; border: 2px solid {{t.pr}}; background: {{t.prC2}}; padding: 14px; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; align-items: center; gap: 10px">
+<span style="width: 36px; height: 36px; border-radius: 18px; background: {{t.pr}}; color: {{t.onPr}}; display: flex; align-items: center; justify-content: center; flex-shrink: 0"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg></span>
+<span style="flex: 1; display: flex; flex-direction: column; gap: 1px"><label for="secret" style="font-size: 16px; font-weight: 700">Yashirin belgi</label><span style="font-size: 13px; font-weight: 600; color: {{t.onPrC}}">Buni faqat siz koʻrasiz</span></span>
+</div>
+<textarea id="secret" style="height: 72px; box-sizing: border-box; padding: 10px 12px; border-radius: 10px; border: 1px solid {{t.ol}}; background: {{t.sf}}; color: {{t.tx}}; font-family: inherit; font-size: 15px; line-height: 21px; resize: none; outline: none">Ichida koʻk rangli bank kartasi va kutubxona chiptasi bor</textarea>
+<span style="font-size: 13px; line-height: 19px; color: {{t.tx2}}">Egasi buyumni olish uchun shu belgini oʻzi aytishi kerak. Eʼlonda koʻrinmaydi: rangi, ichidagi narsa, yozuv yoki shikast haqida yozing.</span>
+</div>
+</div>
+<div style="flex-shrink: 0; padding: 12px 20px 24px; background: {{t.sf}}; border-top: 1px solid {{t.ln}}">
+<a href="Create3.dc.html" style="height: 52px; border-radius: 12px; background: {{t.pr}}; color: {{t.onPr}}; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 600; text-decoration: none">Keyingi</a>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() {
+const L={bg:'#F4F6FA',sf:'#FFFFFF',ln:'#DCE2EC',ol:'#8792A6',tx:'#172033',tx2:'#344055',mu:'#556070',pr:'#2B5FD9',onPr:'#FFFFFF',prC2:'#EDF2FD',onPrC:'#1D45A8'};
+const D={bg:'#0F1420',sf:'#182031',ln:'#2A3550',ol:'#5D6A84',tx:'#E6EBF5',tx2:'#C2CBDB',mu:'#9AA6BB',pr:'#8DB0FF',onPr:'#0B2A6B',prC2:'#16203A',onPrC:'#D6E2FF'};
+return { t: (this.props.theme ?? 'light') === 'dark' ? D : L };
+}
+}
+</script>
+</body>
+</html>

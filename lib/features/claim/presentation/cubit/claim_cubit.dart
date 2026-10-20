@@ -1,0 +1,88 @@
+import 'package:equatable/equatable.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:injectable/injectable.dart';
+
+import '../../../../core/error/failure.dart';
+import '../../../../core/view_state.dart';
+import '../../domain/entities/claim.dart';
+import '../../domain/usecases/get_claim_target.dart';
+import '../../domain/usecases/submit_claim.dart';
+
+class ClaimState extends Equatable {
+  const ClaimState({
+    this.view = const ViewLoading(),
+    this.answer = '',
+    this.hasProofPhoto = false,
+    this.submitting = false,
+    this.showError = false,
+    this.submitFailure,
+    this.sent = false,
+  });
+
+  final ViewState<ClaimTarget> view;
+  final String answer;
+  final bool hasProofPhoto, submitting, showError, sent;
+  final Failure? submitFailure;
+
+  String? get answerError => showError && answer.trim().length < SubmitClaimParams.minAnswer
+      ? 'Javobni batafsilroq yozing (kamida ${SubmitClaimParams.minAnswer} ta belgi)'
+      : null;
+
+  ClaimState copyWith({
+    ViewState<ClaimTarget>? view,
+    String? answer,
+    bool? hasProofPhoto,
+    bool? submitting,
+    bool? showError,
+    Failure? submitFailure,
+    bool? sent,
+  }) =>
+      ClaimState(
+        view: view ?? this.view,
+        answer: answer ?? this.answer,
+        hasProofPhoto: hasProofPhoto ?? this.hasProofPhoto,
+        submitting: submitting ?? this.submitting,
+        showError: showError ?? this.showError,
+        submitFailure: submitFailure,
+        sent: sent ?? this.sent,
+      );
+
+  @override
+  List<Object?> get props => [view, answer, hasProofPhoto, submitting, showError, submitFailure, sent];
+}
+
+@injectable
+class ClaimCubit extends Cubit<ClaimState> {
+  ClaimCubit(this._getTarget, this._submit) : super(const ClaimState());
+
+  final GetClaimTarget _getTarget;
+  final SubmitClaim _submit;
+  late String _listingId;
+
+  Future<void> load(String listingId) async {
+    _listingId = listingId;
+    emit(state.copyWith(view: const ViewLoading()));
+    final result = await _getTarget(listingId);
+    if (isClosed) return;
+    emit(state.copyWith(view: result.fold<ViewState<ClaimTarget>>((f) => ViewError(f), ViewLoaded.new)));
+  }
+
+  void setAnswer(String v) => emit(state.copyWith(answer: v));
+
+  void toggleProofPhoto() => emit(state.copyWith(hasProofPhoto: !state.hasProofPhoto));
+
+  Future<void> submit() async {
+    if (state.submitting) return;
+    emit(state.copyWith(showError: true));
+    if (state.answerError != null) return;
+    emit(state.copyWith(submitting: true));
+    final result = await _submit(
+      SubmitClaimParams(listingId: _listingId, answer: state.answer, hasProofPhoto: state.hasProofPhoto),
+    );
+    if (isClosed) return;
+    result.match(
+      (f) => emit(state.copyWith(submitting: false, submitFailure: f)),
+      (_) => emit(state.copyWith(submitting: false, sent: true)),
+    );
+  }
+}

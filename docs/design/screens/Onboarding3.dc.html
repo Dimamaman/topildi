@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<title>Onboarding 3</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: {{t.bg}}; color: {{t.tx}}; font-family: 'Inter', system-ui, sans-serif; display: flex; flex-direction: column; padding: 8px 24px 32px">
+<div style="height: 56px"></div>
+<div style="flex: 1; display: flex; align-items: center; justify-content: center">
+<div style="width: 300px; height: 300px; border-radius: 150px; background: {{t.okC}}; position: relative">
+<div style="position: absolute; left: 90px; top: 70px; width: 120px; height: 140px; color: {{t.ok}}"><svg width="120" height="140" viewBox="0 0 24 28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2l9 3.5v7c0 6-4 9.5-9 11-5-1.5-9-5-9-11v-7z" fill="{{t.sf}}"></path><path d="M8 13l3 3 5-6"></path></svg></div>
+<div style="position: absolute; left: 22px; top: 52px; padding: 8px 12px; border-radius: 12px 12px 12px 4px; background: {{t.sf}}; box-shadow: 0 8px 20px {{t.sh}}; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 6px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="{{t.pr}}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg>Yashirin belgi</div>
+<div style="position: absolute; right: 18px; bottom: 56px; padding: 8px 12px; border-radius: 12px 12px 4px 12px; background: {{t.pr}}; color: {{t.onPr}}; box-shadow: 0 8px 20px {{t.sh}}; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 6px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg>Qaytarildi</div>
+</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 12px; padding-bottom: 28px">
+<h1 style="margin: 0; font-size: 28px; line-height: 36px; font-weight: 700; letter-spacing: -0.01em">Xavfsiz qaytaring</h1>
+<p style="margin: 0; font-size: 17px; line-height: 26px; color: {{t.tx2}}">Egasi faqat siz bilgan yashirin belgini toʻgʻri aytsa, buyumni topshirasiz. Firibgarlarga yoʻl yoʻq.</p>
+</div>
+<div style="display: flex; flex-direction: column; gap: 20px">
+<div style="display: flex; gap: 6px; justify-content: center" aria-label="3-sahifa, jami 3"><span style="width: 8px; height: 8px; border-radius: 4px; background: {{t.ln}}"></span><span style="width: 8px; height: 8px; border-radius: 4px; background: {{t.ln}}"></span><span style="width: 24px; height: 8px; border-radius: 4px; background: {{t.pr}}"></span></div>
+<a href="SignIn.dc.html" style="height: 52px; border-radius: 12px; background: {{t.pr}}; color: {{t.onPr}}; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 600; text-decoration: none">Boshlash</a>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() {
+const L={bg:'#F4F6FA',sf:'#FFFFFF',ln:'#DCE2EC',tx:'#172033',tx2:'#344055',pr:'#2B5FD9',onPr:'#FFFFFF',ok:'#1E7A4E',okC:'#DFF3E8',sh:'rgba(23,32,51,0.12)'};
+const D={bg:'#0F1420',sf:'#182031',ln:'#2A3550',tx:'#E6EBF5',tx2:'#C2CBDB',pr:'#8DB0FF',onPr:'#0B2A6B',ok:'#7ED6A5',okC:'#14291F',sh:'rgba(0,0,0,0.45)'};
+return { t: (this.props.theme ?? 'light') === 'dark' ? D : L };
+}
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<title>Profil sozlash</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: {{t.bg}}; color: {{t.tx}}; font-family: 'Inter', system-ui, sans-serif; display: flex; flex-direction: column; padding: 8px 24px 32px">
+<div style="height: 56px; display: flex; align-items: center; justify-content: space-between; margin-left: -12px"><a href="SmsCode.dc.html" aria-label="Orqaga" style="width: 48px; height: 48px; color: {{t.tx}}; display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg></a><span style="font-size: 14px; color: {{t.mu}}; font-weight: 500">Oxirgi qadam</span></div>
+<div style="padding-top: 16px; display: flex; flex-direction: column; gap: 8px">
+<h1 style="margin: 0; font-size: 28px; line-height: 36px; font-weight: 700; letter-spacing: -0.01em">Tanishib olaylik</h1>
+<p style="margin: 0; font-size: 16px; line-height: 24px; color: {{t.tx2}}">Ismingiz va rasmingiz eʼlonlarda koʻrinadi. Bu ishonchni oshiradi.</p>
+</div>
+<div style="padding-top: 32px; display: flex; flex-direction: column; align-items: center; gap: 12px">
+<button aria-label="Rasm qoʻshish" style="width: 120px; height: 120px; border-radius: 60px; border: 2px dashed {{t.ol}}; background: {{t.sf}}; color: {{t.mu}}; display: flex; align-items: center; justify-content: center; position: relative; padding: 0"><svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path></svg><span style="position: absolute; right: 0; bottom: 4px; width: 40px; height: 40px; border-radius: 20px; background: {{t.pr}}; color: {{t.onPr}}; border: 3px solid {{t.bg}}; display: flex; align-items: center; justify-content: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"></path><circle cx="12" cy="13" r="3.5"></circle></svg></span></button>
+<span style="font-size: 14px; color: {{t.pr}}; font-weight: 600">Rasm qoʻshish (ixtiyoriy)</span>
+</div>
+<div style="padding-top: 28px; display: flex; flex-direction: column; gap: 18px">
+<label style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 14px; font-weight: 600">Ism</span><input value="Malika" style="height: 52px; box-sizing: border-box; padding: 0 13px; border-radius: 12px; border: 2px solid {{t.pr}}; background: {{t.sf}}; color: {{t.tx}}; font-family: inherit; font-size: 16px; outline: none"></label>
+<label style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 14px; font-weight: 600">Familiya <span style="font-weight: 400; color: {{t.mu}}">(ixtiyoriy)</span></span><input placeholder="Familiyangiz" style="height: 52px; box-sizing: border-box; padding: 0 14px; border-radius: 12px; border: 1px solid {{t.ol}}; background: {{t.sf}}; color: {{t.tx}}; font-family: inherit; font-size: 16px; outline: none"><span style="font-size: 13px; color: {{t.mu}}">Boshqalar faqat bosh harfni koʻradi: Malika K.</span></label>
+</div>
+<div style="flex: 1"></div>
+<a href="Home.dc.html" style="height: 52px; border-radius: 12px; background: {{t.pr}}; color: {{t.onPr}}; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 600; text-decoration: none">Tayyor</a>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() {
+const L={bg:'#F4F6FA',sf:'#FFFFFF',ln:'#DCE2EC',ol:'#8792A6',tx:'#172033',tx2:'#344055',mu:'#556070',pr:'#2B5FD9',onPr:'#FFFFFF'};
+const D={bg:'#0F1420',sf:'#182031',ln:'#2A3550',ol:'#5D6A84',tx:'#E6EBF5',tx2:'#C2CBDB',mu:'#9AA6BB',pr:'#8DB0FF',onPr:'#0B2A6B'};
+return { t: (this.props.theme ?? 'light') === 'dark' ? D : L };
+}
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<title>Soʻrov yuborildi</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: {{t.bg}}; color: {{t.tx}}; font-family: 'Inter', system-ui, sans-serif; display: flex; flex-direction: column; padding: 56px 24px 32px">
+<div style="display: flex; flex-direction: column; align-items: center; gap: 18px; text-align: center">
+<span style="width: 112px; height: 112px; border-radius: 56px; background: {{t.wnC}}; color: {{t.wn}}; display: flex; align-items: center; justify-content: center"><svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2h12M6 22h12M7 2v4a5 5 0 0 0 10 0V2M7 22v-4a5 5 0 0 1 10 0v4"></path></svg></span>
+<h1 style="margin: 0; font-size: 26px; line-height: 34px; font-weight: 700">Soʻrovingiz yuborildi</h1>
+<p style="margin: 0; font-size: 16px; line-height: 24px; color: {{t.tx2}}">Dilshod A. javobingizni yashirin belgi bilan solishtiradi. Natija haqida darhol xabar beramiz.</p>
+</div>
+<ol style="margin: 28px 0 0; padding: 16px; list-style: none; border-radius: 16px; background: {{t.sf}}; border: 1px solid {{t.ln}}; display: flex; flex-direction: column; gap: 0">
+<li style="display: flex; gap: 12px"><span style="display: flex; flex-direction: column; align-items: center"><span style="width: 28px; height: 28px; border-radius: 14px; background: {{t.ok}}; color: {{t.onOk}}; display: flex; align-items: center; justify-content: center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg></span><span style="width: 2px; height: 22px; background: {{t.ok}}"></span></span><span style="display: flex; flex-direction: column; gap: 2px; padding-top: 4px"><span style="font-size: 15px; font-weight: 600">Soʻrov yuborildi</span><span style="font-size: 13px; color: {{t.mu}}">Hozirgina</span></span></li>
+<li style="display: flex; gap: 12px"><span style="display: flex; flex-direction: column; align-items: center"><span style="width: 28px; height: 28px; box-sizing: border-box; border-radius: 14px; border: 3px solid {{t.wn}}; background: {{t.wnC}}"></span><span style="width: 2px; height: 22px; background: {{t.ln}}"></span></span><span style="display: flex; flex-direction: column; gap: 2px; padding-top: 4px"><span style="font-size: 15px; font-weight: 600">Topuvchi tekshirmoqda</span><span style="font-size: 13px; color: {{t.mu}}">Odatda bir necha soat</span></span></li>
+<li style="display: flex; gap: 12px"><span style="width: 28px; height: 28px; box-sizing: border-box; border-radius: 14px; border: 2px solid {{t.ln}}"></span><span style="display: flex; flex-direction: column; gap: 2px; padding-top: 4px"><span style="font-size: 15px; font-weight: 600; color: {{t.mu}}">Chat ochiladi va uchrashasiz</span></span></li>
+</ol>
+<div style="flex: 1"></div>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<a href="Home.dc.html" style="height: 52px; border-radius: 12px; background: {{t.pr}}; color: {{t.onPr}}; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 600; text-decoration: none">Lentaga qaytish</a>
+<a href="Claims.dc.html" style="height: 48px; border-radius: 12px; border: 1px dashed {{t.ol}}; display: flex; align-items: center; justify-content: center; gap: 6px; color: {{t.mu}}; font-size: 14px; font-weight: 600; text-decoration: none">Prototip: topuvchi tomoniga oʻtish<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></a>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() {
+const L={bg:'#F4F6FA',sf:'#FFFFFF',ln:'#DCE2EC',ol:'#8792A6',tx:'#172033',tx2:'#344055',mu:'#556070',pr:'#2B5FD9',onPr:'#FFFFFF',ok:'#1E7A4E',onOk:'#FFFFFF',wn:'#8A5A12',wnC:'#FDF1D8'};
+const D={bg:'#0F1420',sf:'#182031',ln:'#2A3550',ol:'#5D6A84',tx:'#E6EBF5',tx2:'#C2CBDB',mu:'#9AA6BB',pr:'#8DB0FF',onPr:'#0B2A6B',ok:'#7ED6A5',onOk:'#0F1420',wn:'#F2C46D',wnC:'#3D2E12'};
+return { t: (this.props.theme ?? 'light') === 'dark' ? D : L };
+}
+}
+</script>
+</body>
+</html>

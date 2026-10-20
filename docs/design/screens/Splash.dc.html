@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<title>Splash</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<a href="Onboarding1.dc.html" aria-label="Davom etish" style="width: 390px; height: 844px; box-sizing: border-box; background: {{t.pr}}; color: {{t.onPr}}; font-family: 'Inter', system-ui, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; text-decoration: none; position: relative; overflow: hidden">
+<span style="position: absolute; width: 520px; height: 520px; border-radius: 260px; border: 1px solid {{t.splashRing}}; top: 160px; left: -65px"></span>
+<span style="position: absolute; width: 360px; height: 360px; border-radius: 180px; border: 1px solid {{t.splashRing}}; top: 240px; left: 15px"></span>
+<span style="width: 96px; height: 96px; border-radius: 28px; background: {{t.onPr}}; color: {{t.pr}}; display: flex; align-items: center; justify-content: center; position: relative"><svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"></path><path d="M9 12l2 2 4-4"></path></svg></span>
+<span style="font-size: 40px; font-weight: 700; letter-spacing: -0.02em; position: relative">Topildi</span>
+<span style="font-size: 17px; line-height: 1.45; text-align: center; max-width: 260px; opacity: 0.9; position: relative">Topilgan buyum egasiga qaytadi</span>
+<span style="position: absolute; bottom: 64px; width: 120px; height: 4px; border-radius: 2px; background: {{t.splashRing}}; overflow: hidden"><span style="display: block; width: 50px; height: 4px; border-radius: 2px; background: {{t.onPr}}"></span></span>
+</a>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() {
+const L = {pr:'#2B5FD9', onPr:'#FFFFFF', splashRing:'rgba(255,255,255,0.18)'};
+const D = {pr:'#0F1420', onPr:'#8DB0FF', splashRing:'rgba(141,176,255,0.18)'};
+return { t: (this.props.theme ?? 'light') === 'dark' ? D : L };
+}
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<title>Holatlar</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="width: 1776px; min-height: 5780px; box-sizing: border-box; padding: 48px; background: {{bg}}; color: {{fg}}; font-family: 'Inter', system-ui, sans-serif; display: flex; flex-direction: column; gap: 32px">
+<div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 40px">
+<sc-for list="{{kinds}}" as="k" hint-placeholder-count="4">
+<div style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 26px; font-weight: 700">{{k.label}}</span><span style="font-size: 14px; color: {{mu}}">{{k.note}}</span></div>
+</sc-for>
+</div>
+<div style="display: flex; flex-direction: column; gap: 56px">
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="6">
+<div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 40px">
+<sc-for list="{{r.cells}}" as="c" hint-placeholder-count="4">
+<div style="display: flex; flex-direction: column; gap: 12px">
+<span style="height: 28px; font-size: 16px; font-weight: 600; display: flex; align-items: center">{{c.caption}}</span>
+<div style="width: 390px; height: 844px; border-radius: 24px; overflow: hidden; box-shadow: 0 12px 32px rgba(15,20,32,0.14)">
+<dc-import name="StateScreen" screen="{{c.screen}}" kind="{{c.kind}}" theme="{{c.theme}}" hint-size="390px,844px"></dc-import>
+</div>
+</div>
+</sc-for>
+</div>
+</sc-for>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"$preview":{"width":1776,"height":5780}}'>
+class Component extends DCLogic {
+renderVals() {
+const theme = this.props.theme ?? 'light';
+const dark = theme === 'dark';
+const kinds = [
+{ id:'loading', label:'Yuklanmoqda', note:'Skeleton: real layout shapes, no spinner' },
+{ id:'empty', label:'Boʻsh', note:'Illustration + one clear action' },
+{ id:'error', label:'Xato', note:'Plain explanation + retry' },
+{ id:'offline', label:'Internet yoʻq', note:'Warning banner + retry' }
+];
+const screens = [['feed','Lenta'],['map','Xarita'],['chats','Chatlar'],['notifs','Bildirishnomalar'],['profile','Mening eʼlonlarim'],['claims','Soʻrovlar']];
+const rows = screens.map(([screen, name]) => ({ cells: kinds.map((k) => ({ screen, kind: k.id, theme, caption: name + ' · ' + k.label })) }));
+return { kinds, rows, bg: dark ? '#0A0E17' : '#E8ECF3', fg: dark ? '#E6EBF5' : '#172033', mu: dark ? '#9AA6BB' : '#556070' };
+}
+}
+</script>
+</body>
+</html>

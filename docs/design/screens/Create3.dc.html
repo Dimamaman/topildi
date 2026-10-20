@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<title>Eʼlon 3-qadam</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: {{t.bg}}; color: {{t.tx}}; font-family: 'Inter', system-ui, sans-serif; display: flex; flex-direction: column; overflow: hidden">
+<div style="flex-shrink: 0; background: {{t.sf}}; border-bottom: 1px solid {{t.ln}}; padding: 8px 8px 14px; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; align-items: center; gap: 4px">
+<a href="Create2.dc.html" aria-label="Orqaga" style="width: 48px; height: 48px; color: {{t.tx}}; display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg></a>
+<span style="flex: 1; font-size: 17px; font-weight: 700">Qayerda va qachon?</span>
+<span style="padding-right: 12px; font-size: 14px; color: {{t.mu}}; font-weight: 500">3 / 3</span>
+</div>
+<div style="padding: 0 12px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px" role="progressbar" aria-valuenow="3" aria-valuemin="1" aria-valuemax="3" aria-label="3-qadam: joy va sana">
+<span style="height: 4px; border-radius: 2px; background: {{t.pr}}"></span><span style="height: 4px; border-radius: 2px; background: {{t.pr}}"></span><span style="height: 4px; border-radius: 2px; background: {{t.pr}}"></span>
+</div>
+</div>
+<div style="height: 330px; flex-shrink: 0; background: {{t.map}}; position: relative; overflow: hidden">
+<div aria-hidden="true" style="position: absolute; inset: 0">
+<div style="position: absolute; left: 20px; top: 40px; width: 120px; height: 90px; border-radius: 24px; background: {{t.park}}"></div>
+<div style="position: absolute; left: -20px; top: 230px; width: 440px; height: 50px; background: {{t.water}}; transform: rotate(-8deg)"></div>
+<div style="position: absolute; left: -20px; top: 150px; width: 440px; height: 12px; background: {{t.road}}; transform: rotate(5deg)"></div>
+<div style="position: absolute; left: 200px; top: 0; width: 12px; height: 340px; background: {{t.road}}"></div>
+<div style="position: absolute; left: 300px; top: 0; width: 8px; height: 340px; background: {{t.road}}; transform: rotate(-8deg)"></div>
+</div>
+<span style="position: absolute; left: 115px; top: 85px; width: 160px; height: 160px; border-radius: 80px; background: {{t.area}}; border: 2px dashed {{t.pr}}; box-sizing: border-box"></span>
+<span style="position: absolute; left: 175px; top: 112px; color: {{t.pr}}"><svg width="40" height="52" viewBox="0 0 24 31" aria-hidden="true"><path d="M12 30s-11-9.5-11-17.5a11 11 0 0 1 22 0C23 20.5 12 30 12 30z" fill="currentColor"></path><circle cx="12" cy="12" r="4.5" fill="{{t.sf}}"></circle></svg></span>
+<span style="position: absolute; left: 50%; top: 14px; transform: translateX(-50%); padding: 8px 12px; border-radius: 18px; background: {{t.inv}}; color: {{t.onInv}}; font-size: 13px; font-weight: 600; white-space: nowrap">Xaritani surib, joyni belgilang</span>
+<button aria-label="Mening joylashuvim" style="position: absolute; right: 14px; bottom: 14px; width: 48px; height: 48px; border: none; border-radius: 12px; background: {{t.sf}}; color: {{t.pr}}; box-shadow: 0 2px 8px {{t.sh}}; display: flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v3M12 19v3M2 12h3M19 12h3"></path></svg></button>
+</div>
+<div style="flex: 1; overflow: hidden; padding: 16px 20px; display: flex; flex-direction: column; gap: 18px">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<span style="display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 600"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="{{t.pr}}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"></path><circle cx="12" cy="9.5" r="2.5"></circle></svg>Chilonzor-9, metro bekati yonida</span>
+<span style="font-size: 13px; line-height: 19px; color: {{t.mu}}">Boshqalarga aniq nuqta emas, taxminan 300 m lik hudud koʻrsatiladi.</span>
+</div>
+<div style="display: flex; flex-direction: column; gap: 10px">
+<span style="font-size: 14px; font-weight: 600">Qachon topdingiz?</span>
+<div style="display: flex; gap: 8px">
+<sc-for list="{{days}}" as="d" hint-placeholder-count="3">
+<button onClick="{{d.pick}}" aria-pressed="{{d.on}}" style="height: 40px; padding: 0 14px; border-radius: 8px; border: 1px solid {{d.border}}; background: {{d.bg}}; color: {{d.fg}}; font-family: inherit; font-size: 14px; font-weight: 600">{{d.label}}</button>
+</sc-for>
+</div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+<span style="height: 52px; box-sizing: border-box; padding: 0 14px; border-radius: 12px; border: 1px solid {{t.ol}}; background: {{t.sf}}; display: flex; flex-direction: column; justify-content: center"><span style="font-size: 12px; color: {{t.mu}}">Sana</span><span style="font-size: 15px; font-weight: 600">{{date}}</span></span>
+<span style="height: 52px; box-sizing: border-box; padding: 0 14px; border-radius: 12px; border: 1px solid {{t.ol}}; background: {{t.sf}}; display: flex; flex-direction: column; justify-content: center"><span style="font-size: 12px; color: {{t.mu}}">Taxminiy vaqt</span><span style="font-size: 15px; font-weight: 600">09:40</span></span>
+</div>
+</div>
+</div>
+<div style="flex-shrink: 0; padding: 12px 20px 24px; background: {{t.sf}}; border-top: 1px solid {{t.ln}}">
+<a href="Review.dc.html" style="height: 52px; border-radius: 12px; background: {{t.pr}}; color: {{t.onPr}}; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 600; text-decoration: none">Koʻrib chiqish</a>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+constructor(p) { super(p); this.state = { day: 'Bugun' }; }
+renderVals() {
+const L={bg:'#F4F6FA',sf:'#FFFFFF',ln:'#DCE2EC',ol:'#8792A6',tx:'#172033',mu:'#556070',pr:'#2B5FD9',onPr:'#FFFFFF',prC:'#E3EBFC',onPrC:'#1D45A8',map:'#E6EBF2',road:'#FFFFFF',park:'#D4E7D9',water:'#CDDDF3',area:'rgba(43,95,217,0.12)',inv:'#172033',onInv:'#E6EBF5',sh:'rgba(23,32,51,0.16)'};
+const D={bg:'#0F1420',sf:'#182031',ln:'#2A3550',ol:'#5D6A84',tx:'#E6EBF5',mu:'#9AA6BB',pr:'#8DB0FF',onPr:'#0B2A6B',prC:'#233A72',onPrC:'#D6E2FF',map:'#141B29',road:'#232D44',park:'#1A2F26',water:'#172846',area:'rgba(141,176,255,0.14)',inv:'#E6EBF5',onInv:'#172033',sh:'rgba(0,0,0,0.5)'};
+const t = (this.props.theme ?? 'light') === 'dark' ? D : L;
+const map = { 'Bugun': '20-oktabr', 'Kecha': '19-oktabr', 'Boshqa sana': 'Tanlang' };
+const days = Object.keys(map).map((label) => { const on = this.state.day === label; return { label, on, bg: on ? t.prC : t.sf, fg: on ? t.onPrC : t.tx, border: on ? t.prC : t.ln, pick: () => this.setState({ day: label }) }; });
+return { t, days, date: map[this.state.day] };
+}
+}
+</script>
+</body>
+</html>

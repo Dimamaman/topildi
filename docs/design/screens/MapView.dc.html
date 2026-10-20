@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<title>Xarita</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: {{t.map}}; color: {{t.tx}}; font-family: 'Inter', system-ui, sans-serif; display: flex; flex-direction: column; overflow: hidden">
+<div style="flex: 1; position: relative; overflow: hidden">
+<!-- map drawing -->
+<div aria-hidden="true" style="position: absolute; inset: 0">
+<div style="position: absolute; left: -40px; top: 470px; width: 520px; height: 70px; background: {{t.water}}; transform: rotate(-12deg)"></div>
+<div style="position: absolute; left: 30px; top: 250px; width: 130px; height: 110px; border-radius: 28px; background: {{t.park}}"></div>
+<div style="position: absolute; left: 250px; top: 590px; width: 120px; height: 90px; border-radius: 24px; background: {{t.park}}"></div>
+<div style="position: absolute; left: -20px; top: 200px; width: 440px; height: 14px; background: {{t.road}}; transform: rotate(8deg)"></div>
+<div style="position: absolute; left: -20px; top: 400px; width: 440px; height: 10px; background: {{t.road}}"></div>
+<div style="position: absolute; left: -20px; top: 620px; width: 440px; height: 10px; background: {{t.road}}; transform: rotate(-4deg)"></div>
+<div style="position: absolute; left: 120px; top: 0; width: 12px; height: 760px; background: {{t.road}}"></div>
+<div style="position: absolute; left: 270px; top: 0; width: 10px; height: 760px; background: {{t.road}}; transform: rotate(6deg)"></div>
+<div style="position: absolute; left: 196px; top: 120px; width: 8px; height: 300px; background: {{t.road}}"></div>
+</div>
+<!-- pins -->
+<sc-for list="{{pins}}" as="p" hint-placeholder-count="7">
+<button onClick="{{p.pick}}" aria-label="{{p.label}}" style="position: absolute; left: {{p.x}}; top: {{p.y}}; width: {{p.size}}; height: {{p.size}}; padding: 0; border-radius: 50%; border: 3px solid {{t.pinRing}}; background: {{p.bg}}; color: {{p.fg}}; box-shadow: 0 4px 12px {{t.sh}}; display: flex; align-items: center; justify-content: center; font-family: inherit; font-size: 13px; font-weight: 700"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{p.icon}}"></path></svg></button>
+</sc-for>
+<span style="position: absolute; left: 60px; top: 548px; width: 44px; height: 44px; border-radius: 22px; background: {{t.prC}}; color: {{t.onPrC}}; border: 3px solid {{t.pinRing}}; box-sizing: border-box; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700" aria-label="12 ta eʼlon">12</span>
+<span style="position: absolute; left: 186px; top: 420px; width: 18px; height: 18px; border-radius: 9px; background: {{t.pr}}; border: 3px solid {{t.pinRing}}; box-shadow: 0 0 0 10px {{t.meHalo}}" aria-label="Siz shu yerdasiz"></span>
+<!-- top controls -->
+<div style="position: absolute; left: 16px; right: 16px; top: 16px; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; gap: 8px">
+<a href="Home.dc.html" aria-label="Roʻyxatga qaytish" style="width: 48px; height: 48px; border-radius: 12px; background: {{t.sf}}; color: {{t.tx}}; box-shadow: 0 2px 8px {{t.sh}}; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"></path></svg></a>
+<label style="flex: 1; height: 48px; box-sizing: border-box; padding: 0 14px; border-radius: 12px; background: {{t.sf}}; box-shadow: 0 2px 8px {{t.sh}}; display: flex; align-items: center; gap: 10px; color: {{t.mu}}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg><input placeholder="Shu hududda qidirish" aria-label="Qidirish" style="flex: 1; min-width: 0; border: none; outline: none; background: transparent; color: {{t.tx}}; font-family: inherit; font-size: 16px"></label>
+<a href="Filters.dc.html" aria-label="Filtrlar" style="width: 48px; height: 48px; border-radius: 12px; background: {{t.sf}}; color: {{t.pr}}; box-shadow: 0 2px 8px {{t.sh}}; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"></path></svg></a>
+</div>
+<div style="display: flex; gap: 8px">
+<span style="height: 36px; padding: 0 14px; border-radius: 18px; background: {{t.sf}}; box-shadow: 0 2px 8px {{t.sh}}; display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; color: {{t.fd}}"><span style="width: 10px; height: 10px; border-radius: 5px; background: {{t.fdPin}}"></span>Topilgan · 8</span>
+<span style="height: 36px; padding: 0 14px; border-radius: 18px; background: {{t.sf}}; box-shadow: 0 2px 8px {{t.sh}}; display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; color: {{t.ls}}"><span style="width: 10px; height: 10px; border-radius: 5px; background: {{t.lsPin}}"></span>Yoʻqolgan · 4</span>
+</div>
+</div>
+<button aria-label="Mening joylashuvim" style="position: absolute; right: 16px; bottom: 196px; width: 48px; height: 48px; border: none; border-radius: 12px; background: {{t.sf}}; color: {{t.pr}}; box-shadow: 0 2px 8px {{t.sh}}; display: flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v3M12 19v3M2 12h3M19 12h3"></path></svg></button>
+<!-- preview card -->
+<a href="Detail.dc.html" style="position: absolute; left: 16px; right: 16px; bottom: 16px; display: flex; gap: 12px; padding: 10px; border-radius: 16px; background: {{t.sf}}; box-shadow: 0 8px 24px {{t.sh}}; text-decoration: none; color: {{t.tx}}">
+<span style="width: 132px; height: 132px; flex-shrink: 0; border-radius: 10px; background: {{sel.ph}}; color: {{t.phI}}; display: flex; align-items: center; justify-content: center"><svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{sel.icon}}"></path></svg></span>
+<span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; padding-top: 2px">
+<span style="display: flex; gap: 6px"><span style="padding: 3px 8px; border-radius: 6px; background: {{sel.typeBg}}; color: {{sel.typeFg}}; font-size: 12px; font-weight: 600">{{sel.type}}</span></span>
+<span style="font-size: 16px; font-weight: 600; line-height: 1.3">{{sel.title}}</span>
+<span style="font-size: 13px; color: {{t.mu}}">{{sel.meta}}</span>
+<span style="margin-top: auto; font-size: 14px; font-weight: 600; color: {{t.pr}}; display: flex; align-items: center; gap: 4px">Batafsil<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span>
+</span>
+</a>
+</div>
+<nav style="height: 80px; flex-shrink: 0; background: {{t.sf}}; border-top: 1px solid {{t.ln}}; display: flex; align-items: center; justify-content: space-around; padding: 0 8px">
+<a href="Home.dc.html" style="width: 64px; height: 56px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; color: {{t.mu}}; font-size: 12px; font-weight: 500"><span style="height: 30px; display: flex; align-items: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"></path></svg></span>Lenta</a>
+<a href="MapView.dc.html" aria-current="page" style="width: 64px; height: 56px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; color: {{t.onPrC}}; font-size: 12px; font-weight: 600"><span style="width: 56px; height: 30px; border-radius: 15px; background: {{t.prC}}; display: flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"></path><path d="M9 4v14M15 6v14"></path></svg></span>Xarita</a>
+<a href="Create1.dc.html" style="width: 64px; height: 56px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; color: {{t.tx}}; font-size: 12px; font-weight: 600"><span style="width: 40px; height: 30px; border-radius: 10px; background: {{t.pr}}; color: {{t.onPr}}; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></span>Qoʻshish</a>
+<a href="ChatList.dc.html" style="width: 64px; height: 56px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; color: {{t.mu}}; font-size: 12px; font-weight: 500"><span style="height: 30px; display: flex; align-items: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"></path></svg></span>Chatlar</a>
+<a href="Profile.dc.html" style="width: 64px; height: 56px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; color: {{t.mu}}; font-size: 12px; font-weight: 500"><span style="height: 30px; display: flex; align-items: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path></svg></span>Profil</a>
+</nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+constructor(p) { super(p); this.state = { sel: 0 }; }
+renderVals() {
+const L={sf:'#FFFFFF',ln:'#DCE2EC',tx:'#172033',mu:'#556070',pr:'#2B5FD9',onPr:'#FFFFFF',prC:'#E3EBFC',onPrC:'#1D45A8',fd:'#157347',fdC:'#DFF3E8',fdPin:'#1E8E5A',ls:'#A4441A',lsC:'#FCEBDD',lsPin:'#D9692F',sh:'rgba(23,32,51,0.16)',map:'#E6EBF2',road:'#FFFFFF',park:'#D4E7D9',water:'#CDDDF3',pinRing:'#FFFFFF',meHalo:'rgba(43,95,217,0.18)',ph1:'#DCE4F2',ph2:'#E1EBE5',ph3:'#EDE3D6',ph4:'#E4E1EE',phI:'#5B6F94'};
+const D={sf:'#182031',ln:'#2A3550',tx:'#E6EBF5',mu:'#9AA6BB',pr:'#8DB0FF',onPr:'#0B2A6B',prC:'#233A72',onPrC:'#D6E2FF',fd:'#7ED6A5',fdC:'#17382A',fdPin:'#4CBF85',ls:'#F3A77E',lsC:'#43281A',lsPin:'#E88A57',sh:'rgba(0,0,0,0.5)',map:'#141B29',road:'#232D44',park:'#1A2F26',water:'#172846',pinRing:'#0F1420',meHalo:'rgba(141,176,255,0.2)',ph1:'#2A3550',ph2:'#22392F',ph3:'#3A3226',ph4:'#2F2B45',phI:'#9AA6BB'};
+const t = (this.props.theme ?? 'light') === 'dark' ? D : L;
+const I = {
+wallet:'M3 7a2 2 0 0 1 2-2h12v4M5 7h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7M16 13.5h.01',
+key:'M11 12l9-9M17 6l3 3M12 15a4 4 0 1 1-8 0 4 4 0 0 1 8 0',
+bag:'M6 8h12l-1 13H7zM9 8V6a3 3 0 0 1 6 0v2',
+phone:'M8 2h8a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zM11 18h2',
+doc:'M6 2h9l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zM9 13h6M9 17h4'
+};
+const data = [
+{x:150,y:330,f:true,icon:I.wallet,title:'Qora charm hamyon',meta:'Chilonzor-9 · Bugun, 09:40 · 350 m',ph:t.ph1},
+{x:236,y:250,f:true,icon:I.key,title:'Kalitlar toʻplami, 3 dona',meta:'Chilonzor-7 · Kecha · 800 m',ph:t.ph2},
+{x:300,y:430,f:false,icon:I.doc,title:'Pasport, koʻk muqovali',meta:'Olmazor · Bugun, 08:10 · 1,2 km',ph:t.ph1},
+{x:70,y:440,f:true,icon:I.bag,title:'Bolalar ryukzagi, koʻk',meta:'Chilonzor-5 · 18-oktabr · 900 m',ph:t.ph3},
+{x:220,y:540,f:false,icon:I.phone,title:'Telefon, qora',meta:'Chilonzor-12 · 17-oktabr · 1 km',ph:t.ph4},
+{x:320,y:300,f:true,icon:I.phone,title:'Telefon, oq gʻilofda',meta:'Chilonzor-1 · 17-oktabr · 1,4 km',ph:t.ph4}
+];
+const s = this.state.sel;
+const pins = data.map((d, i) => { const on = i === s; const base = d.f ? t.fdPin : t.lsPin; return { x: d.x + 'px', y: d.y + 'px', size: on ? '52px' : '40px', bg: on ? t.pr : base, fg: on ? t.onPr : '#FFFFFF', icon: d.icon, label: (d.f ? 'Topilgan: ' : 'Yoʻqolgan: ') + d.title, pick: () => this.setState({ sel: i }) }; });
+const d = data[s];
+const sel = { ...d, type: d.f ? 'Topilgan' : 'Yoʻqolgan', typeBg: d.f ? t.fdC : t.lsC, typeFg: d.f ? t.fd : t.ls };
+return { t, pins, sel };
+}
+}
+</script>
+</body>
+</html>

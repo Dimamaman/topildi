@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<title>Profil</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: {{t.bg}}; color: {{t.tx}}; font-family: 'Inter', system-ui, sans-serif; display: flex; flex-direction: column; overflow: hidden">
+<div style="flex: 1; overflow: hidden; display: flex; flex-direction: column">
+<div style="padding: 20px 20px 16px; background: {{t.sf}}; border-bottom: 1px solid {{t.ln}}; display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; align-items: center; gap: 14px">
+<span style="width: 64px; height: 64px; border-radius: 32px; background: {{t.lsC}}; color: {{t.ls}}; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 700">MK</span>
+<span style="flex: 1; display: flex; flex-direction: column; gap: 3px"><span style="font-size: 20px; font-weight: 700">Malika K.</span><span style="font-size: 13px; color: {{t.mu}}">Sentyabr 2026 dan beri aʼzo</span></span>
+<button aria-label="Profilni tahrirlash" style="width: 48px; height: 48px; border-radius: 12px; border: 1px solid {{t.ln}}; background: transparent; color: {{t.tx}}; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"></path></svg></button>
+</div>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
+<span style="padding: 10px; border-radius: 12px; background: {{t.sf2}}; display: flex; flex-direction: column; gap: 2px"><b style="font-size: 18px">3</b><span style="font-size: 12px; color: {{t.mu}}">Eʼlonlar</span></span>
+<span style="padding: 10px; border-radius: 12px; background: {{t.fdC}}; color: {{t.fd}}; display: flex; flex-direction: column; gap: 2px"><b style="font-size: 18px">2</b><span style="font-size: 12px">Qaytarilgan</span></span>
+<span style="padding: 10px; border-radius: 12px; background: {{t.sf2}}; display: flex; flex-direction: column; gap: 2px"><b style="font-size: 18px">1</b><span style="font-size: 12px; color: {{t.mu}}">Topib olgan</span></span>
+</div>
+</div>
+<div style="padding: 12px 20px 0; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; align-items: center; justify-content: space-between"><h2 style="margin: 0; font-size: 16px; font-weight: 700">Mening eʼlonlarim</h2>
+<div style="display: flex; border: 1px solid {{t.ln}}; border-radius: 10px; overflow: hidden; background: {{t.sf}}">
+<button onClick="{{showActive}}" style="height: 36px; padding: 0 12px; border: none; background: {{aBg}}; color: {{aFg}}; font-family: inherit; font-size: 13px; font-weight: 600">Faol · 1</button>
+<button onClick="{{showDone}}" style="height: 36px; padding: 0 12px; border: none; background: {{dBg}}; color: {{dFg}}; font-family: inherit; font-size: 13px; font-weight: 600">Qaytarilgan · 2</button>
+</div></div>
+<sc-for list="{{mine}}" as="m" hint-placeholder-count="2">
+<a href="Detail.dc.html" style="display: flex; gap: 12px; align-items: center; padding: 8px; border-radius: 12px; background: {{t.sf}}; border: 1px solid {{t.ln}}; text-decoration: none; color: {{t.tx}}">
+<span style="width: 56px; height: 56px; border-radius: 8px; background: {{m.ph}}; color: {{t.phI}}; display: flex; align-items: center; justify-content: center; flex-shrink: 0"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{m.icon}}"></path></svg></span>
+<span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px"><span style="font-size: 15px; font-weight: 600">{{m.title}}</span><span style="font-size: 12px; color: {{t.mu}}">{{m.meta}}</span></span>
+<span style="padding: 4px 8px; border-radius: 6px; background: {{m.sBg}}; color: {{m.sFg}}; font-size: 12px; font-weight: 600">{{m.status}}</span>
+</a>
+</sc-for>
+</div>
+<div style="padding: 16px 20px 0; display: flex; flex-direction: column">
+<h2 style="margin: 0 0 4px; font-size: 16px; font-weight: 700">Sozlamalar</h2>
+<div style="border-radius: 12px; background: {{t.sf}}; border: 1px solid {{t.ln}}; overflow: hidden">
+<button style="width: 100%; height: 52px; padding: 0 14px; border: none; border-bottom: 1px solid {{t.ln}}; background: transparent; color: {{t.tx}}; font-family: inherit; font-size: 15px; display: flex; align-items: center; gap: 12px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"></path></svg><span style="flex: 1; text-align: left">Til</span><span style="color: {{t.mu}}">Oʻzbekcha</span></button>
+<div style="height: 56px; padding: 0 8px 0 14px; border-bottom: 1px solid {{t.ln}}; display: flex; align-items: center; gap: 12px; font-size: 15px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"></path></svg><span style="flex: 1">Mavzu</span>
+<span style="display: flex; padding: 3px; border-radius: 10px; background: {{t.sf2}}"><sc-for list="{{modes}}" as="md" hint-placeholder-count="3"><button onClick="{{md.pick}}" style="height: 40px; padding: 0 10px; border: none; border-radius: 8px; background: {{md.bg}}; color: {{md.fg}}; font-family: inherit; font-size: 13px; font-weight: 600">{{md.label}}</button></sc-for></span></div>
+<button style="width: 100%; height: 52px; padding: 0 14px; border: none; border-bottom: 1px solid {{t.ln}}; background: transparent; color: {{t.tx}}; font-family: inherit; font-size: 15px; display: flex; align-items: center; gap: 12px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path></svg><span style="flex: 1; text-align: left">Bildirishnomalar</span><span style="color: {{t.mu}}">Yoqilgan</span></button>
+<button style="width: 100%; height: 52px; padding: 0 14px; border: none; background: transparent; color: {{t.er}}; font-family: inherit; font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 12px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 4h4v16h-4M10 8l-4 4 4 4M6 12h10"></path></svg>Chiqish</button>
+</div>
+</div>
+</div>
+<nav style="height: 80px; flex-shrink: 0; background: {{t.sf}}; border-top: 1px solid {{t.ln}}; display: flex; align-items: center; justify-content: space-around; padding: 0 8px">
+<a href="Home.dc.html" style="width: 64px; height: 56px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; color: {{t.mu}}; font-size: 12px; font-weight: 500"><span style="height: 30px; display: flex; align-items: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"></path></svg></span>Lenta</a>
+<a href="MapView.dc.html" style="width: 64px; height: 56px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; color: {{t.mu}}; font-size: 12px; font-weight: 500"><span style="height: 30px; display: flex; align-items: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"></path><path d="M9 4v14M15 6v14"></path></svg></span>Xarita</a>
+<a href="Create1.dc.html" style="width: 64px; height: 56px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; color: {{t.tx}}; font-size: 12px; font-weight: 600"><span style="width: 40px; height: 30px; border-radius: 10px; background: {{t.pr}}; color: {{t.onPr}}; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></span>Qoʻshish</a>
+<a href="ChatList.dc.html" style="width: 64px; height: 56px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; color: {{t.mu}}; font-size: 12px; font-weight: 500"><span style="height: 30px; display: flex; align-items: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"></path></svg></span>Chatlar</a>
+<a href="Profile.dc.html" aria-current="page" style="width: 64px; height: 56px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; color: {{t.onPrC}}; font-size: 12px; font-weight: 600"><span style="width: 56px; height: 30px; border-radius: 15px; background: {{t.prC}}; display: flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path></svg></span>Profil</a>
+</nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+constructor(p) { super(p); this.state = { tab: 'active', mode: 'Tizim' }; }
+renderVals() {
+const L={bg:'#F4F6FA',sf:'#FFFFFF',sf2:'#EEF1F6',ln:'#DCE2EC',tx:'#172033',mu:'#556070',pr:'#2B5FD9',onPr:'#FFFFFF',prC:'#E3EBFC',onPrC:'#1D45A8',fd:'#157347',fdC:'#DFF3E8',ls:'#A4441A',lsC:'#FCEBDD',ok:'#1E7A4E',okC:'#DFF3E8',er:'#C2362B',ph1:'#DCE4F2',ph2:'#E1EBE5',ph3:'#EDE3D6',phI:'#5B6F94'};
+const D={bg:'#0F1420',sf:'#182031',sf2:'#212A3D',ln:'#2A3550',tx:'#E6EBF5',mu:'#9AA6BB',pr:'#8DB0FF',onPr:'#0B2A6B',prC:'#233A72',onPrC:'#D6E2FF',fd:'#7ED6A5',fdC:'#17382A',ls:'#F3A77E',lsC:'#43281A',ok:'#7ED6A5',okC:'#17382A',er:'#FF8A80',ph1:'#2A3550',ph2:'#22392F',ph3:'#3A3226',phI:'#9AA6BB'};
+const t = (this.props.theme ?? 'light') === 'dark' ? D : L;
+const I = { doc:'M6 2h9l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zM9 13h6M9 17h4', key:'M11 12l9-9M17 6l3 3M12 15a4 4 0 1 1-8 0 4 4 0 0 1 8 0', bag:'M6 8h12l-1 13H7zM9 8V6a3 3 0 0 1 6 0v2' };
+const active = this.state.tab === 'active';
+const mine = active ? [
+{ title:'Pasport, koʻk muqovali', meta:'Yoʻqolgan · Olmazor · 1 ta mos eʼlon', icon:I.doc, ph:t.ph1, status:'Faol', sBg:t.prC, sFg:t.onPrC }
+] : [
+{ title:'Kalitlar toʻplami', meta:'Topilgan · 18-oktabrda qaytarildi', icon:I.key, ph:t.ph2, status:'Qaytarildi', sBg:t.okC, sFg:t.ok },
+{ title:'Bolalar ryukzagi', meta:'Topilgan · 9-oktabrda qaytarildi', icon:I.bag, ph:t.ph3, status:'Qaytarildi', sBg:t.okC, sFg:t.ok }
+];
+const modes = ['Tizim','Yorugʻ','Qorongʻi'].map((label) => { const on = this.state.mode === label; return { label, bg: on ? t.sf : 'transparent', fg: on ? t.tx : t.mu, pick: () => this.setState({ mode: label }) }; });
+return { t, mine, modes,
+aBg: active ? t.prC : 'transparent', aFg: active ? t.onPrC : t.mu, dBg: active ? 'transparent' : t.prC, dFg: active ? t.mu : t.onPrC,
+showActive: () => this.setState({ tab: 'active' }), showDone: () => this.setState({ tab: 'done' }) };
+}
+}
+</script>
+</body>
+</html>

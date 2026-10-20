@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<title>Onboarding 1</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: {{t.bg}}; color: {{t.tx}}; font-family: 'Inter', system-ui, sans-serif; display: flex; flex-direction: column; padding: 8px 24px 32px">
+<div style="height: 56px; display: flex; justify-content: flex-end; align-items: center"><a href="SignIn.dc.html" style="height: 48px; padding: 0 8px; display: flex; align-items: center; color: {{t.mu}}; font-size: 15px; font-weight: 600; text-decoration: none">Oʻtkazib yuborish</a></div>
+<div style="flex: 1; display: flex; align-items: center; justify-content: center">
+<div style="width: 300px; height: 300px; border-radius: 150px; background: {{t.prC}}; position: relative">
+<div style="position: absolute; left: 62px; top: 58px; width: 176px; padding: 10px; box-sizing: border-box; border-radius: 16px; background: {{t.sf}}; box-shadow: 0 12px 32px {{t.sh}}; transform: rotate(-5deg); display: flex; flex-direction: column; gap: 8px">
+<div style="height: 110px; border-radius: 10px; background: {{t.ph3}}; color: {{t.phI}}; display: flex; align-items: center; justify-content: center"><svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h12v4"></path><rect x="3" y="7" width="18" height="13" rx="2"></rect><path d="M16 13.5h.01"></path></svg></div>
+<span style="align-self: flex-start; padding: 3px 8px; border-radius: 6px; background: {{t.fdC}}; color: {{t.fd}}; font-size: 12px; font-weight: 600">Topilgan</span>
+<span style="height: 8px; width: 120px; border-radius: 4px; background: {{t.sf2}}"></span>
+<span style="height: 8px; width: 80px; border-radius: 4px; background: {{t.sf2}}"></span>
+</div>
+<div style="position: absolute; right: 34px; bottom: 50px; width: 72px; height: 72px; border-radius: 36px; background: {{t.pr}}; color: {{t.onPr}}; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 24px {{t.sh}}"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"></path><circle cx="12" cy="13" r="3.5"></circle></svg></div>
+<span style="position: absolute; left: 30px; bottom: 70px; width: 14px; height: 14px; border-radius: 7px; background: {{t.fd}}"></span>
+<span style="position: absolute; right: 60px; top: 30px; width: 10px; height: 10px; border-radius: 5px; background: {{t.pr}}"></span>
+</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 12px; padding-bottom: 28px">
+<h1 style="margin: 0; font-size: 28px; line-height: 36px; font-weight: 700; letter-spacing: -0.01em">Nimadir topdingizmi?</h1>
+<p style="margin: 0; font-size: 17px; line-height: 26px; color: {{t.tx2}}">Rasmga oling va eʼlon bering. Egasi sizni ilova orqali topadi, raqamingiz koʻrinmaydi.</p>
+</div>
+<div style="display: flex; align-items: center; justify-content: space-between">
+<div style="display: flex; gap: 6px" aria-label="1-sahifa, jami 3"><span style="width: 24px; height: 8px; border-radius: 4px; background: {{t.pr}}"></span><span style="width: 8px; height: 8px; border-radius: 4px; background: {{t.ln}}"></span><span style="width: 8px; height: 8px; border-radius: 4px; background: {{t.ln}}"></span></div>
+<a href="Onboarding2.dc.html" style="height: 52px; padding: 0 28px; border-radius: 12px; background: {{t.pr}}; color: {{t.onPr}}; display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 600; text-decoration: none">Keyingi<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></a>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() {
+const L={bg:'#F4F6FA',sf:'#FFFFFF',sf2:'#EEF1F6',ln:'#DCE2EC',tx:'#172033',tx2:'#344055',mu:'#556070',pr:'#2B5FD9',onPr:'#FFFFFF',prC:'#E3EBFC',fd:'#157347',fdC:'#DFF3E8',ok:'#1E7A4E',okC:'#DFF3E8',ls:'#A4441A',lsC:'#FCEBDD',sh:'rgba(23,32,51,0.14)',ph1:'#DCE4F2',ph3:'#EDE3D6',phI:'#5B6F94'};
+const D={bg:'#0F1420',sf:'#182031',sf2:'#212A3D',ln:'#2A3550',tx:'#E6EBF5',tx2:'#C2CBDB',mu:'#9AA6BB',pr:'#8DB0FF',onPr:'#0B2A6B',prC:'#1B2A4D',fd:'#7ED6A5',fdC:'#17382A',ok:'#7ED6A5',okC:'#17382A',ls:'#F3A77E',lsC:'#43281A',sh:'rgba(0,0,0,0.45)',ph1:'#2A3550',ph3:'#3A3226',phI:'#9AA6BB'};
+return { t: (this.props.theme ?? 'light') === 'dark' ? D : L };
+}
+}
+</script>
+</body>
+</html>

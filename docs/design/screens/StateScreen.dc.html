@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<title>Holat ekrani</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: {{t.bg}}; color: {{t.tx}}; font-family: 'Inter', system-ui, sans-serif; display: flex; flex-direction: column; overflow: hidden">
+<div style="padding: 20px 20px 14px; background: {{t.sf}}; border-bottom: 1px solid {{t.ln}}; display: flex; flex-direction: column; gap: 12px">
+<h1 style="margin: 0; font-size: 22px; font-weight: 700">{{title}}</h1>
+<sc-if value="{{hasSearch}}" hint-placeholder-val="{{true}}">
+<div style="height: 48px; box-sizing: border-box; padding: 0 14px; border-radius: 12px; background: {{t.sf2}}; display: flex; align-items: center; gap: 10px; color: {{t.mu}}; font-size: 16px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>Nimani qidiryapsiz?</div>
+</sc-if>
+</div>
+<sc-if value="{{isOffline}}" hint-placeholder-val="{{false}}">
+<div role="status" style="padding: 10px 20px; background: {{t.wnC}}; color: {{t.wn}}; display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 2l20 20M8.5 16.5a5 5 0 0 1 7 0M5 13a10 10 0 0 1 5.2-2.8M19 13a10 10 0 0 0-2-1.5M2 8.8a15 15 0 0 1 4.2-2.6M22 8.8A15 15 0 0 0 11 5M12 20h.01"></path></svg>Oflayn rejim: oxirgi saqlangan maʼlumotlar</div>
+</sc-if>
+<div style="flex: 1; overflow: hidden; display: flex; flex-direction: column">
+<sc-if value="{{skCards}}" hint-placeholder-val="{{false}}">
+<div style="padding: 16px 20px; display: flex; flex-direction: column; gap: 10px" aria-busy="true" aria-label="Yuklanmoqda">
+<sc-for list="{{four}}" as="s" hint-placeholder-count="4">
+<div style="display: flex; gap: 14px; padding: 10px; border-radius: 12px; background: {{t.sf}}; border: 1px solid {{t.ln}}"><span style="width: 104px; height: 104px; border-radius: 8px; background: {{t.sk}}"></span><span style="flex: 1; display: flex; flex-direction: column; gap: 10px; padding-top: 4px"><span style="width: 72px; height: 18px; border-radius: 6px; background: {{t.sk}}"></span><span style="width: 90%; height: 14px; border-radius: 6px; background: {{t.sk}}"></span><span style="width: 60%; height: 12px; border-radius: 6px; background: {{t.sk2}}"></span></span></div>
+</sc-for>
+</div>
+</sc-if>
+<sc-if value="{{skRows}}" hint-placeholder-val="{{false}}">
+<div style="display: flex; flex-direction: column" aria-busy="true" aria-label="Yuklanmoqda">
+<sc-for list="{{six}}" as="s" hint-placeholder-count="6">
+<div style="display: flex; gap: 12px; align-items: center; padding: 14px 20px; border-bottom: 1px solid {{t.ln}}"><span style="width: 48px; height: 48px; border-radius: 24px; background: {{t.sk}}; flex-shrink: 0"></span><span style="flex: 1; display: flex; flex-direction: column; gap: 8px"><span style="width: 50%; height: 14px; border-radius: 6px; background: {{t.sk}}"></span><span style="width: 85%; height: 12px; border-radius: 6px; background: {{t.sk2}}"></span></span></div>
+</sc-for>
+</div>
+</sc-if>
+<sc-if value="{{skMap}}" hint-placeholder-val="{{false}}">
+<div style="flex: 1; background: {{t.sk2}}; position: relative" aria-busy="true" aria-label="Xarita yuklanmoqda">
+<span style="position: absolute; left: 0; right: 0; top: 200px; height: 10px; background: {{t.sk}}"></span>
+<span style="position: absolute; top: 0; bottom: 0; left: 140px; width: 10px; background: {{t.sk}}"></span>
+<span style="position: absolute; top: 0; bottom: 0; left: 270px; width: 8px; background: {{t.sk}}"></span>
+<span style="position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); padding: 10px 16px; border-radius: 20px; background: {{t.sf}}; box-shadow: 0 4px 12px {{t.sh}}; display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 600"><span style="width: 16px; height: 16px; border-radius: 8px; border: 2.5px solid {{t.pr}}; border-right-color: transparent; box-sizing: border-box"></span>Eʼlonlar yuklanmoqda</span>
+</div>
+</sc-if>
+<sc-if value="{{hasMessage}}" hint-placeholder-val="{{true}}">
+<div style="flex: 1; padding: 32px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; text-align: center">
+<span style="width: 120px; height: 120px; border-radius: 60px; background: {{m.circle}}; color: {{m.fg}}; display: flex; align-items: center; justify-content: center; position: relative"><svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{m.icon}}"></path></svg><span style="position: absolute; right: 6px; top: 12px; width: 12px; height: 12px; border-radius: 6px; background: {{m.fg}}; opacity: 0.5"></span></span>
+<h2 style="margin: 8px 0 0; font-size: 20px; line-height: 28px; font-weight: 700">{{m.title}}</h2>
+<p style="margin: 0; max-width: 280px; font-size: 15px; line-height: 22px; color: {{t.tx2}}">{{m.body}}</p>
+<button style="margin-top: 8px; height: 52px; padding: 0 28px; border: none; border-radius: 12px; background: {{t.pr}}; color: {{t.onPr}}; font-family: inherit; font-size: 16px; font-weight: 600">{{m.cta}}</button>
+</div>
+</sc-if>
+</div>
+<sc-if value="{{hasNav}}" hint-placeholder-val="{{true}}">
+<nav style="height: 80px; flex-shrink: 0; background: {{t.sf}}; border-top: 1px solid {{t.ln}}; display: flex; align-items: center; justify-content: space-around; padding: 0 8px">
+<sc-for list="{{nav}}" as="n" hint-placeholder-count="5">
+<span style="width: 64px; height: 56px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: {{n.fg}}; font-size: 12px; font-weight: 600"><span style="width: {{n.pillW}}; height: 30px; border-radius: {{n.pillR}}; background: {{n.pill}}; color: {{n.iconFg}}; display: flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{n.icon}}"></path></svg></span>{{n.label}}</span>
+</sc-for>
+</nav>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"screen":{"editor":"enum","options":["feed","map","chats","notifs","profile","claims"],"default":"feed"},"kind":{"editor":"enum","options":["loading","empty","error","offline"],"default":"empty"},"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() {
+const L={bg:'#F4F6FA',sf:'#FFFFFF',sf2:'#EEF1F6',ln:'#DCE2EC',tx:'#172033',tx2:'#344055',mu:'#556070',pr:'#2B5FD9',onPr:'#FFFFFF',prC:'#E3EBFC',onPrC:'#1D45A8',fd:'#157347',fdC:'#DFF3E8',er:'#C2362B',erC:'#FBE3E0',wn:'#8A5A12',wnC:'#FDF1D8',sk:'#E1E6EF',sk2:'#EAEEF4',sh:'rgba(23,32,51,0.14)'};
+const D={bg:'#0F1420',sf:'#182031',sf2:'#212A3D',ln:'#2A3550',tx:'#E6EBF5',tx2:'#C2CBDB',mu:'#9AA6BB',pr:'#8DB0FF',onPr:'#0B2A6B',prC:'#233A72',onPrC:'#D6E2FF',fd:'#7ED6A5',fdC:'#17382A',er:'#FF8A80',erC:'#4A1D1A',wn:'#F2C46D',wnC:'#3D2E12',sk:'#232D44',sk2:'#1B2335',sh:'rgba(0,0,0,0.5)'};
+const t = (this.props.theme ?? 'light') === 'dark' ? D : L;
+const screen = this.props.screen ?? 'feed';
+const kind = this.props.kind ?? 'empty';
+const I = {
+home:'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z',
+map:'M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2zM9 4v14M15 6v14',
+plus:'M12 5v14M5 12h14',
+chat:'M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z',
+user:'M12 4a4 4 0 1 1 0 8 4 4 0 0 1 0-8zM4 21a8 8 0 0 1 16 0',
+bell:'M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.94 1.94 0 0 0 3.4 0',
+box:'M3 8l9-5 9 5v8l-9 5-9-5zM3 8l9 5 9-5M12 13v8',
+shield:'M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6zM9 12l2 2 4-4',
+search:'M11 4a7 7 0 1 1 0 14 7 7 0 0 1 0-14zM20 20l-3.5-3.5',
+alert:'M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18zM12 8v5M12 16h.01',
+wifi:'M2 2l20 20M8.5 16.5a5 5 0 0 1 7 0M5 13a10 10 0 0 1 5.2-2.8M19 13a10 10 0 0 0-2-1.5M2 8.8a15 15 0 0 1 4.2-2.6M22 8.8A15 15 0 0 0 11 5M12 20h.01'
+};
+const S = {
+feed: { title:'Lenta', search:true, nav:0, sk:'cards', empty:{ icon:I.box, title:'Hozircha eʼlon yoʻq', body:'Bu hududda hali hech kim eʼlon bermagan. Birinchi boʻling!', cta:'Eʼlon berish' } },
+map: { title:'Xarita', search:true, nav:1, sk:'map', empty:{ icon:I.map, title:'Yaqin atrofda eʼlon yoʻq', body:'Xaritani suring yoki qidiruv hududini kengaytiring.', cta:'Hududni kengaytirish' } },
+chats: { title:'Chatlar', search:false, nav:3, sk:'rows', empty:{ icon:I.chat, title:'Hali chatlar yoʻq', body:'Soʻrov qabul qilingach, topuvchi yoki egasi bilan shu yerda yozishasiz.', cta:'Lentani koʻrish' } },
+notifs: { title:'Bildirishnomalar', search:false, nav:-1, sk:'rows', empty:{ icon:I.bell, title:'Yangi xabar yoʻq', body:'Mos eʼlon yoki yangi soʻrov chiqsa, shu yerda koʻrasiz.', cta:'Sozlamalar' } },
+profile: { title:'Mening eʼlonlarim', search:false, nav:4, sk:'cards', empty:{ icon:I.search, title:'Sizda eʼlon yoʻq', body:'Nimadir topdingizmi yoki yoʻqotdingizmi? Bir daqiqada eʼlon bering.', cta:'Eʼlon berish' } },
+claims: { title:'Soʻrovlar', search:false, nav:-1, sk:'cards', empty:{ icon:I.shield, title:'Hali soʻrov yoʻq', body:'Kimdir “Bu meniki” desa, darhol xabar beramiz.', cta:'Eʼlonni ulashish' } }
+}[screen];
+let m = null;
+if (kind === 'empty') m = { ...S.empty, circle:t.prC, fg:t.onPrC };
+if (kind === 'error') m = { icon:I.alert, title:'Nimadir xato ketdi', body:'Maʼlumotlarni yuklab boʻlmadi. Birozdan soʻng qayta urinib koʻring.', cta:'Qayta urinish', circle:t.erC, fg:t.er };
+if (kind === 'offline') m = { icon:I.wifi, title:'Internet yoʻq', body:'Ulanishni tekshiring. Internet qaytgach, hammasi oʻzi yangilanadi.', cta:'Qayta urinish', circle:t.wnC, fg:t.wn };
+const load = kind === 'loading';
+const navDefs = [['Lenta',I.home],['Xarita',I.map],['Qoʻshish',I.plus],['Chatlar',I.chat],['Profil',I.user]];
+const nav = navDefs.map(([label, icon], i) => {
+const on = i === S.nav; const add = i === 2;
+return { label, icon, fg: on ? t.onPrC : (add ? t.tx : t.mu), pill: add ? t.pr : (on ? t.prC : 'transparent'), iconFg: add ? t.onPr : 'currentColor', pillW: add ? '40px' : '56px', pillR: add ? '10px' : '15px' };
+});
+return { t, title: S.title, hasSearch: S.search, hasNav: S.nav >= 0, nav,
+isOffline: kind === 'offline',
+skCards: load && S.sk === 'cards', skRows: load && S.sk === 'rows', skMap: load && S.sk === 'map',
+hasMessage: !!m, m: m || { icon:'', title:'', body:'', cta:'', circle:'transparent', fg:'transparent' },
+four:[1,2,3,4], six:[1,2,3,4,5,6] };
+}
+}
+</script>
+</body>
+</html>

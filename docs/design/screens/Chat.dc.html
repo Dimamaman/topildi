@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<title>Chat</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: {{t.bg}}; color: {{t.tx}}; font-family: 'Inter', system-ui, sans-serif; display: flex; flex-direction: column; overflow: hidden">
+<div style="flex-shrink: 0; background: {{t.sf}}; border-bottom: 1px solid {{t.ln}}">
+<div style="height: 64px; padding: 8px 4px 8px 8px; box-sizing: border-box; display: flex; align-items: center; gap: 8px">
+<a href="ChatList.dc.html" aria-label="Orqaga" style="width: 48px; height: 48px; color: {{t.tx}}; display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg></a>
+<span style="width: 40px; height: 40px; border-radius: 20px; background: {{t.lsC}}; color: {{t.ls}}; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700">MK</span>
+<span style="flex: 1; display: flex; flex-direction: column; gap: 1px"><span style="font-size: 16px; font-weight: 600">Malika K.</span><span style="display: flex; align-items: center; gap: 4px; font-size: 12px; color: {{t.ok}}; font-weight: 600"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg>Egaligi tasdiqlangan</span></span>
+<button aria-label="Koʻproq" style="width: 48px; height: 48px; border: none; background: transparent; color: {{t.tx}}; display: flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="1.8"></circle><circle cx="12" cy="12" r="1.8"></circle><circle cx="12" cy="19" r="1.8"></circle></svg></button>
+</div>
+<div style="margin: 0 12px 12px; padding: 8px; border-radius: 12px; background: {{t.sf2}}; display: flex; align-items: center; gap: 10px">
+<span style="width: 44px; height: 44px; border-radius: 8px; background: {{t.ph1}}; flex-shrink: 0"></span>
+<span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 14px; font-weight: 600">Qora charm hamyon</span><span style="font-size: 12px; color: {{t.mu}}">Soʻrov qabul qilingan</span></span>
+<a href="Success.dc.html" style="height: 44px; padding: 0 12px; border-radius: 10px; background: {{t.ok}}; color: {{t.onOk}}; display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; text-decoration: none; white-space: nowrap"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg>Qaytarildi</a>
+</div>
+</div>
+<div style="flex: 1; overflow: hidden; padding: 14px 16px; display: flex; flex-direction: column; justify-content: flex-end; gap: 10px">
+<div style="align-self: center; max-width: 300px; padding: 8px 12px; border-radius: 10px; background: {{t.okC}}; color: {{t.ok}}; font-size: 13px; line-height: 18px; text-align: center; font-weight: 500">Javob yashirin belgiga mos keldi. Chat ochildi.</div>
+<div style="align-self: center; max-width: 320px; padding: 8px 12px; border-radius: 10px; background: {{t.sf2}}; color: {{t.tx2}}; font-size: 12px; line-height: 17px; text-align: center; display: flex; gap: 6px; align-items: flex-start"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0; margin-top: 1px"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"></path></svg>Gavjum joyda uchrashing. Telefon raqam yoki karta maʼlumotini yozmang.</div>
+<sc-for list="{{msgs}}" as="m" hint-placeholder-count="4">
+<div style="align-self: {{m.align}}; max-width: 270px; padding: 10px 14px; border-radius: {{m.radius}}; background: {{m.bg}}; color: {{m.fg}}; font-size: 15px; line-height: 21px; display: flex; flex-direction: column; gap: 4px"><span>{{m.text}}</span><span style="align-self: flex-end; font-size: 11px; opacity: 0.75">{{m.time}}</span></div>
+</sc-for>
+</div>
+<div style="flex-shrink: 0; padding: 10px 12px 20px; background: {{t.sf}}; border-top: 1px solid {{t.ln}}; display: flex; align-items: center; gap: 8px">
+<button aria-label="Joylashuv yuborish" style="width: 48px; height: 48px; border: none; border-radius: 12px; background: {{t.sf2}}; color: {{t.tx}}; display: flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"></path><circle cx="12" cy="9.5" r="2.5"></circle></svg></button>
+<input value="{{draft}}" onChange="{{onDraft}}" placeholder="Xabar yozing…" aria-label="Xabar" style="flex: 1; min-width: 0; height: 48px; box-sizing: border-box; padding: 0 14px; border-radius: 24px; border: 1px solid {{t.ln}}; background: {{t.bg}}; color: {{t.tx}}; font-family: inherit; font-size: 16px; outline: none">
+<button onClick="{{send}}" aria-label="Yuborish" style="width: 48px; height: 48px; border: none; border-radius: 24px; background: {{t.pr}}; color: {{t.onPr}}; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4z"></path></svg></button>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+constructor(p) { super(p); this.state = { draft: '', extra: [] }; }
+renderVals() {
+const L={bg:'#F4F6FA',sf:'#FFFFFF',sf2:'#EEF1F6',ln:'#DCE2EC',tx:'#172033',tx2:'#344055',mu:'#556070',pr:'#2B5FD9',onPr:'#FFFFFF',lsC:'#FCEBDD',ls:'#A4441A',ok:'#1E7A4E',onOk:'#FFFFFF',okC:'#DFF3E8',ph1:'#DCE4F2'};
+const D={bg:'#0F1420',sf:'#182031',sf2:'#212A3D',ln:'#2A3550',tx:'#E6EBF5',tx2:'#C2CBDB',mu:'#9AA6BB',pr:'#8DB0FF',onPr:'#0B2A6B',lsC:'#43281A',ls:'#F3A77E',ok:'#7ED6A5',onOk:'#0F1420',okC:'#17382A',ph1:'#2A3550'};
+const t = (this.props.theme ?? 'light') === 'dark' ? D : L;
+const me = { align:'flex-end', bg:t.pr, fg:t.onPr, radius:'16px 16px 4px 16px' };
+const them = { align:'flex-start', bg:t.sf, fg:t.tx, radius:'16px 16px 16px 4px' };
+const msgs = [
+{ ...them, text:'Assalomu alaykum! Hamyonimni topganingiz uchun katta rahmat!', time:'09:52' },
+{ ...me, text:'Vaalaykum assalom! Arzimaydi. Qachon olib ketasiz?', time:'09:54' },
+{ ...them, text:'Bugun soat 18:00 da Chilonzor metrosi kirish joyida boʻlamanmi?', time:'09:58' },
+...this.state.extra.map((text) => ({ ...me, text, time:'Hozir' }))
+];
+return { t, msgs, draft: this.state.draft,
+onDraft: (e) => this.setState({ draft: e.target.value }),
+send: () => { const d = this.state.draft.trim(); if (d) this.setState({ extra: [...this.state.extra, d], draft: '' }); } };
+}
+}
+</script>
+</body>
+</html>
