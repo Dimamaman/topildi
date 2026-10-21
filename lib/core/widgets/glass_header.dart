@@ -77,19 +77,24 @@ class GlassBarBackground extends StatelessWidget {
 
 /// 34px large title; scrolls under the glass bar.
 class GlassLargeTitle extends StatelessWidget {
-  const GlassLargeTitle(this.text, {super.key});
+  const GlassLargeTitle(this.text, {super.key, this.padding});
 
   final String text;
+
+  /// Defaults to the standard spacing under a bar of buttons.
+  final EdgeInsetsGeometry? padding;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        GlassHeader.side + 4,
-        GlassHeader.titleTop,
-        GlassHeader.side + 4,
-        GlassHeader.titleBottom,
-      ),
+      padding:
+          padding ??
+          const EdgeInsets.fromLTRB(
+            GlassHeader.side + 4,
+            GlassHeader.titleTop,
+            GlassHeader.side + 4,
+            GlassHeader.titleBottom,
+          ),
       child: Semantics(
         header: true,
         child: Text(

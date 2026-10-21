@@ -29,6 +29,18 @@ abstract final class TDate {
     return dayMonth(d);
   }
 
+  static const _weekdays = ['Dushanba', 'Seshanba', 'Chorshanba', 'Payshanba', 'Juma', 'Shanba', 'Yakshanba'];
+
+  /// Chat list time: "14:20" today · "Kecha" · weekday within the week · "19-oktabr".
+  static String chat(DateTime d, {DateTime? now}) {
+    final n = now ?? DateTime.now();
+    final diff = DateTime(n.year, n.month, n.day).difference(DateTime(d.year, d.month, d.day)).inDays;
+    if (diff == 0) return _hm(d);
+    if (diff == 1) return 'Kecha';
+    if (diff < 7) return _weekdays[d.weekday - 1];
+    return dayMonth(d);
+  }
+
   /// "20-oktabr, 09:40".
   static String full(DateTime d) => '${dayMonth(d)}, ${_hm(d)}';
 
