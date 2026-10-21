@@ -9,6 +9,7 @@ import '../features/auth/presentation/pages/sms_code_page.dart';
 import '../features/notifications/presentation/pages/notifications_page.dart';
 import '../features/onboarding/presentation/pages/onboarding_page.dart';
 import '../features/onboarding/presentation/pages/splash_page.dart';
+import '../features/profile/presentation/pages/my_listings_page.dart';
 import '../features/profile/presentation/pages/profile_page.dart';
 import '../features/create_listing/presentation/cubit/create_flow_cubit.dart';
 import '../features/create_listing/presentation/pages/create_details_page.dart';
@@ -85,6 +86,7 @@ GoRouter createRouter({String initialLocation = Routes.splash}) => GoRouter(
       builder: (_, state) => SuccessPage(chatId: state.pathParameters['id']!),
     ),
     GoRoute(path: Routes.notifications, builder: (_, _) => const NotificationsPage()),
+    GoRoute(path: Routes.myListings, builder: (_, _) => const MyListingsPage()),
     // Create flow shares one CreateFlowCubit across its steps.
     ShellRoute(
       builder: (_, _, child) => BlocProvider(create: (_) => getIt<CreateFlowCubit>(), child: child),

@@ -1,18 +1,24 @@
+import 'dart:io';
+import 'dart:math' as math;
+
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
 import '../../../../app/routes.dart';
 import '../../../../core/di/injection.dart';
+import '../../../../core/theme/t_text.dart';
 import '../../../../core/theme/theme_cubit.dart';
+import '../../../../core/theme/topildi_surfaces.dart';
 import '../../../../core/theme/topildi_theme.dart';
 import '../../../../core/view_state.dart';
+import '../../../../core/widgets/glass_surface.dart';
 import '../../../../core/widgets/photo_placeholder.dart';
 import '../../../../core/widgets/state_views.dart';
-import '../../../../core/widgets/status_badge.dart';
 import '../../../../core/widgets/t_avatar.dart';
-import '../../../../core/widgets/t_chip.dart';
 import '../../../../core/widgets/t_feedback.dart';
 import '../../../../core/widgets/t_refresh_scroll_view.dart';
 import '../../../listing/domain/entities/listing.dart';
@@ -29,6 +35,11 @@ class ProfilePage extends StatelessWidget {
   }
 }
 
+const _side = 16.0;
+
+/// Profil, iOS 26 style. One scroll view: a tinted header card with glass
+/// stat tiles, a horizontal row of own listings and an inset settings group;
+/// the shell's glass tab bar and "+" float over it.
 class _ProfileView extends StatelessWidget {
   const _ProfileView();
 
@@ -49,62 +60,68 @@ class _ProfileView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
     final cubit = context.read<ProfileCubit>();
-    return BlocConsumer<ProfileCubit, ProfileState>(
-      listenWhen: (a, b) => b.signedOut && !a.signedOut,
-      listener: (context, _) => context.go(Routes.signIn),
-      builder: (context, state) => Scaffold(
-        body: switch (state.view) {
-          ViewLoading() || ViewEmpty() => const SafeArea(child: CardsSkeleton(count: 3)),
-          ViewError(:final isOffline) => SafeArea(
-            child: isOffline ? OfflineState(onRetry: cubit.load) : ErrorState(onRetry: cubit.load),
-          ),
-          // Fixed status-bar strip; the header scrolls (and pulls) beneath it.
-          ViewLoaded(:final data) => Column(
-            children: [
-              ColoredBox(
-                color: Theme.of(context).colorScheme.surfaceContainerLowest,
-                child: SizedBox(height: MediaQuery.paddingOf(context).top, width: double.infinity),
-              ),
-              Expanded(
-                child: MediaQuery.removePadding(
-                  context: context,
-                  removeTop: true,
-                  child: TRefreshScrollView(
-                    onRefresh: () => cubit.load(silent: true),
-                    overscrollColor: Theme.of(context).colorScheme.surfaceContainerLowest,
-                    slivers: [
-                      SliverList.list(
-                        children: [
-                          _Header(
-                            p: data,
-                            since: '${_months[data.memberSince.month - 1]} ${data.memberSince.year} dan beri aʼzo',
-                          ),
-                          // Opaque, so the header-coloured overscroll fill shows above the header only.
-                          ColoredBox(
-                            color: Theme.of(context).colorScheme.surface,
-                            child: Column(
-                              children: [
-                                _MyListings(p: data, showReturned: state.showReturned),
-                                _Settings(notificationsOn: data.notificationsOn),
-                                const SizedBox(height: TSpace.xl),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: dark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
+      child: BlocConsumer<ProfileCubit, ProfileState>(
+        listenWhen: (a, b) => b.signedOut && !a.signedOut,
+        listener: (context, _) => context.go(Routes.signIn),
+        builder: (context, state) => Scaffold(
+          body: switch (state.view) {
+            ViewLoading() || ViewEmpty() => const SafeArea(child: CardsSkeleton(count: 3)),
+            ViewError(:final isOffline) => SafeArea(
+              child: isOffline ? OfflineState(onRetry: cubit.load) : ErrorState(onRetry: cubit.load),
+            ),
+            ViewLoaded(:final data) => TRefreshScrollView(
+              onRefresh: () => cubit.load(silent: true),
+              slivers: [
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
+                  sliver: SliverToBoxAdapter(
+                    child: _Header(
+                      p: data,
+                      since: '${_months[data.memberSince.month - 1]} ${data.memberSince.year} dan beri aʼzo',
+                    ),
                   ),
                 ),
-              ),
-            ],
-          ),
-        },
+                SliverToBoxAdapter(child: _MyListings(p: data)),
+                SliverPadding(
+                  padding: EdgeInsets.fromLTRB(
+                    _side,
+                    0,
+                    _side,
+                    math.max(120, MediaQuery.paddingOf(context).bottom + 24),
+                  ),
+                  sliver: SliverToBoxAdapter(child: _Settings(notificationsOn: data.notificationsOn)),
+                ),
+              ],
+            ),
+          },
+        ),
       ),
     );
   }
 }
 
+/// Tappable area with no ripple or highlight.
+class _Tap extends StatelessWidget {
+  const _Tap({required this.label, required this.onTap, required this.child});
+
+  final String label;
+  final VoidCallback onTap;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+    button: true,
+    label: label,
+    excludeSemantics: true,
+    child: GestureDetector(onTap: onTap, behavior: HitTestBehavior.opaque, child: child),
+  );
+}
+
+/// Inset card on primary-container: edit button, avatar + name, three glass stat tiles.
 class _Header extends StatelessWidget {
   const _Header({required this.p, required this.since});
 
@@ -115,200 +132,401 @@ class _Header extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final tc = context.tc;
-    Widget stat(int n, String label, {bool good = false}) => Expanded(
-      child: Container(
-        padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          color: good ? tc.foundContainer : cs.surfaceContainerHigh,
-          borderRadius: BorderRadius.circular(TRadius.md),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              '$n',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: good ? tc.found : null),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(fontSize: 12, color: good ? tc.found : cs.onSurfaceVariant),
-            ),
-          ],
-        ),
+    final text = Theme.of(context).textTheme;
+    // Own profile: first name only (the public "Ism F." form drops here).
+    final name = p.displayName.trim().split(RegExp(r'\s+')).first;
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 46, 16, 16),
+      decoration: BoxDecoration(
+        color: cs.primaryContainer,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(48), bottom: Radius.circular(36)),
       ),
-    );
-
-    return Material(
-      color: cs.surfaceContainerLowest,
-      child: Container(
-        decoration: BoxDecoration(
-          border: Border(bottom: BorderSide(color: cs.outlineVariant)),
-        ),
-        child: SafeArea(
-          bottom: false,
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(TSpace.screen, TSpace.lg, TSpace.screen, TSpace.md),
-            child: Column(
-              children: [
-                Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Align(
+            alignment: Alignment.centerRight,
+            child: _Tap(
+              label: 'Profilni tahrirlash',
+              onTap: () => context.push('${Routes.profileSetup}?edit=1'),
+              child: SizedBox.square(
+                dimension: 44,
+                child: GlassSurface(child: Icon(Symbols.edit_rounded, size: 22, color: cs.onSurface)),
+              ),
+            ),
+          ),
+          // Avatar row sits 8 above the usual 16 gap.
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              _Avatar(name: name, imagePath: p.avatarPath),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    TAvatar(
-                      initials: TAvatar.initialsOf(p.displayName),
-                      size: 64,
-                      tone: AvatarTone.lost,
-                      imagePath: p.avatarPath,
-                    ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(p.displayName, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
-                          const SizedBox(height: 3),
-                          Text(since, style: TextStyle(fontSize: 13, color: cs.onSurfaceVariant)),
-                        ],
+                    Semantics(
+                      header: true,
+                      child: Text(
+                        name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: text.headlineMedium!
+                            .copyWith(fontSize: 28, height: 34 / 28, letterSpacing: -0.5)
+                            .inter(FontWeight.w700),
                       ),
                     ),
-                    IconButton.outlined(
-                      tooltip: 'Profilni tahrirlash',
-                      style: IconButton.styleFrom(
-                        overlayColor: Colors.transparent,
-                        side: BorderSide(color: cs.outlineVariant),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(TRadius.md)),
-                        fixedSize: const Size(48, 48),
-                      ),
-                      onPressed: () => context.push('${Routes.profileSetup}?edit=1'),
-                      icon: const Icon(Symbols.edit_rounded),
+                    const SizedBox(height: 2),
+                    Text(
+                      since,
+                      style: text.bodyMedium!
+                          .copyWith(fontSize: 14, height: 20 / 14, color: cs.onPrimaryContainer)
+                          .inter(FontWeight.w400),
                     ),
                   ],
                 ),
-                const SizedBox(height: TSpace.md),
-                Row(
-                  children: [
-                    stat(p.total, 'Eʼlonlar'),
-                    const SizedBox(width: TSpace.xs),
-                    stat(p.returned.length, 'Qaytarilgan', good: true),
-                    const SizedBox(width: TSpace.xs),
-                    stat(p.gotBack, 'Topib olgan'),
-                  ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          // Equal heights even when one label scales down more than the others.
+          IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(
+                  child: _Stat(n: p.total, label: 'Eʼlonlar'),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _Stat(n: p.returned.length, label: 'Qaytarilgan', color: tc.found),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _Stat(n: p.gotBack, label: 'Topib olgan'),
                 ),
               ],
             ),
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _MyListings extends StatelessWidget {
-  const _MyListings({required this.p, required this.showReturned});
-
-  final ProfileSummary p;
-  final bool showReturned;
-
-  @override
-  Widget build(BuildContext context) {
-    final cubit = context.read<ProfileCubit>();
-    final items = showReturned ? p.returned : p.active;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(TSpace.screen, TSpace.sm, TSpace.screen, 0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Wraps under the title on narrow screens / large text.
-          Wrap(
-            alignment: WrapAlignment.spaceBetween,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            spacing: TSpace.xs,
-            runSpacing: TSpace.xs,
-            children: [
-              const Text('Mening eʼlonlarim', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
-              TSegmented(
-                items: [
-                  (Symbols.radio_button_checked_rounded, 'Faol · ${p.active.length}'),
-                  (Symbols.check_circle_rounded, 'Qaytarilgan · ${p.returned.length}'),
-                ],
-                selected: showReturned ? 1 : 0,
-                onChanged: (i) => cubit.showTab(returned: i == 1),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          if (items.isEmpty)
-            SizedBox(
-              height: 260,
-              child: EmptyState(
-                icon: Symbols.search_rounded,
-                title: showReturned ? 'Hali qaytarilgan buyum yoʻq' : 'Sizda eʼlon yoʻq',
-                body: showReturned
-                    ? 'Buyumni egasiga topshirganingizda shu yerda koʻrinadi.'
-                    : 'Nimadir topdingizmi yoki yoʻqotdingizmi? Bir daqiqada eʼlon bering.',
-                cta: showReturned ? null : 'Eʼlon berish',
-                onCta: () => context.push(Routes.create),
-              ),
-            )
-          else
-            for (final m in items) ...[_MineRow(m: m), const SizedBox(height: 10)],
         ],
       ),
     );
   }
 }
 
-class _MineRow extends StatelessWidget {
-  const _MineRow({required this.m});
+/// 76×76 circle inside a 3px white ring: photo, or the initial in lost colours.
+class _Avatar extends StatelessWidget {
+  const _Avatar({required this.name, this.imagePath});
+
+  final String name;
+  final String? imagePath;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final tc = context.tc;
+    final initial = Text(
+      TAvatar.initialsOf(name),
+      textScaler: TextScaler.noScaling,
+      style: Theme.of(
+        context,
+      ).textTheme.headlineSmall!.copyWith(fontSize: 32, height: 1, color: tc.lost).inter(FontWeight.w600),
+    );
+    final path = imagePath;
+    // 76 + the 3px ring on each side.
+    return Container(
+      width: 82,
+      height: 82,
+      alignment: Alignment.center,
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        color: tc.lostContainer,
+        shape: BoxShape.circle,
+        border: Border.all(color: cs.surfaceContainerLowest, width: 3),
+      ),
+      child: path != null && path.startsWith('/')
+          ? Image.file(File(path), width: 76, height: 76, fit: BoxFit.cover, errorBuilder: (_, _, _) => initial)
+          : initial,
+    );
+  }
+}
+
+class _Stat extends StatelessWidget {
+  const _Stat({required this.n, required this.label, this.color});
+
+  final int n;
+  final String label;
+  final Color? color;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final text = Theme.of(context).textTheme;
+    return Semantics(
+      label: '$n $label',
+      excludeSemantics: true,
+      child: GlassSurface(
+        radius: 22,
+        color: context.glass.tile,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        // Scales down instead of wrapping on narrow screens / large text.
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.topLeft,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '$n',
+                style: text.titleLarge!
+                    .copyWith(fontSize: 22, height: 28 / 22, color: color ?? cs.onSurface)
+                    .inter(FontWeight.w700),
+              ),
+              Text(
+                label,
+                maxLines: 1,
+                style: text.bodySmall!
+                    .copyWith(fontSize: 13, height: 18 / 13, color: cs.secondary)
+                    .inter(FontWeight.w400),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Section title row (20/w700) with an optional trailing link.
+class _SectionTitle extends StatelessWidget {
+  const _SectionTitle(this.title, {required this.padding, this.trailing});
+
+  final String title;
+  final EdgeInsets padding;
+  final Widget? trailing;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: padding,
+      child: Row(
+        children: [
+          Expanded(
+            child: Semantics(
+              header: true,
+              child: Text(
+                title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.titleLarge!
+                    .copyWith(fontSize: 20, height: 25 / 20, letterSpacing: -0.2)
+                    .inter(FontWeight.w700),
+              ),
+            ),
+          ),
+          ?trailing,
+        ],
+      ),
+    );
+  }
+}
+
+class _MyListings extends StatelessWidget {
+  const _MyListings({required this.p});
+
+  final ProfileSummary p;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final items = [...p.active, ...p.returned];
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _SectionTitle(
+          'Mening eʼlonlarim',
+          padding: const EdgeInsets.fromLTRB(_side + 4, 20, _side + 4, 10),
+          trailing: items.isEmpty
+              ? null
+              : _Tap(
+                  label: 'Hammasi',
+                  onTap: () => context.push(Routes.myListings),
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(minHeight: 44, minWidth: 44),
+                    child: Center(
+                      widthFactor: 1,
+                      child: Text(
+                        'Hammasi',
+                        style: Theme.of(context).textTheme.bodyLarge!
+                            .copyWith(fontSize: 16, height: 21 / 16, color: cs.primary)
+                            .inter(FontWeight.w400),
+                      ),
+                    ),
+                  ),
+                ),
+        ),
+        if (items.isEmpty)
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: _side),
+            child: _NoListings(),
+          )
+        else
+          // A Row (not a fixed-height ListView) so the cards grow with the text size.
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: _side),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                for (var i = 0; i < items.length; i++) ...[
+                  if (i > 0) const SizedBox(width: 12),
+                  _MineCard(m: items[i]),
+                ],
+              ],
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+/// 236-wide card: 104 photo with a glass status tag, title, type · area.
+class _MineCard extends StatelessWidget {
+  const _MineCard({required this.m});
 
   final MyListing m;
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final tc = context.tc;
+    final text = Theme.of(context).textTheme;
     final l = m.listing;
-    final type = l.isFound ? 'Topilgan' : 'Yoʻqolgan';
     final returned = l.status == ListingStatus.returned;
-    final extra = returned
-        ? 'qaytarildi'
+    final (tagLabel, tagBg, tagFg) = returned
+        ? ('Qaytarildi', tc.successContainer, tc.success)
         : m.pendingClaims > 0
-        ? '${m.pendingClaims} ta soʻrov'
-        : l.areaName.split(',').first;
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: () => context.push(m.pendingClaims > 0 ? Routes.claims(l.id) : Routes.listing(l.id)),
-        child: Padding(
-          padding: const EdgeInsets.all(TSpace.xs),
-          child: Row(
-            children: [
-              PhotoPlaceholder(icon: l.category.icon, tint: l.tint, width: 56, height: 56, iconSize: 26),
-              const SizedBox(width: TSpace.sm),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      l.title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+        ? ('Soʻrov bor · ${m.pendingClaims}', tc.warningContainer.withValues(alpha: 0.9), tc.warning)
+        : ('Faol', cs.primaryContainer.withValues(alpha: 0.9), cs.onPrimaryContainer);
+    final type = l.isFound ? 'Topilgan' : 'Yoʻqolgan';
+    final area = l.areaName.split(',').first;
+    return _Tap(
+      label: '${l.title}, $type, $area, $tagLabel',
+      onTap: () => context.push(Routes.listing(l.id)),
+      child: Container(
+        width: 236,
+        clipBehavior: Clip.antiAlias,
+        decoration: BoxDecoration(color: cs.surfaceContainerLowest, borderRadius: BorderRadius.circular(26)),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            SizedBox(
+              height: 104,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  PhotoPlaceholder(
+                    icon: l.category.icon,
+                    tint: l.tint,
+                    iconSize: 48,
+                    radius: 0,
+                    width: 236,
+                    height: 104,
+                    path: l.photoAt(0),
+                  ),
+                  Positioned(
+                    top: 10,
+                    left: 10,
+                    child: SizedBox(
+                      height: 28,
+                      child: GlassSurface(
+                        color: tagBg,
+                        shadow: false,
+                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                        child: Center(
+                          widthFactor: 1,
+                          child: Text(
+                            tagLabel,
+                            textScaler: MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.15),
+                            style: text.labelMedium!
+                                .copyWith(fontSize: 12, height: 16 / 12, letterSpacing: 0, color: tagFg)
+                                .inter(FontWeight.w600),
+                          ),
+                        ),
+                      ),
                     ),
-                    const SizedBox(height: 4),
-                    Text('$type · $extra', style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant)),
-                  ],
-                ),
+                  ),
+                ],
               ),
-              const SizedBox(width: TSpace.xs),
-              StatusBadge(
-                kind: returned ? StatusKind.returned : (m.pendingClaims > 0 ? StatusKind.pending : StatusKind.active),
-                label: !returned && m.pendingClaims > 0 ? 'Soʻrov bor' : null,
-                size: BadgeSize.small,
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(14, 10, 14, 14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l.title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: text.titleMedium!.copyWith(fontSize: 16, height: 21 / 16).inter(FontWeight.w600),
+                  ),
+                  const SizedBox(height: 2),
+                  Text.rich(
+                    TextSpan(
+                      children: [
+                        TextSpan(
+                          text: type,
+                          style: text.bodySmall!
+                              .copyWith(fontSize: 13, height: 18 / 13, color: l.isFound ? tc.found : tc.lost)
+                              .inter(FontWeight.w600),
+                        ),
+                        TextSpan(text: ' · $area'),
+                      ],
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: text.bodySmall!
+                        .copyWith(fontSize: 13, height: 18 / 13, color: cs.onSurfaceVariant)
+                        .inter(FontWeight.w400),
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
+      ),
+    );
+  }
+}
+
+class _NoListings extends StatelessWidget {
+  const _NoListings();
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(color: cs.surfaceContainerLowest, borderRadius: BorderRadius.circular(26)),
+      child: Column(
+        children: [
+          Icon(Symbols.inventory_2_rounded, size: 40, weight: 300, color: context.ts.placeholderIcon),
+          const SizedBox(height: 10),
+          Text(
+            'Hali eʼlon bermagansiz',
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.titleMedium!.copyWith(fontSize: 16).inter(FontWeight.w600),
+          ),
+          const SizedBox(height: 14),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(TRadius.full)),
+              overlayColor: Colors.transparent,
+            ),
+            onPressed: () => context.push(Routes.create),
+            child: const Text('Eʼlon berish'),
+          ),
+        ],
       ),
     );
   }
@@ -318,6 +536,8 @@ class _Settings extends StatelessWidget {
   const _Settings({required this.notificationsOn});
 
   final bool notificationsOn;
+
+  static const _themes = [(ThemeMode.system, 'Tizim'), (ThemeMode.light, 'Yorugʻ'), (ThemeMode.dark, 'Qorongʻi')];
 
   Future<void> _language(BuildContext context) => showModalBottomSheet<void>(
     context: context,
@@ -342,6 +562,43 @@ class _Settings extends StatelessWidget {
     ),
   );
 
+  /// Pull-down menu anchored under the row's trailing value.
+  Future<void> _theme(BuildContext context, BuildContext anchor, ThemeMode current) async {
+    final cs = Theme.of(context).colorScheme;
+    final themeCubit = context.read<ThemeCubit>();
+    final box = anchor.findRenderObject()! as RenderBox;
+    final overlay = Navigator.of(context).overlay!.context.findRenderObject()! as RenderBox;
+    final rect = Rect.fromPoints(
+      box.localToGlobal(box.size.bottomLeft(Offset.zero), ancestor: overlay),
+      box.localToGlobal(box.size.bottomRight(Offset.zero), ancestor: overlay),
+    );
+    final picked = await showMenu<ThemeMode>(
+      context: context,
+      position: RelativeRect.fromRect(rect, Offset.zero & overlay.size),
+      color: cs.surfaceContainerLowest,
+      elevation: 8,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      items: [
+        for (final (m, label) in _themes)
+          PopupMenuItem(
+            value: m,
+            height: 44,
+            child: Row(
+              children: [
+                SizedBox(
+                  width: 24,
+                  child: m == current ? Icon(Symbols.check_rounded, size: 20, color: cs.primary) : null,
+                ),
+                const SizedBox(width: 8),
+                Text(label, style: const TextStyle(fontSize: 16)),
+              ],
+            ),
+          ),
+      ],
+    );
+    if (picked != null) themeCubit.set(picked);
+  }
+
   Future<void> _signOut(BuildContext context) async {
     final ok = await TFeedback.confirm(
       context,
@@ -357,132 +614,120 @@ class _Settings extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final tc = context.tc;
     final cubit = context.read<ProfileCubit>();
-    final divider = Divider(height: 1, color: cs.outlineVariant);
+    final body = Theme.of(context).textTheme.bodyLarge!.copyWith(fontSize: 16, height: 22 / 16).inter(FontWeight.w400);
+    // Starts under the label, not under the icon: 16 + 22 + 12.
+    final separator = Padding(
+      padding: const EdgeInsets.only(left: 50),
+      child: Container(height: 0.5, color: context.ts.separator),
+    );
 
-    Widget tile({required IconData icon, required String label, Widget? trailing, VoidCallback? onTap, Color? color}) =>
-        InkWell(
-          onTap: onTap,
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(minHeight: TSize.button),
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(14, 4, 8, 4),
-              child: Row(
-                children: [
-                  Icon(icon, size: 22, color: color ?? cs.onSurfaceVariant),
-                  const SizedBox(width: TSpace.sm),
-                  Expanded(
-                    child: Text(
-                      label,
-                      style: TextStyle(fontSize: 15, color: color, fontWeight: color != null ? FontWeight.w600 : null),
-                    ),
-                  ),
-                  // Scales down instead of overflowing with large text.
-                  if (trailing != null)
-                    ConstrainedBox(
-                      constraints: BoxConstraints(maxWidth: MediaQuery.sizeOf(context).width * 0.6),
-                      child: FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.centerRight, child: trailing),
-                    ),
-                ],
-              ),
+    Widget row({required IconData icon, required String label, required Widget trailing}) => ConstrainedBox(
+      constraints: const BoxConstraints(minHeight: 44),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+        child: Row(
+          children: [
+            Icon(icon, size: 22, color: cs.primary),
+            const SizedBox(width: 12),
+            Expanded(child: Text(label, style: body)),
+            const SizedBox(width: 8),
+            // Scales down instead of overflowing with large text.
+            ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: MediaQuery.sizeOf(context).width * 0.45),
+              child: FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.centerRight, child: trailing),
             ),
-          ),
-        );
+          ],
+        ),
+      ),
+    );
 
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(TSpace.screen, TSpace.md, TSpace.screen, 0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const Padding(
-            padding: EdgeInsets.only(bottom: 4),
-            child: Text('Sozlamalar', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
-          ),
-          Card(
-            clipBehavior: Clip.antiAlias,
-            child: Column(
-              children: [
-                tile(
+    Widget value(String text, IconData icon) => Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(text, style: body.copyWith(color: cs.onSurfaceVariant)),
+        const SizedBox(width: 4),
+        Icon(icon, size: 20, color: cs.onSurfaceVariant),
+      ],
+    );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const _SectionTitle('Sozlamalar', padding: EdgeInsets.fromLTRB(4, 22, 4, 10)),
+        Container(
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          decoration: BoxDecoration(color: cs.surfaceContainerLowest, borderRadius: BorderRadius.circular(26)),
+          child: Column(
+            children: [
+              _Tap(
+                label: 'Til, Oʻzbekcha',
+                onTap: () => _language(context),
+                child: row(
                   icon: Symbols.language_rounded,
                   label: 'Til',
-                  trailing: Padding(
-                    padding: const EdgeInsets.only(right: 6),
-                    child: Text('Oʻzbekcha', style: TextStyle(fontSize: 15, color: cs.onSurfaceVariant)),
-                  ),
-                  onTap: () => _language(context),
+                  trailing: value('Oʻzbekcha', Symbols.chevron_right_rounded),
                 ),
-                divider,
-                tile(
-                  icon: Symbols.contrast_rounded,
-                  label: 'Mavzu',
-                  trailing: BlocBuilder<ThemeCubit, ThemeMode>(
-                    builder: (context, mode) => _ThemeSwitch(mode: mode, onChanged: context.read<ThemeCubit>().set),
-                  ),
-                ),
-                divider,
-                tile(
-                  icon: Symbols.notifications_rounded,
-                  label: 'Bildirishnomalar',
-                  trailing: Switch(value: notificationsOn, onChanged: cubit.setNotifications),
+              ),
+              separator,
+              BlocBuilder<ThemeCubit, ThemeMode>(
+                builder: (context, mode) {
+                  final label = _themes.firstWhere((t) => t.$1 == mode).$2;
+                  return Builder(
+                    builder: (anchor) => _Tap(
+                      label: 'Mavzu, $label',
+                      onTap: () => _theme(context, anchor, mode),
+                      child: row(
+                        icon: Symbols.contrast_rounded,
+                        label: 'Mavzu',
+                        trailing: value(label, Symbols.unfold_more_rounded),
+                      ),
+                    ),
+                  );
+                },
+              ),
+              separator,
+              Semantics(
+                toggled: notificationsOn,
+                label: 'Bildirishnomalar',
+                excludeSemantics: true,
+                child: GestureDetector(
                   onTap: () => cubit.setNotifications(!notificationsOn),
+                  behavior: HitTestBehavior.opaque,
+                  child: row(
+                    icon: Symbols.notifications_rounded,
+                    label: 'Bildirishnomalar',
+                    trailing: CupertinoSwitch(
+                      value: notificationsOn,
+                      activeTrackColor: tc.success,
+                      onChanged: cubit.setNotifications,
+                    ),
+                  ),
                 ),
-                divider,
-                tile(icon: Symbols.logout_rounded, label: 'Chiqish', color: cs.error, onTap: () => _signOut(context)),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 14),
+        _Tap(
+          label: 'Chiqish',
+          onTap: () => _signOut(context),
+          child: Container(
+            constraints: const BoxConstraints(minHeight: 52),
+            alignment: Alignment.center,
+            decoration: BoxDecoration(color: cs.surfaceContainerLowest, borderRadius: BorderRadius.circular(26)),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Symbols.logout_rounded, size: 20, color: cs.error),
+                const SizedBox(width: 8),
+                Text('Chiqish', style: body.copyWith(color: cs.error).inter(FontWeight.w600)),
               ],
             ),
           ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ThemeSwitch extends StatelessWidget {
-  const _ThemeSwitch({required this.mode, required this.onChanged});
-
-  final ThemeMode mode;
-  final ValueChanged<ThemeMode> onChanged;
-
-  static const _options = [(ThemeMode.system, 'Tizim'), (ThemeMode.light, 'Yorugʻ'), (ThemeMode.dark, 'Qorongʻi')];
-
-  @override
-  Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.all(3),
-      decoration: BoxDecoration(color: cs.surfaceContainerHigh, borderRadius: BorderRadius.circular(10)),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          for (final (m, label) in _options)
-            Semantics(
-              selected: m == mode,
-              button: true,
-              child: InkWell(
-                onTap: () => onChanged(m),
-                borderRadius: BorderRadius.circular(TRadius.sm),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 150),
-                  constraints: const BoxConstraints(minHeight: 40),
-                  padding: const EdgeInsets.symmetric(horizontal: 10),
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: m == mode ? cs.surfaceContainerLowest : Colors.transparent,
-                    borderRadius: BorderRadius.circular(TRadius.sm),
-                  ),
-                  child: Text(
-                    label,
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: m == mode ? cs.onSurface : cs.onSurfaceVariant,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
