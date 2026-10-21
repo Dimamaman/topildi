@@ -41,6 +41,9 @@ class ClaimMockDataSource {
   int attemptsBy(String userId, String listingId) =>
       _claims.where((c) => c.listingId == listingId && c.claimant.id == userId).length;
 
+  bool hasPendingBy(String userId, String listingId) => _claims.any(
+      (c) => c.listingId == listingId && c.claimant.id == userId && c.status == ClaimStatus.pending);
+
   Future<Claim> add(Claim claim) async {
     await Future<void>.delayed(_latency);
     _claims.add(claim);

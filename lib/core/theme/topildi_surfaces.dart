@@ -15,6 +15,7 @@ class TSurfaces {
     required this.primaryTint,
     required this.park,
     required this.water,
+    required this.separator,
   });
 
   final List<Color> placeholders;
@@ -23,6 +24,9 @@ class TSurfaces {
   /// Very light primary wash used behind the hidden-detail block.
   final Color primaryTint;
   final Color park, water;
+
+  /// Hairline between rows of an inset settings group.
+  final Color separator;
 
   static const _light = TSurfaces._(
     placeholders: [Color(0xFFDCE4F2), Color(0xFFE1EBE5), Color(0xFFEDE3D6), Color(0xFFE4E1EE)],
@@ -35,6 +39,7 @@ class TSurfaces {
     primaryTint: Color(0xFFEDF2FD),
     park: Color(0xFFD4E7D9),
     water: Color(0xFFCDDDF3),
+    separator: Color(0xFFC8CED9),
   );
 
   static const _dark = TSurfaces._(
@@ -48,6 +53,7 @@ class TSurfaces {
     primaryTint: Color(0xFF16203A),
     park: Color(0xFF1A2F26),
     water: Color(0xFF172846),
+    separator: Color(0xFF2A3550),
   );
 
   static TSurfaces of(BuildContext context) =>

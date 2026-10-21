@@ -240,6 +240,12 @@ class ListingMockDataSource {
     return model;
   }
 
+  Future<void> remove(String id) async {
+    await Future<void>.delayed(_latency ~/ 2);
+    _items.removeWhere((e) => e.id == id);
+    _changes.add(null);
+  }
+
   Future<void> update(ListingModel model) async {
     final i = _items.indexWhere((e) => e.id == model.id);
     if (i >= 0) {

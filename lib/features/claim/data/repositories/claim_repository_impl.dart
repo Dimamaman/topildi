@@ -42,7 +42,11 @@ class ClaimRepositoryImpl implements ClaimRepository {
   @override
   FutureEither<ClaimTarget> getTarget(String listingId) => _guard(() async {
         final model = await _listing(listingId);
-        return ClaimTarget(listing: model.toEntity(), attemptsLeft: _attemptsLeft(listingId));
+        return ClaimTarget(
+          listing: model.toEntity(),
+          attemptsLeft: _attemptsLeft(listingId),
+          hasPending: _claims.hasPendingBy(_session.userId, listingId),
+        );
       });
 
   @override

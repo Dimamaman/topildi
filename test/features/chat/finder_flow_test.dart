@@ -25,7 +25,10 @@ void main() {
 
     await tester.tap(find.text('Qora charm hamyon'));
     await _settle(tester);
-    await tester.tap(find.text('Soʻrovlarni koʻrish'));
+    expect(find.text('Mening eʼlonim'), findsOneWidget);
+    expect(find.text('2 ta yangi soʻrov'), findsOneWidget);
+    expect(find.text('Ikki kishi bu buyum ularniki ekanini aytmoqda.'), findsOneWidget);
+    await tester.tap(find.text('Soʻrovlarni koʻrish · 2'));
     await _settle(tester);
 
     expect(find.text('Soʻrovlar · 2'), findsOneWidget);

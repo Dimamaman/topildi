@@ -13,6 +13,8 @@ class TGlass {
     required this.tag,
     required this.activeTab,
     required this.quiet,
+    required this.tile,
+    required this.panel,
     required this.rimTop,
     required this.rim,
     required this.rimBottom,
@@ -37,6 +39,12 @@ class TGlass {
   /// Neutral fill for tracks, unselected chips and the card chevron.
   final Color quiet;
 
+  /// Stat tiles on a tinted header card (Profil).
+  final Color tile;
+
+  /// Floating bottom action panel (Eʼlon detail).
+  final Color panel;
+
   final Color rimTop, rim, rimBottom, shadow;
 
   static const _light = TGlass._(
@@ -46,6 +54,8 @@ class TGlass {
     tag: Color(0xBFFFFFFF),
     activeTab: Color(0x24767680),
     quiet: Color(0x1F767680),
+    tile: Color(0xB8FFFFFF),
+    panel: Color(0xB8FFFFFF),
     rimTop: Color(0xF2FFFFFF),
     rim: Color(0x73FFFFFF),
     rimBottom: Color(0x59FFFFFF),
@@ -59,6 +69,8 @@ class TGlass {
     tag: Color(0xBF182031),
     activeTab: Color(0x1AFFFFFF),
     quiet: Color(0x3D767680),
+    tile: Color(0x730F1420),
+    panel: Color(0xBF212A3D),
     rimTop: Color(0x38FFFFFF),
     rim: Color(0x1AFFFFFF),
     rimBottom: Color(0x1AFFFFFF),
