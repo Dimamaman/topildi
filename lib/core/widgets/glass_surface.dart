@@ -15,6 +15,7 @@ class TGlass {
     required this.quiet,
     required this.tile,
     required this.panel,
+    required this.button,
     required this.control,
     required this.scrim,
     required this.sheetRim,
@@ -55,6 +56,9 @@ class TGlass {
   /// Floating bottom action panel (Eʼlon detail).
   final Color panel;
 
+  /// Wide glass buttons on a plain page (Google orqali davom etish).
+  final Color button;
+
   /// Buttons inside a glass sheet (Yopish, Tozalash).
   final Color control;
 
@@ -81,6 +85,7 @@ class TGlass {
     quiet: Color(0x1F767680),
     tile: Color(0xB8FFFFFF),
     panel: Color(0xB8FFFFFF),
+    button: Color(0xD9FFFFFF),
     control: Color(0xCCFFFFFF),
     scrim: Color(0x470F1420),
     sheetRim: Color(0x80FFFFFF),
@@ -106,6 +111,7 @@ class TGlass {
     quiet: Color(0x3D767680),
     tile: Color(0x730F1420),
     panel: Color(0xBF212A3D),
+    button: Color(0xB32A3550),
     control: Color(0x3D767680),
     scrim: Color(0x73000000),
     sheetRim: Color(0x2EFFFFFF),

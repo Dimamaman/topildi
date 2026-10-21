@@ -42,7 +42,7 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   FutureEither<AuthResult> verifyCode(PhoneNumber phone, String code) => _guard(() async {
         await Future<void>.delayed(_latency);
-        if (code == '000000') throw ValidationFailure(tr('Kod notoʻgʻri. Qayta tekshiring'));
+        if (code == '000000') throw ValidationFailure(tr('Kod notoʻgʻri. Qayta kiriting'));
         await _session.signIn(phone: _pendingPhone ?? phone.digits);
         _pendingPhone = null;
         return const AuthResult(needsProfile: true);

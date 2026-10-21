@@ -109,7 +109,7 @@ const ruStrings = <String, String>{
 
   // Sign in
   'Google orqali davom etish': 'Продолжить с Google',
-  'Kod notoʻgʻri. Qayta tekshiring': 'Неверный код. Проверьте ещё раз',
+  'Kod notoʻgʻri. Qayta kiriting': 'Неверный код. Введите ещё раз',
   'Ismingizni kiriting': 'Введите имя',
   'Kod 6 ta raqamdan iborat': 'Код состоит из 6 цифр',
   'Raqam toʻliq emas: {n} ta raqam kiriting{progress}': 'Номер неполный: введите {n} цифр{progress}',
@@ -118,6 +118,7 @@ const ruStrings = <String, String>{
   'Xush kelibsiz!': 'Добро пожаловать!',
   'Telefon raqamingizni kiriting, sizga SMS kod yuboramiz.': 'Введите номер телефона — мы отправим SMS-код.',
   'Telefon raqam': 'Номер телефона',
+  'yoki': 'или',
   'Raqamingiz boshqa foydalanuvchilarga hech qachon koʻrsatilmaydi.': 'Ваш номер никогда не показывается другим пользователям.',
   'Kodni olish': 'Получить код',
   'Davom etish orqali ': 'Продолжая, вы принимаете ',
@@ -128,6 +129,10 @@ const ruStrings = <String, String>{
   'SMS kod': 'SMS-код',
   'Kodni qayta yuborish: ': 'Отправить код повторно: ',
   'Kodni qayta yuborish': 'Отправить код повторно',
+  'Kodni qayta yuborish · ': 'Отправить код повторно · ',
+  ' raqamiga 6 xonali kod yubordik. Har bir raqam qulfning bir boʻlagini ochadi.': ' — на этот номер отправлен 6-значный код. Каждая цифра открывает часть замка.',
+  '6 xonali kod, {n} ta kiritildi': '6-значный код, введено {n}',
+  'Qoʻyish': 'Вставить',
   'Raqamni oʻzgartirish': 'Изменить номер',
 
   // Profile setup
