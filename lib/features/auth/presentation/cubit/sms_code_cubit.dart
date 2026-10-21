@@ -8,6 +8,7 @@ import '../../../../core/error/failure.dart';
 import '../../domain/entities/phone_number.dart';
 import '../../domain/usecases/request_sms_code.dart';
 import '../../domain/usecases/verify_sms_code.dart';
+import '../../../../core/l10n/tr.dart';
 
 class SmsCodeState extends Equatable {
   const SmsCodeState({this.code = '', this.seconds = SmsCodeCubit.resendAfter, this.verifying = false, this.error, this.verified = false});
@@ -69,9 +70,9 @@ class SmsCodeCubit extends Cubit<SmsCodeState> {
       (f) => emit(state.copyWith(
         verifying: false,
         error: () => switch (f) {
-          NetworkFailure() => 'Internet yoʻq. Qayta urinib koʻring',
+          NetworkFailure() => tr('Internet yoʻq. Qayta urinib koʻring'),
           ValidationFailure(:final message) => message,
-          _ => 'Kodni tekshirib boʻlmadi',
+          _ => tr('Kodni tekshirib boʻlmadi'),
         },
       )),
       (_) => emit(state.copyWith(verifying: false, verified: true)),

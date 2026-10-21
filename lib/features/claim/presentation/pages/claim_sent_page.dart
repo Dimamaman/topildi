@@ -5,6 +5,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import '../../../../app/routes.dart';
 import '../../../../core/theme/topildi_theme.dart';
 import '../../../../core/widgets/t_button.dart';
+import '../../../../core/l10n/tr.dart';
 
 /// Confirmation after a claim. The finder is notified by push; there is no
 /// in-app switch to the finder side.
@@ -18,7 +19,7 @@ class ClaimSentPage extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     final tc = context.tc;
     final text = Theme.of(context).textTheme;
-    final who = finderName ?? 'Topuvchi';
+    final who = finderName ?? tr('Topuvchi');
 
     return Scaffold(
       body: SafeArea(
@@ -39,11 +40,11 @@ class ClaimSentPage extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 18),
-                  Text('Soʻrovingiz yuborildi',
+                  Text(tr('Soʻrovingiz yuborildi'),
                       textAlign: TextAlign.center, style: text.headlineMedium!.copyWith(fontSize: 26, height: 34 / 26)),
                   const SizedBox(height: 18),
                   Text(
-                    '$who javobingizni yashirin belgi bilan solishtiradi. Natija haqida darhol xabar beramiz.',
+                    tr('{who} javobingizni yashirin belgi bilan solishtiradi. Natija haqida darhol xabar beramiz.', {'who': who}),
                     textAlign: TextAlign.center,
                     style: text.bodyLarge!.copyWith(color: cs.secondary),
                   ),
@@ -58,7 +59,7 @@ class ClaimSentPage extends StatelessWidget {
                     child: const _Timeline(),
                   ),
                   const SizedBox(height: TSpace.x2l),
-                  TButton.primary(label: 'Lentaga qaytish', onPressed: () => context.go(Routes.home)),
+                  TButton.primary(label: tr('Lentaga qaytish'), onPressed: () => context.go(Routes.home)),
                 ],
               ),
             ),
@@ -76,11 +77,11 @@ class _Timeline extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Column(
+    return Column(
       children: [
-        _Step(state: _StepState.done, title: 'Soʻrov yuborildi', subtitle: 'Hozirgina'),
-        _Step(state: _StepState.current, title: 'Topuvchi tekshirmoqda', subtitle: 'Odatda bir necha soat'),
-        _Step(state: _StepState.upcoming, title: 'Chat ochiladi va uchrashasiz', isLast: true),
+        _Step(state: _StepState.done, title: tr('Soʻrov yuborildi'), subtitle: tr('Hozirgina')),
+        _Step(state: _StepState.current, title: tr('Topuvchi tekshirmoqda'), subtitle: tr('Odatda bir necha soat')),
+        _Step(state: _StepState.upcoming, title: tr('Chat ochiladi va uchrashasiz'), isLast: true),
       ],
     );
   }
@@ -121,7 +122,7 @@ class _Step extends StatelessWidget {
         ),
     };
     return Semantics(
-      label: '$title${state == _StepState.done ? ', bajarildi' : state == _StepState.current ? ', jarayonda' : ''}',
+      label: '$title${state == _StepState.done ? tr(', bajarildi') : state == _StepState.current ? tr(', jarayonda') : ''}',
       excludeSemantics: true,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,

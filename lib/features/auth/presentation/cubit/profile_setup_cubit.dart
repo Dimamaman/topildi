@@ -5,6 +5,7 @@ import 'package:injectable/injectable.dart';
 import '../../../../core/session/session.dart';
 import '../../domain/entities/phone_number.dart';
 import '../../domain/usecases/save_profile.dart';
+import '../../../../core/l10n/tr.dart';
 
 class ProfileSetupState extends Equatable {
   const ProfileSetupState({this.first = '', this.last = '', this.photoPath, this.saving = false, this.showError = false, this.done = false, this.failed = false});
@@ -15,7 +16,7 @@ class ProfileSetupState extends Equatable {
 
   bool get hasPhoto => photoPath != null;
 
-  String? get firstError => showError && first.trim().length < 2 ? 'Ismingizni kiriting' : null;
+  String? get firstError => showError && first.trim().length < 2 ? tr('Ismingizni kiriting') : null;
 
   /// Preview of what other users will see.
   String get publicName => first.trim().isEmpty ? 'Malika K.' : Session.publicName(first, last);

@@ -30,6 +30,7 @@ import '../features/listing/presentation/pages/map_page.dart';
 import 'coming_soon_page.dart';
 import 'routes.dart';
 import 'shell.dart';
+import '../core/l10n/tr.dart';
 
 GoRouter createRouter({String initialLocation = Routes.splash}) => GoRouter(
   initialLocation: initialLocation,
@@ -53,11 +54,11 @@ GoRouter createRouter({String initialLocation = Routes.splash}) => GoRouter(
     ),
     GoRoute(
       path: Routes.terms,
-      builder: (_, _) => const ComingSoonPage(title: 'Foydalanish shartlari'),
+      builder: (_, _) => ComingSoonPage(title: tr('Foydalanish shartlari')),
     ),
     GoRoute(
       path: Routes.privacy,
-      builder: (_, _) => const ComingSoonPage(title: 'Maxfiylik siyosati'),
+      builder: (_, _) => ComingSoonPage(title: tr('Maxfiylik siyosati')),
     ),
     StatefulShellRoute.indexedStack(
       builder: (context, state, shell) => AppShell(shell: shell),

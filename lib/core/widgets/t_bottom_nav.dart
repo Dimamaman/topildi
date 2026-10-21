@@ -6,6 +6,7 @@ import 'package:material_symbols_icons/symbols.dart';
 
 import 'glass_surface.dart';
 import '../theme/t_text.dart';
+import '../l10n/tr.dart';
 
 /// Floating Liquid Glass tab bar (iOS 26 style, used on both platforms):
 /// a glass capsule with Lenta · Xarita · Chatlar · Profil, and next to it a
@@ -28,11 +29,11 @@ class TBottomNav extends StatelessWidget {
 
   static const barHeight = 62.0;
 
-  static const _items = [
-    (Symbols.home_rounded, 'Lenta'),
-    (Symbols.map_rounded, 'Xarita'),
-    (Symbols.chat_bubble_rounded, 'Chatlar'),
-    (Symbols.account_circle_rounded, 'Profil'),
+  static List<(IconData, String)> get _items => [
+    (Symbols.home_rounded, tr('Lenta')),
+    (Symbols.map_rounded, tr('Xarita')),
+    (Symbols.chat_bubble_rounded, tr('Chatlar')),
+    (Symbols.account_circle_rounded, tr('Profil')),
   ];
 
   /// Gap under the bar: 24 above the screen edge, never inside the
@@ -96,7 +97,7 @@ class TBottomNav extends StatelessWidget {
             const SizedBox(width: 10),
             Semantics(
               button: true,
-              label: 'Eʼlon berish',
+              label: tr('Eʼlon berish'),
               excludeSemantics: true,
               child: GestureDetector(
                 onTap: onAdd,
@@ -133,7 +134,7 @@ class _Tab extends StatelessWidget {
     return Semantics(
       button: true,
       selected: active,
-      label: badge > 0 ? '$label, $badge ta yangi' : label,
+      label: badge > 0 ? tr('{label}, {badge} ta yangi', {'label': label, 'badge': badge}) : label,
       excludeSemantics: true,
       child: GestureDetector(
         onTap: onTap,

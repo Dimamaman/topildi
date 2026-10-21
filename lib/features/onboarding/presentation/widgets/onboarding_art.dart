@@ -4,6 +4,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import '../../../../core/theme/topildi_surfaces.dart';
 import '../../../../core/theme/topildi_theme.dart';
 import '../../../../core/widgets/status_badge.dart';
+import '../../../../core/l10n/tr.dart';
 
 /// 300×300 illustrations for the three onboarding slides.
 class OnboardingArt extends StatelessWidget {
@@ -150,7 +151,7 @@ class OnboardingArt extends StatelessWidget {
               top: 52,
               child: _Bubble(
                 icon: Symbols.lock_rounded,
-                label: 'Yashirin belgi',
+                label: tr('Yashirin belgi'),
                 bg: cs.surfaceContainerLowest,
                 fg: cs.onSurface,
                 shadow: shadow,
@@ -167,7 +168,7 @@ class OnboardingArt extends StatelessWidget {
               bottom: 56,
               child: _Bubble(
                 icon: Symbols.check_rounded,
-                label: 'Qaytarildi',
+                label: tr('Qaytarildi'),
                 bg: cs.primary,
                 fg: cs.onPrimary,
                 shadow: shadow,

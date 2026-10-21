@@ -5,6 +5,7 @@ import '../../../../core/error/failure.dart';
 import '../../../../core/usecase/usecase.dart';
 import '../entities/create_draft.dart';
 import '../repositories/create_listing_repository.dart';
+import '../../../../core/l10n/tr.dart';
 
 @injectable
 class PostListing implements UseCase<String, CreateDraft> {
@@ -15,7 +16,7 @@ class PostListing implements UseCase<String, CreateDraft> {
   @override
   FutureEither<String> call(CreateDraft params) async {
     if (!DraftValidator.isComplete(params)) {
-      return left(const ValidationFailure('Eʼlon toʻliq emas'));
+      return left(ValidationFailure(tr('Eʼlon toʻliq emas')));
     }
     return _repository.post(params);
   }

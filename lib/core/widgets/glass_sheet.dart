@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import 'glass_surface.dart';
+import '../l10n/tr.dart';
 
 /// Opens an iOS 26 floating glass sheet over everything (tab bar included):
 /// 8dp inside the screen edges, 46dp concentric corners, a scrim that closes
@@ -32,7 +33,7 @@ class GlassSheetRoute<T> extends PopupRoute<T> {
   bool get barrierDismissible => true;
 
   @override
-  String? get barrierLabel => 'Yopish';
+  String? get barrierLabel => tr('Yopish');
 
   @override
   Duration get transitionDuration => const Duration(milliseconds: 350);

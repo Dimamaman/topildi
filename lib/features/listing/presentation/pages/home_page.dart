@@ -21,6 +21,7 @@ import '../category_ui.dart';
 import '../cubit/feed_cubit.dart';
 import '../widgets/filters_sheet.dart';
 import '../../../../core/theme/t_text.dart';
+import '../../../../core/l10n/tr.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -75,7 +76,7 @@ class _HomeViewState extends State<_HomeView> {
                   pinned: true,
                   delegate: _TopBar(top: barTop, offset: _offset),
                 ),
-                const SliverToBoxAdapter(child: GlassLargeTitle('Lenta')),
+                SliverToBoxAdapter(child: GlassLargeTitle(tr('Lenta'))),
                 SliverPersistentHeader(pinned: true, delegate: _PinnedTabs(offset: _offset)),
                 ..._content(context, state),
               ],
@@ -111,9 +112,9 @@ class _HomeViewState extends State<_HomeView> {
         fill(
           EmptyState(
             icon: Symbols.search_off_rounded,
-            title: 'Hech narsa topilmadi',
-            body: 'Filtrlarni oʻzgartiring yoki boshqa soʻz bilan qidiring.',
-            cta: 'Filtrlarni tozalash',
+            title: tr('Hech narsa topilmadi'),
+            body: tr('Filtrlarni oʻzgartiring yoki boshqa soʻz bilan qidiring.'),
+            cta: tr('Filtrlarni tozalash'),
             onCta: cubit.resetFilter,
           ),
         ),
@@ -122,9 +123,9 @@ class _HomeViewState extends State<_HomeView> {
         fill(
           EmptyState(
             icon: Symbols.inventory_2_rounded,
-            title: 'Hozircha eʼlon yoʻq',
-            body: 'Bu hududda hali hech kim eʼlon bermagan. Birinchi boʻling!',
-            cta: 'Eʼlon berish',
+            title: tr('Hozircha eʼlon yoʻq'),
+            body: tr('Bu hududda hali hech kim eʼlon bermagan. Birinchi boʻling!'),
+            cta: tr('Eʼlon berish'),
             onCta: () => context.push(Routes.create),
           ),
         ),
@@ -147,7 +148,7 @@ class _HomeViewState extends State<_HomeView> {
                 meta: meta,
                 leadingTag: GlassTag.type(context, isFound: l.isFound),
                 trailingTag: GlassTag.text(context, time),
-                semanticLabel: '${l.isFound ? 'Topilgan' : 'Yoʻqolgan'}. ${l.title}. $meta. $time',
+                semanticLabel: '${l.isFound ? tr('Topilgan') : tr('Yoʻqolgan')}. ${l.title}. $meta. $time',
                 icon: l.category.icon,
                 tint: l.tint,
                 imagePath: l.photoAt(0),
@@ -200,14 +201,14 @@ class _TopBar extends SliverPersistentHeaderDelegate {
             children: [
               ConstrainedBox(
                 constraints: BoxConstraints(maxWidth: MediaQuery.sizeOf(context).width * 0.5),
-                child: _LocationCapsule(label: filter.district ?? filter.city, onTap: () => _openFilters(context)),
+                child: _LocationCapsule(label: tr(filter.district ?? filter.city), onTap: () => _openFilters(context)),
               ),
               Expanded(
-                child: GlassInlineTitle('Lenta', offset: offset),
+                child: GlassInlineTitle(tr('Lenta'), offset: offset),
               ),
               GlassCircleButton(
                 icon: Symbols.tune_rounded,
-                semantic: filter.isDefault ? 'Filtrlar' : 'Filtrlar, faol',
+                semantic: filter.isDefault ? tr('Filtrlar') : tr('Filtrlar, faol'),
                 dot: filter.isDefault ? null : cs.primary,
                 onTap: () => _openFilters(context),
               ),
@@ -215,7 +216,7 @@ class _TopBar extends SliverPersistentHeaderDelegate {
               BlocBuilder<NotificationBadgeCubit, int>(
                 builder: (context, unread) => GlassCircleButton(
                   icon: Symbols.notifications_rounded,
-                  semantic: unread > 0 ? 'Bildirishnomalar, $unread ta yangi' : 'Bildirishnomalar',
+                  semantic: unread > 0 ? tr('Bildirishnomalar, {unread} ta yangi', {'unread': unread}) : tr('Bildirishnomalar'),
                   dot: unread > 0 ? cs.error : null,
                   onTap: () => context.push(Routes.notifications),
                 ),
@@ -272,7 +273,7 @@ class _PinnedTabs extends SliverPersistentHeaderDelegate {
               selector: (s) => s.filter.categories,
               builder: (context, cats) => TChipRow(
                 padding: const EdgeInsets.symmetric(horizontal: _side),
-                labels: ['Hammasi', for (final c in feedCategories) c.label],
+                labels: [tr('Hammasi'), for (final c in feedCategories) c.label],
                 // Several categories from Filters → no single chip is selected.
                 selected: cats.isEmpty
                     ? 0
@@ -301,7 +302,7 @@ class _LocationCapsule extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     return Semantics(
       button: true,
-      label: 'Joylashuv: $label',
+      label: tr('Joylashuv: {label}', {'label': label}),
       excludeSemantics: true,
       child: GestureDetector(
         onTap: onTap,

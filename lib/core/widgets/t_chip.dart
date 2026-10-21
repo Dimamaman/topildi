@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../theme/topildi_theme.dart';
 import '../theme/t_text.dart';
 import 'glass_surface.dart';
+import '../l10n/tr.dart';
 
 /// Capsule filter chip (36dp, hit area padded to 44dp) with an optional
 /// leading icon. Selected: filled `primary`; unselected: quiet grey fill,
@@ -124,8 +125,8 @@ class TTypeTabs extends StatelessWidget {
       selected: isFound ? 0 : 1,
       onChanged: (i) => onChanged(i == 0),
       segments: [
-        (label: 'Topilgan', color: tc.found),
-        (label: 'Yoʻqolgan', color: tc.lost),
+        (label: tr('Topilgan'), color: tc.found),
+        (label: tr('Yoʻqolgan'), color: tc.lost),
       ],
     );
   }

@@ -12,6 +12,7 @@ import '../../../listing/domain/entities/listing.dart';
 import '../../domain/entities/claim.dart';
 import '../../domain/repositories/claim_repository.dart';
 import '../datasources/claim_mock_datasource.dart';
+import '../../../../core/l10n/tr.dart';
 
 @LazySingleton(as: ClaimRepository)
 class ClaimRepositoryImpl implements ClaimRepository {
@@ -53,7 +54,7 @@ class ClaimRepositoryImpl implements ClaimRepository {
   FutureEither<Claim> submit(SubmitClaimParams params) => _guard(() async {
         final model = await _listing(params.listingId);
         if (model.author.id == _session.userId) throw const ForbiddenFailure();
-        if (_attemptsLeft(params.listingId) <= 0) throw const ValidationFailure('Urinishlar tugadi');
+        if (_attemptsLeft(params.listingId) <= 0) throw ValidationFailure(tr('Urinishlar tugadi'));
         return _claims.add(Claim(
           id: 'cl${DateTime.now().microsecondsSinceEpoch}',
           listingId: params.listingId,

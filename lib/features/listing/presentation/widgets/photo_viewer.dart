@@ -6,6 +6,7 @@ import '../../../../core/widgets/glass_surface.dart';
 import '../../../../core/widgets/photo_placeholder.dart';
 import '../../domain/entities/listing.dart';
 import '../category_ui.dart';
+import '../../../../core/l10n/tr.dart';
 
 /// Full-screen, zoomable listing photos. Swipe between them; returns the
 /// index that was showing when closed.
@@ -64,7 +65,7 @@ class _PhotoViewerState extends State<PhotoViewer> {
               onPageChanged: (i) => setState(() => _index = i),
               itemBuilder: (context, i) => Semantics(
                 image: true,
-                label: '${l.title}, ${i + 1}-rasm, jami ${widget.count}',
+                label: tr('{title}, {i}-rasm, jami {count}', {'title': l.title, 'i': i + 1, 'count': widget.count}),
                 child: InteractiveViewer(
                   maxScale: 4,
                   child: Center(
@@ -89,7 +90,7 @@ class _PhotoViewerState extends State<PhotoViewer> {
                 children: [
                   Semantics(
                     button: true,
-                    label: 'Yopish',
+                    label: tr('Yopish'),
                     excludeSemantics: true,
                     child: GestureDetector(
                       onTap: () => Navigator.pop(context, _index),

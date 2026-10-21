@@ -15,6 +15,7 @@ import '../../../../core/widgets/t_top_bar.dart';
 import '../../../listing/presentation/category_ui.dart';
 import '../cubit/create_flow_cubit.dart';
 import '../widgets/create_header.dart';
+import '../../../../core/l10n/tr.dart';
 
 class ReviewPage extends StatefulWidget {
   const ReviewPage({super.key});
@@ -38,8 +39,8 @@ class _ReviewPageState extends State<ReviewPage> {
         if (state.status == SubmitStatus.failure) {
           TFeedback.error(
             context,
-            state.failure is NetworkFailure ? 'Internet yoʻq. Qayta urinib koʻring' : 'Eʼlonni joylab boʻlmadi',
-            action: 'Qayta',
+            state.failure is NetworkFailure ? tr('Internet yoʻq. Qayta urinib koʻring') : tr('Eʼlonni joylab boʻlmadi'),
+            action: tr('Qayta'),
             onAction: cubit.publish,
           );
         }
@@ -48,20 +49,20 @@ class _ReviewPageState extends State<ReviewPage> {
         final d = state.draft;
         final happened = d.happenedAt(DateTime.now());
         final area = d.areaName ?? '';
-        final photos = d.photos.isEmpty ? 'rasmsiz' : '${d.photos.length} ta rasm';
+        final photos = d.photos.isEmpty ? 'rasmsiz' : tr('{n} ta rasm', {'n': d.photos.length});
         final rows = [
-          ('Tur va rasmlar', '${d.isFound ? 'Topdim' : 'Yoʻqotdim'} · $photos', Routes.create),
-          ('Sarlavha va tavsif', d.description.trim().isEmpty ? d.title : '${d.title}. ${d.description}', Routes.createDetails),
-          ('Joy va sana', '${area.split(',').first} · ${TDate.full(happened)}', Routes.createLocation),
+          (tr('Tur va rasmlar'), '${d.isFound ? tr('Topdim') : tr('Yoʻqotdim')} · $photos', Routes.create),
+          (tr('Sarlavha va tavsif'), d.description.trim().isEmpty ? d.title : '${d.title}. ${d.description}', Routes.createDetails),
+          (tr('Joy va sana'), '${area.split(',').first} · ${TDate.full(happened)}', Routes.createLocation),
         ];
         final hasSecret = d.hiddenDetail.trim().isNotEmpty;
 
         return Scaffold(
-          appBar: const CreateHeader(title: 'Koʻrib chiqish'),
+          appBar: CreateHeader(title: tr('Koʻrib chiqish')),
           body: ListView(
             padding: const EdgeInsets.symmetric(horizontal: TSpace.screen, vertical: TSpace.md),
             children: [
-              Text('Boshqalar shunday koʻradi',
+              Text(tr('Boshqalar shunday koʻradi'),
                   style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: cs.onSurfaceVariant)),
               const SizedBox(height: 14),
               ListingCard(
@@ -88,7 +89,7 @@ class _ReviewPageState extends State<ReviewPage> {
                         value: r.$2,
                         trailing: TextButton(
                           onPressed: () => context.push('${r.$3}?edit=1'),
-                          child: const Text('Oʻzgartirish'),
+                          child: Text(tr('Oʻzgartirish')),
                         ),
                       ),
                     if (hasSecret)
@@ -103,7 +104,7 @@ class _ReviewPageState extends State<ReviewPage> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text('Yashirin belgi · faqat siz',
+                                  Text(tr('Yashirin belgi · faqat siz'),
                                       style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: cs.onPrimaryContainer)),
                                   const SizedBox(height: 2),
                                   Text(
@@ -114,7 +115,7 @@ class _ReviewPageState extends State<ReviewPage> {
                               ),
                             ),
                             IconButton(
-                              tooltip: _showSecret ? 'Yashirish' : 'Koʻrsatish',
+                              tooltip: _showSecret ? tr('Yashirish') : tr('Koʻrsatish'),
                               color: cs.primary,
                               icon: Icon(_showSecret ? Symbols.visibility_off_rounded : Symbols.visibility_rounded),
                               onPressed: () => setState(() => _showSecret = !_showSecret),
@@ -139,8 +140,8 @@ class _ReviewPageState extends State<ReviewPage> {
                         padding: const EdgeInsets.only(top: 12),
                         child: Text(
                           d.isFound
-                              ? 'Buyumni egasiga bepul qaytaraman va eʼlon qoidalariga roziman.'
-                              : 'Maʼlumotlar toʻgʻri ekanini tasdiqlayman va eʼlon qoidalariga roziman.',
+                              ? tr('Buyumni egasiga bepul qaytaraman va eʼlon qoidalariga roziman.')
+                              : tr('Maʼlumotlar toʻgʻri ekanini tasdiqlayman va eʼlon qoidalariga roziman.'),
                           style: TextStyle(fontSize: 14, height: 20 / 14, color: cs.secondary),
                         ),
                       ),
@@ -154,7 +155,7 @@ class _ReviewPageState extends State<ReviewPage> {
             horizontal: TSpace.screen,
             children: [
               TButton.primary(
-                label: 'Eʼlon qilish',
+                label: tr('Eʼlon qilish'),
                 loading: state.status == SubmitStatus.submitting,
                 onPressed: state.agreed ? cubit.publish : null,
               ),

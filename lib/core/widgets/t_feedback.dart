@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
 import '../theme/topildi_theme.dart';
+import '../l10n/tr.dart';
 
 abstract final class TFeedback {
   static void success(BuildContext context, String message, {String? action, VoidCallback? onAction}) =>
@@ -48,7 +49,7 @@ abstract final class TFeedback {
     required String title,
     required String body,
     required String confirmLabel,
-    String cancelLabel = 'Yoʻq',
+    String? cancelLabel,
     bool destructive = false,
   }) async {
     final cs = Theme.of(context).colorScheme;
@@ -61,7 +62,7 @@ abstract final class TFeedback {
         ),
         content: Text(body, style: Theme.of(ctx).textTheme.bodyMedium!.copyWith(color: cs.secondary, height: 1.45)),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(cancelLabel)),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(cancelLabel ?? tr('Yoʻq'))),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: destructive

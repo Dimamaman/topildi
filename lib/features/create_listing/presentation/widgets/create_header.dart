@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import '../../../../core/l10n/tr.dart';
 
 /// Create-flow header: close/back, title, "n / 3" and a 3-segment progress bar.
 class CreateHeader extends StatelessWidget implements PreferredSizeWidget {
@@ -39,7 +40,7 @@ class CreateHeader extends StatelessWidget implements PreferredSizeWidget {
                   child: Row(
                     children: [
                       IconButton(
-                        tooltip: isFirst ? 'Yopish' : 'Orqaga',
+                        tooltip: isFirst ? tr('Yopish') : tr('Orqaga'),
                         icon: Icon(isFirst ? Symbols.close_rounded : Symbols.arrow_back_rounded),
                         onPressed: onLeading ?? () => Navigator.maybePop(context),
                       ),
@@ -66,7 +67,7 @@ class CreateHeader extends StatelessWidget implements PreferredSizeWidget {
                 if (step != null) ...[
                   const SizedBox(height: 10),
                   Semantics(
-                    label: '$step-qadam: ${_steps[step! - 1]}',
+                    label: tr('{step}-qadam: {name}', {'step': step, 'name': tr(_steps[step! - 1])}),
                     value: '$step / 3',
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 12),

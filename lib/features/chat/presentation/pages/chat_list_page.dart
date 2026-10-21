@@ -18,6 +18,7 @@ import '../../../../core/widgets/t_refresh_scroll_view.dart';
 import '../../../listing/presentation/category_ui.dart';
 import '../../domain/entities/chat.dart';
 import '../cubit/chat_list_cubit.dart';
+import '../../../../core/l10n/tr.dart';
 
 const _title = 'Chatlar';
 const _side = GlassHeader.side;
@@ -70,8 +71,8 @@ class _ChatListPageState extends State<ChatListPage> {
                   pinned: true,
                   delegate: _Bar(top: top, offset: _offset),
                 ),
-                const SliverToBoxAdapter(
-                  child: GlassLargeTitle(_title, padding: EdgeInsets.fromLTRB(_side + 4, 0, _side + 4, 12)),
+                SliverToBoxAdapter(
+                  child: GlassLargeTitle(tr(_title), padding: EdgeInsets.fromLTRB(_side + 4, 0, _side + 4, 12)),
                 ),
                 ..._body(context, state),
               ],
@@ -101,13 +102,13 @@ class _ChatListPageState extends State<ChatListPage> {
       ],
       ViewEmpty() => [
         padded(
-          const Column(
+          Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               EmptyState(
                 icon: Symbols.chat_bubble_rounded,
-                title: 'Hali chat yoʻq',
-                body: 'Soʻrovingiz qabul qilinsa yoki siz soʻrovni qabul qilsangiz, chat shu yerda paydo boʻladi.',
+                title: tr('Hali chat yoʻq'),
+                body: tr('Soʻrovingiz qabul qilinsa yoki siz soʻrovni qabul qilsangiz, chat shu yerda paydo boʻladi.'),
               ),
               _PrivacyNote(),
             ],
@@ -173,7 +174,7 @@ class _Bar extends SliverPersistentHeaderDelegate {
                 Opacity(opacity: ((o - GlassHeader.titleLine * 0.6) / 16).clamp(0.0, 1.0), child: child),
             child: ExcludeSemantics(
               child: Text(
-                _title,
+                tr(_title),
                 maxLines: 1,
                 style: Theme.of(
                   context,
@@ -226,10 +227,10 @@ class _ChatRow extends StatelessWidget {
     return Semantics(
       button: true,
       label: [
-        if (unread) 'Oʻqilmagan',
+        if (unread) tr('Oʻqilmagan'),
         name,
         thread.listingTitle,
-        if (thread.returned) 'Qaytarildi',
+        if (thread.returned) tr('Qaytarildi'),
         thread.lastMessage,
         time,
       ].join('. '),
@@ -341,7 +342,7 @@ class _ChatRow extends StatelessWidget {
                             if (thread.returned) ...[
                               const TextSpan(text: ' · '),
                               TextSpan(
-                                text: 'Qaytarildi',
+                                text: tr('Qaytarildi'),
                                 style: meta.copyWith(color: tc.success).inter(FontWeight.w600),
                               ),
                             ],
@@ -392,7 +393,7 @@ class _PrivacyNote extends StatelessWidget {
           const SizedBox(width: 6),
           Expanded(
             child: Text(
-              'Chat faqat soʻrov qabul qilingandan keyin ochiladi. Telefon raqamlar yashirin.',
+              tr('Chat faqat soʻrov qabul qilingandan keyin ochiladi. Telefon raqamlar yashirin.'),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: Theme.of(

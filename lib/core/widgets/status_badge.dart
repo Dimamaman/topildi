@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
 import '../theme/topildi_theme.dart';
+import '../l10n/tr.dart';
 
 enum BadgeSize { small, medium }
 
@@ -48,7 +49,7 @@ class TypeBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final tc = context.tc;
     return _Badge(
-      label: isFound ? 'Topilgan' : 'Yoʻqolgan',
+      label: isFound ? tr('Topilgan') : tr('Yoʻqolgan'),
       bg: isFound ? tc.foundContainer : tc.lostContainer,
       fg: isFound ? tc.found : tc.lost,
       size: size,
@@ -80,11 +81,11 @@ class StatusBadge extends StatelessWidget {
   final BadgeSize size;
 
   static String defaultLabel(StatusKind kind) => switch (kind) {
-        StatusKind.active => 'Faol',
-        StatusKind.pending => 'Kutilmoqda',
-        StatusKind.accepted => 'Qabul qilindi',
-        StatusKind.rejected => 'Rad etildi',
-        StatusKind.returned => 'Qaytarildi',
+        StatusKind.active => tr('Faol'),
+        StatusKind.pending => tr('Kutilmoqda'),
+        StatusKind.accepted => tr('Qabul qilindi'),
+        StatusKind.rejected => tr('Rad etildi'),
+        StatusKind.returned => tr('Qaytarildi'),
       };
 
   @override

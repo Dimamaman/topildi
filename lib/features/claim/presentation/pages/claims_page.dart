@@ -17,6 +17,7 @@ import '../../../../core/widgets/t_button.dart';
 import '../../../../core/widgets/t_feedback.dart';
 import '../../domain/entities/claim.dart';
 import '../cubit/claims_cubit.dart';
+import '../../../../core/l10n/tr.dart';
 
 /// Finder's view of "Bu meniki" requests for one of their listings.
 class ClaimsPage extends StatelessWidget {
@@ -49,7 +50,7 @@ class _ClaimsView extends StatelessWidget {
         } else if (state.actionFailure != null) {
           TFeedback.error(
             context,
-            state.actionFailure is NetworkFailure ? 'Internet yoʻq. Qayta urinib koʻring' : 'Amalni bajarib boʻlmadi',
+            state.actionFailure is NetworkFailure ? tr('Internet yoʻq. Qayta urinib koʻring') : tr('Amalni bajarib boʻlmadi'),
           );
         }
       },
@@ -58,25 +59,25 @@ class _ClaimsView extends StatelessWidget {
         final review = view is ViewLoaded<ClaimReview> ? view.data : null;
         return Scaffold(
           appBar: _Header(
-            title: review == null ? 'Soʻrovlar' : 'Soʻrovlar · ${review.claims.length}',
+            title: review == null ? tr('Soʻrovlar') : tr('Soʻrovlar · {n}', {'n': review.claims.length}),
             subtitle: review?.listing.title,
           ),
           body: switch (view) {
             ViewLoading() => const CardsSkeleton(count: 2),
             ViewEmpty() => EmptyState(
                 icon: Symbols.shield_rounded,
-                title: 'Hali soʻrov yoʻq',
-                body: 'Kimdir “Bu meniki” desa, darhol xabar beramiz.',
-                cta: 'Eʼlonni ulashish',
-                onCta: () => TFeedback.success(context, 'Havola nusxalandi'),
+                title: tr('Hali soʻrov yoʻq'),
+                body: tr('Kimdir “Bu meniki” desa, darhol xabar beramiz.'),
+                cta: tr('Eʼlonni ulashish'),
+                onCta: () => TFeedback.success(context, tr('Havola nusxalandi')),
               ),
             ViewError(:final failure, :final isOffline) => isOffline
                 ? OfflineState(onRetry: () => cubit.load(listingId))
                 : failure is ForbiddenFailure
-                    ? const EmptyState(
+                    ? EmptyState(
                         icon: Symbols.lock_rounded,
-                        title: 'Ruxsat yoʻq',
-                        body: 'Soʻrovlarni faqat eʼlon muallifi koʻra oladi.',
+                        title: tr('Ruxsat yoʻq'),
+                        body: tr('Soʻrovlarni faqat eʼlon muallifi koʻra oladi.'),
                       )
                     : ErrorState(onRetry: () => cubit.load(listingId)),
             ViewLoaded(:final data) => _List(review: data, busyId: state.busyId),
@@ -112,7 +113,7 @@ class _Header extends StatelessWidget implements PreferredSizeWidget {
               child: Row(
                 children: [
                   IconButton(
-                    tooltip: 'Orqaga',
+                    tooltip: tr('Orqaga'),
                     icon: const Icon(Symbols.arrow_back_rounded),
                     onPressed: () => Navigator.maybePop(context),
                   ),
@@ -170,7 +171,7 @@ class _List extends StatelessWidget {
                   Icon(Symbols.lock_rounded, size: 16, color: cs.onPrimaryContainer),
                   const SizedBox(width: 6),
                   Flexible(
-                    child: Text('Siz yozgan yashirin belgi',
+                    child: Text(tr('Siz yozgan yashirin belgi'),
                         style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: cs.onPrimaryContainer)),
                   ),
                 ],
@@ -182,7 +183,7 @@ class _List extends StatelessWidget {
         ),
         const SizedBox(height: 14),
         Text(
-          'Javoblarni belgi bilan solishtiring. Toʻgʻri javob bergan odamni qabul qiling.',
+          tr('Javoblarni belgi bilan solishtiring. Toʻgʻri javob bergan odamni qabul qiling.'),
           style: TextStyle(fontSize: 14, height: 20 / 14, color: cs.secondary),
         ),
         for (final c in review.claims) ...[
@@ -202,18 +203,18 @@ class _ClaimCard extends StatelessWidget {
 
   String _ago(DateTime t) {
     final d = DateTime.now().difference(t);
-    if (d.inMinutes < 1) return 'Hozirgina';
-    if (d.inMinutes < 60) return '${d.inMinutes} daqiqa oldin';
-    if (d.inHours < 24) return '${d.inHours} soat oldin';
-    return '${d.inDays} kun oldin';
+    if (d.inMinutes < 1) return tr('Hozirgina');
+    if (d.inMinutes < 60) return tr('{n} daqiqa oldin', {'n': d.inMinutes});
+    if (d.inHours < 24) return tr('{n} soat oldin', {'n': d.inHours});
+    return tr('{n} kun oldin', {'n': d.inDays});
   }
 
   Future<void> _reject(BuildContext context) async {
     final ok = await TFeedback.confirm(
       context,
-      title: 'Soʻrovni rad etasizmi?',
-      body: 'Javob yashirin belgiga mos kelmadi. Foydalanuvchiga xabar beramiz.',
-      confirmLabel: 'Rad etish',
+      title: tr('Soʻrovni rad etasizmi?'),
+      body: tr('Javob yashirin belgiga mos kelmadi. Foydalanuvchiga xabar beramiz.'),
+      confirmLabel: tr('Rad etish'),
       destructive: true,
     );
     if (ok && context.mounted) context.read<ClaimsCubit>().reject(claim.id);
@@ -268,12 +269,12 @@ class _ClaimCard extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      Text('Javobi', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: cs.onSurfaceVariant)),
+                      Text(tr('Javobi'), style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: cs.onSurfaceVariant)),
                       if (claim.hasProofPhoto) ...[
                         const Spacer(),
                         Icon(Symbols.image_rounded, size: 14, color: cs.onSurfaceVariant),
                         const SizedBox(width: 4),
-                        Text('Dalil rasm', style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant)),
+                        Text(tr('Dalil rasm'), style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant)),
                       ],
                     ],
                   ),
@@ -296,12 +297,12 @@ class _ClaimCard extends StatelessWidget {
               Row(
                 children: [
                   Expanded(
-                    child: TButton.danger(label: 'Rad etish', onPressed: disabled || busy ? null : () => _reject(context)),
+                    child: TButton.danger(label: tr('Rad etish'), onPressed: disabled || busy ? null : () => _reject(context)),
                   ),
                   const SizedBox(width: 10),
                   Expanded(
                     child: TButton.primary(
-                      label: 'Qabul qilish',
+                      label: tr('Qabul qilish'),
                       loading: busy,
                       onPressed: disabled ? null : () => context.read<ClaimsCubit>().accept(claim.id),
                     ),

@@ -7,6 +7,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import '../../../../app/routes.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/session/session.dart';
+import '../../../../core/l10n/tr.dart';
 
 /// Brand splash; routes to onboarding, sign-in or the feed.
 class SplashPage extends StatefulWidget {
@@ -53,7 +54,7 @@ class _SplashPageState extends State<SplashPage> with SingleTickerProviderStateM
       backgroundColor: bg,
       body: Semantics(
         button: true,
-        label: 'Davom etish',
+        label: tr('Davom etish'),
         child: GestureDetector(
           onTap: _continue,
           behavior: HitTestBehavior.opaque,
@@ -78,7 +79,7 @@ class _SplashPageState extends State<SplashPage> with SingleTickerProviderStateM
                   ConstrainedBox(
                     constraints: const BoxConstraints(maxWidth: 260),
                     child: Text(
-                      'Topilgan buyum egasiga qaytadi',
+                      tr('Topilgan buyum egasiga qaytadi'),
                       textAlign: TextAlign.center,
                       style: TextStyle(fontSize: 17, height: 1.45, color: fg.withValues(alpha: 0.9)),
                     ),

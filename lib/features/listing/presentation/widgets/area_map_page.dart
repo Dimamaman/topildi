@@ -10,6 +10,7 @@ import '../../../../core/map/map_tiles.dart';
 import '../../../../core/theme/t_text.dart';
 import '../../../../core/theme/topildi_surfaces.dart';
 import '../../../../core/widgets/glass_surface.dart';
+import '../../../../core/l10n/tr.dart';
 
 /// Full-screen map of a listing's approximate (~300 m) area. Never shows an
 /// exact pin, only a translucent primary circle.
@@ -68,7 +69,7 @@ class AreaMapPage extends StatelessWidget {
               children: [
                 Semantics(
                   button: true,
-                  label: 'Orqaga',
+                  label: tr('Orqaga'),
                   excludeSemantics: true,
                   child: GestureDetector(
                     onTap: () => Navigator.maybePop(context),
@@ -119,7 +120,7 @@ class AreaMapPage extends StatelessWidget {
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      'Taxminiy hudud, ~300 m. Aniq joy koʻrsatilmaydi.',
+                      tr('Taxminiy hudud, ~300 m. Aniq joy koʻrsatilmaydi.'),
                       style: text.bodySmall!
                           .copyWith(fontSize: 13, height: 18 / 13, color: cs.onSurfaceVariant)
                           .inter(FontWeight.w400),

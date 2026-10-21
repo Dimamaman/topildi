@@ -14,6 +14,7 @@ import '../../../listing/presentation/category_ui.dart';
 import '../../domain/entities/create_draft.dart';
 import '../cubit/create_flow_cubit.dart';
 import '../widgets/create_header.dart';
+import '../../../../core/l10n/tr.dart';
 
 /// Step 2: title, category, description and the hidden detail.
 class CreateDetailsPage extends StatefulWidget {
@@ -53,9 +54,9 @@ class _CreateDetailsPageState extends State<CreateDetailsPage> {
         child: ListView(
           shrinkWrap: true,
           children: [
-            const Padding(
+            Padding(
               padding: EdgeInsets.fromLTRB(TSpace.screen, 0, TSpace.screen, TSpace.xs),
-              child: Text('Kategoriya', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+              child: Text(tr('Kategoriya'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
             ),
             for (final c in ItemCategory.values)
               ListTile(
@@ -78,7 +79,7 @@ class _CreateDetailsPageState extends State<CreateDetailsPage> {
     final text = Theme.of(context).textTheme;
 
     return Scaffold(
-      appBar: const CreateHeader(title: 'Yangi eʼlon', step: 2),
+      appBar: CreateHeader(title: tr('Yangi eʼlon'), step: 2),
       body: BlocBuilder<CreateFlowCubit, CreateFlowState>(
         builder: (context, state) {
           final d = state.draft;
@@ -88,16 +89,16 @@ class _CreateDetailsPageState extends State<CreateDetailsPage> {
             padding: const EdgeInsets.symmetric(horizontal: TSpace.screen, vertical: 18),
             children: [
               TInput(
-                label: 'Sarlavha',
+                label: tr('Sarlavha'),
                 controller: _title,
-                hint: 'Masalan: qora hamyon',
+                hint: tr('Masalan: qora hamyon'),
                 maxLength: 60,
                 textInputAction: TextInputAction.next,
                 onChanged: _cubit.setTitle,
                 error: show ? DraftValidator.title(d) : null,
               ),
               const SizedBox(height: TSpace.md),
-              Text('Kategoriya', style: text.labelLarge!.copyWith(color: categoryError != null ? cs.error : null)),
+              Text(tr('Kategoriya'), style: text.labelLarge!.copyWith(color: categoryError != null ? cs.error : null)),
               const SizedBox(height: 6),
               Material(
                 color: cs.surfaceContainerLowest,
@@ -118,7 +119,7 @@ class _CreateDetailsPageState extends State<CreateDetailsPage> {
                           const SizedBox(width: 10),
                           Expanded(
                             child: Text(
-                              d.category?.label ?? 'Tanlang',
+                              d.category?.label ?? tr('Tanlang'),
                               style: text.bodyLarge!.copyWith(color: d.category == null ? cs.onSurfaceVariant : null),
                             ),
                           ),
@@ -135,9 +136,9 @@ class _CreateDetailsPageState extends State<CreateDetailsPage> {
               ],
               const SizedBox(height: TSpace.md),
               TInput(
-                label: 'Tavsif',
+                label: tr('Tavsif'),
                 controller: _description,
-                hint: 'Qayerda, qanday holatda topdingiz yoki yoʻqotdingiz?',
+                hint: tr('Qayerda, qanday holatda topdingiz yoki yoʻqotdingiz?'),
                 maxLines: 4,
                 minLines: 3,
                 maxLength: CreateDraft.maxDescription,
@@ -167,7 +168,7 @@ class _CreateDetailsPageState extends State<CreateDetailsPage> {
       ),
       bottomNavigationBar: TBottomBar(
         horizontal: TSpace.screen,
-        children: [TButton.primary(label: widget.editing ? 'Saqlash' : 'Keyingi', onPressed: _next)],
+        children: [TButton.primary(label: widget.editing ? tr('Saqlash') : tr('Keyingi'), onPressed: _next)],
       ),
     );
   }
@@ -209,10 +210,10 @@ class _HiddenDetailBlock extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(isFound ? 'Yashirin belgi' : 'Yashirin belgi (ixtiyoriy)',
+                    Text(isFound ? tr('Yashirin belgi') : tr('Yashirin belgi (ixtiyoriy)'),
                         style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
                     const SizedBox(height: 1),
-                    Text('Buni faqat siz koʻrasiz',
+                    Text(tr('Buni faqat siz koʻrasiz'),
                         style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: cs.onPrimaryContainer)),
                   ],
                 ),
@@ -228,7 +229,7 @@ class _HiddenDetailBlock extends StatelessWidget {
             maxLength: 200,
             style: const TextStyle(fontSize: 15, height: 21 / 15),
             decoration: InputDecoration(
-              hintText: 'Masalan: ichida koʻk rangli bank kartasi bor',
+              hintText: tr('Masalan: ichida koʻk rangli bank kartasi bor'),
               counterText: '',
               contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: cs.outline)),
@@ -242,8 +243,8 @@ class _HiddenDetailBlock extends StatelessWidget {
           Text(
             error ??
                 (isFound
-                    ? 'Egasi buyumni olish uchun shu belgini oʻzi aytishi kerak. Eʼlonda koʻrinmaydi: rangi, ichidagi narsa, yozuv yoki shikast haqida yozing.'
-                    : 'Topgan odam shu belgini aytsa, buyum haqiqatan sizniki ekanini bilasiz. Eʼlonda koʻrinmaydi.'),
+                    ? tr('Egasi buyumni olish uchun shu belgini oʻzi aytishi kerak. Eʼlonda koʻrinmaydi: rangi, ichidagi narsa, yozuv yoki shikast haqida yozing.')
+                    : tr('Topgan odam shu belgini aytsa, buyum haqiqatan sizniki ekanini bilasiz. Eʼlonda koʻrinmaydi.')),
             style: TextStyle(fontSize: 13, height: 19 / 13, color: hasError ? cs.error : cs.secondary),
           ),
         ],

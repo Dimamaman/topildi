@@ -7,6 +7,7 @@ import '../../../../core/session/session.dart';
 import '../../../../core/usecase/usecase.dart';
 import '../../domain/entities/phone_number.dart';
 import '../../domain/repositories/auth_repository.dart';
+import '../../../../core/l10n/tr.dart';
 
 /// Mock auth: any 6-digit code except 000000 is accepted.
 @LazySingleton(as: AuthRepository)
@@ -41,7 +42,7 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   FutureEither<AuthResult> verifyCode(PhoneNumber phone, String code) => _guard(() async {
         await Future<void>.delayed(_latency);
-        if (code == '000000') throw const ValidationFailure('Kod notoʻgʻri. Qayta tekshiring');
+        if (code == '000000') throw ValidationFailure(tr('Kod notoʻgʻri. Qayta tekshiring'));
         await _session.signIn(phone: _pendingPhone ?? phone.digits);
         _pendingPhone = null;
         return const AuthResult(needsProfile: true);

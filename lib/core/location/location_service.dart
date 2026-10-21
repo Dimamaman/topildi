@@ -4,15 +4,16 @@ import 'package:geolocator/geolocator.dart';
 import 'package:injectable/injectable.dart';
 
 import 'geo_point.dart';
+import '../l10n/tr.dart';
 
 enum LocationProblem { serviceOff, denied, deniedForever, unavailable }
 
 extension LocationProblemText on LocationProblem {
   String get message => switch (this) {
-        LocationProblem.serviceOff => 'Joylashuv xizmati oʻchirilgan. Sozlamalardan yoqing.',
-        LocationProblem.denied => 'Joylashuvga ruxsat berilmadi.',
-        LocationProblem.deniedForever => 'Joylashuvga ruxsat yoʻq. Uni sozlamalardan yoqing.',
-        LocationProblem.unavailable => 'Joylashuvni aniqlab boʻlmadi.',
+        LocationProblem.serviceOff => tr('Joylashuv xizmati oʻchirilgan. Sozlamalardan yoqing.'),
+        LocationProblem.denied => tr('Joylashuvga ruxsat berilmadi.'),
+        LocationProblem.deniedForever => tr('Joylashuvga ruxsat yoʻq. Uni sozlamalardan yoqing.'),
+        LocationProblem.unavailable => tr('Joylashuvni aniqlab boʻlmadi.'),
       };
 }
 

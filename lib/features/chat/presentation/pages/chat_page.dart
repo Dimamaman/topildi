@@ -15,6 +15,7 @@ import '../../../../core/widgets/t_feedback.dart';
 import '../../../listing/presentation/category_ui.dart';
 import '../../domain/entities/chat.dart';
 import '../cubit/chat_cubit.dart';
+import '../../../../core/l10n/tr.dart';
 
 class ChatPage extends StatelessWidget {
   const ChatPage({super.key, required this.chatId});
@@ -44,7 +45,7 @@ class _ChatView extends StatelessWidget {
         if (state.returnedSummary != null) {
           context.push(Routes.success(chatId));
         } else if (state.failure != null) {
-          TFeedback.error(context, 'Amalni bajarib boʻlmadi. Qayta urinib koʻring');
+          TFeedback.error(context, tr('Amalni bajarib boʻlmadi. Qayta urinib koʻring'));
         }
       },
       builder: (context, state) {
@@ -80,10 +81,10 @@ class _Header extends StatelessWidget {
   Future<void> _confirmReturned(BuildContext context) async {
     final ok = await TFeedback.confirm(
       context,
-      title: 'Buyum qaytarildimi?',
-      body: 'Buyumni egasiga topshirganingizni tasdiqlang. Eʼlon yopiladi.',
-      confirmLabel: 'Ha, qaytarildi',
-      cancelLabel: 'Hali emas',
+      title: tr('Buyum qaytarildimi?'),
+      body: tr('Buyumni egasiga topshirganingizni tasdiqlang. Eʼlon yopiladi.'),
+      confirmLabel: tr('Ha, qaytarildi'),
+      cancelLabel: tr('Hali emas'),
     );
     if (ok && context.mounted) context.read<ChatCubit>().markReturned();
   }
@@ -108,7 +109,7 @@ class _Header extends StatelessWidget {
                 child: Row(
                   children: [
                     IconButton(
-                      tooltip: 'Orqaga',
+                      tooltip: tr('Orqaga'),
                       icon: const Icon(Symbols.arrow_back_rounded),
                       onPressed: () => context.canPop() ? context.pop() : context.go(Routes.chats),
                     ),
@@ -130,7 +131,7 @@ class _Header extends StatelessWidget {
                               const SizedBox(width: 4),
                               Flexible(
                                 child: Text(
-                                  thread.iAmFinder ? 'Egaligi tasdiqlangan' : 'Topuvchi',
+                                  thread.iAmFinder ? tr('Egaligi tasdiqlangan') : tr('Topuvchi'),
                                   overflow: TextOverflow.ellipsis,
                                   style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: tc.success),
                                 ),
@@ -141,21 +142,21 @@ class _Header extends StatelessWidget {
                       ),
                     ),
                     PopupMenuButton<String>(
-                      tooltip: 'Koʻproq',
+                      tooltip: tr('Koʻproq'),
                       icon: const Icon(Symbols.more_vert_rounded),
                       onSelected: (v) async {
                         if (v == 'report') {
                           final ok = await TFeedback.confirm(
                             context,
-                            title: 'Shikoyat qilasizmi?',
-                            body: 'Moderatorlar suhbatni koʻrib chiqadi.',
-                            confirmLabel: 'Shikoyat qilish',
+                            title: tr('Shikoyat qilasizmi?'),
+                            body: tr('Moderatorlar suhbatni koʻrib chiqadi.'),
+                            confirmLabel: tr('Shikoyat qilish'),
                             destructive: true,
                           );
-                          if (ok && context.mounted) TFeedback.success(context, 'Shikoyat yuborildi');
+                          if (ok && context.mounted) TFeedback.success(context, tr('Shikoyat yuborildi'));
                         }
                       },
-                      itemBuilder: (_) => const [PopupMenuItem(value: 'report', child: Text('Shikoyat qilish'))],
+                      itemBuilder: (_) => [PopupMenuItem(value: 'report', child: Text(tr('Shikoyat qilish')))],
                     ),
                   ],
                 ),
@@ -189,7 +190,7 @@ class _Header extends StatelessWidget {
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            thread.returned ? 'Egasiga qaytarilgan' : 'Soʻrov qabul qilingan',
+                            thread.returned ? tr('Egasiga qaytarilgan') : tr('Soʻrov qabul qilingan'),
                             style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant),
                           ),
                         ],
@@ -213,7 +214,7 @@ class _Header extends StatelessWidget {
                                 child: CircularProgressIndicator(strokeWidth: 2, color: cs.surface),
                               )
                             : const Icon(Symbols.check_rounded, size: 18),
-                        label: const Text('Qaytarildi'),
+                        label: Text(tr('Qaytarildi')),
                       )
                     else if (thread.returned)
                       Padding(
@@ -386,14 +387,14 @@ class _ComposerState extends State<_Composer> {
           child: Row(
             children: [
               IconButton(
-                tooltip: 'Joylashuv yuborish',
+                tooltip: tr('Joylashuv yuborish'),
                 style: IconButton.styleFrom(
                   overlayColor: Colors.transparent,
                   backgroundColor: cs.surfaceContainerHigh,
                   fixedSize: const Size(48, 48),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(TRadius.md)),
                 ),
-                onPressed: () => _controller.text = 'Taxminiy uchrashuv joyi: metro kirish joyi',
+                onPressed: () => _controller.text = tr('Taxminiy uchrashuv joyi: metro kirish joyi'),
                 icon: const Icon(Symbols.location_on_rounded),
               ),
               const SizedBox(width: TSpace.xs),
@@ -405,7 +406,7 @@ class _ComposerState extends State<_Composer> {
                   textInputAction: TextInputAction.send,
                   onSubmitted: (_) => _send(),
                   decoration: InputDecoration(
-                    hintText: 'Xabar yozing…',
+                    hintText: tr('Xabar yozing…'),
                     fillColor: cs.surface,
                     contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                     border: OutlineInputBorder(
@@ -425,7 +426,7 @@ class _ComposerState extends State<_Composer> {
               ),
               const SizedBox(width: TSpace.xs),
               IconButton.filled(
-                tooltip: 'Yuborish',
+                tooltip: tr('Yuborish'),
                 style: IconButton.styleFrom(overlayColor: Colors.transparent, fixedSize: const Size(48, 48)),
                 onPressed: _send,
                 icon: const Icon(Symbols.send_rounded),
@@ -456,7 +457,7 @@ class _ClosedNote extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.all(TSpace.md),
           child: Text(
-            'Buyum egasiga qaytarildi. Chat yopilgan.',
+            tr('Buyum egasiga qaytarildi. Chat yopilgan.'),
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 13, color: cs.onSurfaceVariant),
           ),

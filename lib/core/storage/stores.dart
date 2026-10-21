@@ -100,6 +100,7 @@ abstract final class StoreKeys {
   static const lastName = 'last_name';
   static const avatarPath = 'avatar_path';
   static const themeMode = 'theme_mode';
+  static const language = 'language';
   static const notificationsOn = 'notifications_on';
   static const phone = 'phone';
   static const authToken = 'auth_token';

@@ -25,6 +25,7 @@ import '../../../listing/domain/entities/listing.dart';
 import '../../../listing/presentation/category_ui.dart';
 import '../../domain/entities/profile_summary.dart';
 import '../cubit/profile_cubit.dart';
+import '../../../../core/l10n/tr.dart';
 
 const _title = 'Mening eʼlonlarim';
 const _side = GlassHeader.side;
@@ -109,7 +110,7 @@ class _MyListingsViewState extends State<_MyListingsView> {
                       pinned: true,
                       delegate: _BackBar(top: top, offset: _offset),
                     ),
-                    const SliverToBoxAdapter(child: GlassLargeTitle(_title)),
+                    SliverToBoxAdapter(child: GlassLargeTitle(tr(_title))),
                     ..._body(context, state),
                   ],
                 ),
@@ -161,9 +162,9 @@ class _MyListingsViewState extends State<_MyListingsView> {
         fill(
           MessageState(
             icon: Symbols.wifi_off_rounded,
-            title: 'Eʼlonlar yuklanmadi',
-            body: 'Internet yoʻq. Ulanish qaytgach, roʻyxat yangilanadi.',
-            cta: 'Qayta urinish',
+            title: tr('Eʼlonlar yuklanmadi'),
+            body: tr('Internet yoʻq. Ulanish qaytgach, roʻyxat yangilanadi.'),
+            cta: tr('Qayta urinish'),
             onCta: cubit.load,
             circle: context.tc.warningContainer,
             fg: context.tc.warning,
@@ -174,9 +175,9 @@ class _MyListingsViewState extends State<_MyListingsView> {
         fill(
           MessageState(
             icon: Symbols.error_rounded,
-            title: 'Eʼlonlar yuklanmadi',
-            body: 'Roʻyxatni olib boʻlmadi. Birozdan soʻng qayta urinib koʻring.',
-            cta: 'Qayta urinish',
+            title: tr('Eʼlonlar yuklanmadi'),
+            body: tr('Roʻyxatni olib boʻlmadi. Birozdan soʻng qayta urinib koʻring.'),
+            cta: tr('Qayta urinish'),
             onCta: cubit.load,
             circle: Theme.of(context).colorScheme.errorContainer,
             fg: Theme.of(context).colorScheme.error,
@@ -231,11 +232,11 @@ class _BackBar extends SliverPersistentHeaderDelegate {
             GlassCircleButton(
               icon: Symbols.chevron_left_rounded,
               iconSize: 24,
-              semantic: 'Orqaga',
+              semantic: tr('Orqaga'),
               onTap: () => context.canPop() ? context.pop() : context.go(Routes.profile),
             ),
             const SizedBox(width: 8),
-            Expanded(child: GlassInlineTitle(_title, offset: offset)),
+            Expanded(child: GlassInlineTitle(tr(_title), offset: offset)),
             // Mirrors the back button so the inline title stays centred.
             const SizedBox(width: 8 + 44),
           ],
@@ -262,8 +263,8 @@ class _Tabs extends StatelessWidget {
         selected: showReturned ? 1 : 0,
         onChanged: (i) => onChanged(i == 1),
         segments: [
-          (label: label('Faol', active), color: null),
-          (label: label('Qaytarilgan', returned), color: null),
+          (label: label(tr('Faol'), active), color: null),
+          (label: label(tr('Qaytarilgan'), returned), color: null),
         ],
       ),
     );
@@ -319,15 +320,15 @@ class _Empty extends StatelessWidget {
       child: returned
           ? MessageState(
               icon: Symbols.task_alt_rounded,
-              title: 'Hali qaytarilgan buyum yoʻq',
-              body: 'Buyumni egasiga topshirganingizda shu yerda koʻrinadi.',
+              title: tr('Hali qaytarilgan buyum yoʻq'),
+              body: tr('Buyumni egasiga topshirganingizda shu yerda koʻrinadi.'),
               circle: tc.successContainer,
               fg: tc.success,
             )
           : MessageState(
               icon: Symbols.campaign_rounded,
-              title: 'Faol eʼlon yoʻq',
-              body: 'Biror narsa topdingizmi yoki yoʻqotdingizmi? Eʼlon bering.',
+              title: tr('Faol eʼlon yoʻq'),
+              body: tr('Biror narsa topdingizmi yoki yoʻqotdingizmi? Eʼlon bering.'),
               circle: cs.primaryContainer,
               fg: cs.onPrimaryContainer,
             ),
@@ -355,7 +356,7 @@ class _MineCard extends StatelessWidget {
       iconSize: 60,
       leadingTag: status,
       trailingTag: GlassTag.type(context, isFound: l.isFound),
-      semanticLabel: '${status.label}. ${l.isFound ? 'Topilgan' : 'Yoʻqolgan'}. ${l.title}. $meta',
+      semanticLabel: '${status.label}. ${l.isFound ? tr('Topilgan') : tr('Yoʻqolgan')}. ${l.title}. $meta',
       // Author view of the listing (claims are reachable from there).
       onTap: () => context.push(Routes.listing(l.id)),
     );
@@ -367,7 +368,7 @@ class _MineCard extends StatelessWidget {
     final dark = Theme.of(context).brightness == Brightness.dark;
     if (m.listing.status == ListingStatus.returned) {
       return GlassTag(
-        label: 'Qaytarildi',
+        label: tr('Qaytarildi'),
         icon: Symbols.task_alt_rounded,
         color: tc.success,
         fill: tc.successContainer.withValues(alpha: dark ? 0.85 : 0.9),
@@ -375,14 +376,14 @@ class _MineCard extends StatelessWidget {
     }
     if (m.pendingClaims > 0) {
       return GlassTag(
-        label: 'Soʻrov bor · ${m.pendingClaims}',
+        label: tr('Soʻrov bor · {pendingClaims}', {'pendingClaims': m.pendingClaims}),
         icon: Symbols.inbox_rounded,
         color: tc.warning,
         fill: tc.warningContainer.withValues(alpha: dark ? 0.85 : 0.92),
       );
     }
     return GlassTag(
-      label: 'Faol',
+      label: tr('Faol'),
       color: cs.onPrimaryContainer,
       fill: cs.primaryContainer.withValues(alpha: dark ? 0.85 : 0.9),
     );
@@ -402,7 +403,7 @@ class _AddButton extends StatelessWidget {
     final dark = Theme.of(context).brightness == Brightness.dark;
     return Semantics(
       button: true,
-      label: 'Eʼlon berish',
+      label: tr('Eʼlon berish'),
       excludeSemantics: true,
       child: GestureDetector(
         onTap: () => context.push(Routes.create),
@@ -432,7 +433,7 @@ class _AddButton extends StatelessWidget {
                             child: Padding(
                               padding: const EdgeInsets.only(left: 8),
                               child: Text(
-                                'Eʼlon berish',
+                                tr('Eʼlon berish'),
                                 maxLines: 1,
                                 softWrap: false,
                                 textScaler: MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.3),

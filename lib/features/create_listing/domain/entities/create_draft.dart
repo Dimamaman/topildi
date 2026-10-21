@@ -2,6 +2,7 @@ import 'package:equatable/equatable.dart';
 
 import '../../../../core/location/geo_point.dart';
 import '../../../listing/domain/entities/listing.dart';
+import '../../../../core/l10n/tr.dart';
 
 enum DraftDay { today, yesterday, other }
 
@@ -96,15 +97,15 @@ class CreateDraft extends Equatable {
 
 /// Field-level validation for step 2 and 3. Messages are user-facing.
 abstract final class DraftValidator {
-  static String? title(CreateDraft d) => d.title.trim().length < 3 ? 'Sarlavhani kiriting (kamida 3 ta belgi)' : null;
+  static String? title(CreateDraft d) => d.title.trim().length < 3 ? tr('Sarlavhani kiriting (kamida 3 ta belgi)') : null;
 
-  static String? category(CreateDraft d) => d.category == null ? 'Kategoriyani tanlang' : null;
+  static String? category(CreateDraft d) => d.category == null ? tr('Kategoriyani tanlang') : null;
 
   /// Required for found items: it is how the owner proves ownership.
   static String? hiddenDetail(CreateDraft d) =>
-      d.isFound && d.hiddenDetail.trim().length < 5 ? 'Yashirin belgini yozing: egasini shu orqali tekshirasiz' : null;
+      d.isFound && d.hiddenDetail.trim().length < 5 ? tr('Yashirin belgini yozing: egasini shu orqali tekshirasiz') : null;
 
-  static String? area(CreateDraft d) => d.areaName == null || d.point == null ? 'Xaritada joyni belgilang' : null;
+  static String? area(CreateDraft d) => d.areaName == null || d.point == null ? tr('Xaritada joyni belgilang') : null;
 
   static bool detailsValid(CreateDraft d) => title(d) == null && category(d) == null && hiddenDetail(d) == null;
 

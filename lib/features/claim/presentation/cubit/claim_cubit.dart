@@ -7,6 +7,7 @@ import '../../../../core/view_state.dart';
 import '../../domain/entities/claim.dart';
 import '../../domain/usecases/get_claim_target.dart';
 import '../../domain/usecases/submit_claim.dart';
+import '../../../../core/l10n/tr.dart';
 
 class ClaimState extends Equatable {
   const ClaimState({
@@ -28,7 +29,7 @@ class ClaimState extends Equatable {
   final Failure? submitFailure;
 
   String? get answerError => showError && answer.trim().length < SubmitClaimParams.minAnswer
-      ? 'Javobni batafsilroq yozing (kamida ${SubmitClaimParams.minAnswer} ta belgi)'
+      ? tr('Javobni batafsilroq yozing (kamida {minAnswer} ta belgi)', {'minAnswer': SubmitClaimParams.minAnswer})
       : null;
 
   ClaimState copyWith({

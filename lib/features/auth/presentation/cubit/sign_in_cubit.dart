@@ -7,6 +7,7 @@ import '../../../../core/usecase/usecase.dart';
 import '../../domain/entities/phone_number.dart';
 import '../../domain/usecases/request_sms_code.dart';
 import '../../domain/usecases/sign_in_with_google.dart';
+import '../../../../core/l10n/tr.dart';
 
 enum SignInNext { none, code, profile }
 
@@ -23,7 +24,7 @@ class SignInState extends Equatable {
   String? get error {
     if (!showError || phone != null) return null;
     final n = input.replaceAll(RegExp(r'\D'), '').length;
-    return 'Raqam toʻliq emas: ${PhoneNumber.length} ta raqam kiriting${n > 0 ? ' ($n/${PhoneNumber.length})' : ''}';
+    return tr('Raqam toʻliq emas: {n} ta raqam kiriting{progress}', {'n': PhoneNumber.length, 'progress': n > 0 ? ' ($n/${PhoneNumber.length})' : ''});
   }
 
   SignInState copyWith({String? input, bool? showError, bool? loading, SignInNext? next, Failure? failure}) => SignInState(

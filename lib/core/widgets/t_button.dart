@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../theme/topildi_theme.dart';
+import '../l10n/tr.dart';
 
 enum TButtonVariant { primary, secondary, outline, text, danger, google }
 
@@ -57,8 +58,8 @@ class TButton extends StatelessWidget {
     this.loading = false,
     this.expand = true,
   }) : variant = TButtonVariant.danger;
-  const TButton.google({super.key, required this.onPressed, this.loading = false, this.expand = true})
-    : label = 'Google orqali davom etish',
+  TButton.google({super.key, required this.onPressed, this.loading = false, this.expand = true})
+    : label = tr('Google orqali davom etish'),
       icon = null,
       variant = TButtonVariant.google;
 
@@ -82,7 +83,7 @@ class TButton extends StatelessWidget {
           children: [
             SizedBox.square(dimension: 18, child: CircularProgressIndicator(strokeWidth: 2.5, color: fg)),
             const SizedBox(width: 10),
-            const Flexible(child: Text('Yuklanmoqda', overflow: TextOverflow.ellipsis, maxLines: 1)),
+            Flexible(child: Text(tr('Yuklanmoqda'), overflow: TextOverflow.ellipsis, maxLines: 1)),
           ],
         );
       }

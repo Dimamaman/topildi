@@ -5,6 +5,7 @@ import '../../../../core/error/failure.dart';
 import '../../../../core/usecase/usecase.dart';
 import '../entities/phone_number.dart';
 import '../repositories/auth_repository.dart';
+import '../../../../core/l10n/tr.dart';
 
 typedef VerifyParams = ({PhoneNumber phone, String code});
 
@@ -18,7 +19,7 @@ class VerifySmsCode implements UseCase<AuthResult, VerifyParams> {
 
   @override
   FutureEither<AuthResult> call(VerifyParams params) async {
-    if (!RegExp(r'^\d{6}$').hasMatch(params.code)) return left(const ValidationFailure('Kod 6 ta raqamdan iborat'));
+    if (!RegExp(r'^\d{6}$').hasMatch(params.code)) return left(ValidationFailure(tr('Kod 6 ta raqamdan iborat')));
     return _repository.verifyCode(params.phone, params.code);
   }
 }

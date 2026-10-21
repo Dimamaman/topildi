@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
 import '../theme/topildi_theme.dart';
+import '../l10n/tr.dart';
 
 /// Labelled text field. [prefixText] renders a bold prefix with a divider
 /// (used for `+998`). [hidden] styles it as the hidden-detail field.
@@ -32,11 +33,11 @@ class TInput extends StatefulWidget {
   const TInput.hidden({
     super.key,
     this.controller,
-    this.hint = 'Masalan: ichida koʻk rangli bank kartasi bor',
+    this.hint,
     this.onChanged,
     this.error,
     this.maxLength,
-  })  : label = 'Yashirin belgi',
+  })  : label = 'Yashirin belgi', // translated in build (const constructor)
         helper = 'Buni faqat siz koʻrasiz',
         prefixText = null,
         leadingIcon = null,
@@ -115,7 +116,7 @@ class _TInputState extends State<TInput> {
               Icon(widget.labelIcon, size: 16, color: labelColor),
               const SizedBox(width: 6),
             ],
-            Flexible(child: Text(widget.label, style: text.labelLarge!.copyWith(color: labelColor))),
+            Flexible(child: Text(widget.hidden ? tr(widget.label) : widget.label, style: text.labelLarge!.copyWith(color: labelColor))),
           ],
         ),
         const SizedBox(height: 6),
@@ -132,14 +133,14 @@ class _TInputState extends State<TInput> {
           autofocus: widget.autofocus,
           style: text.bodyLarge,
           decoration: InputDecoration(
-            hintText: widget.hint,
+            hintText: widget.hint ?? (widget.hidden ? tr('Masalan: ichida koʻk rangli bank kartasi bor') : null),
             prefixIcon: prefix ?? (widget.leadingIcon != null ? Icon(widget.leadingIcon, size: 20) : null),
             prefixIconConstraints: prefix != null ? const BoxConstraints(minHeight: TSize.input) : null,
             fillColor: widget.hidden ? cs.surfaceContainerHigh : null,
             enabledBorder: widget.hidden ? hiddenBorder : null,
             border: widget.hidden ? hiddenBorder : null,
             errorText: widget.error,
-            helperText: hasError ? null : widget.helper,
+            helperText: hasError ? null : (widget.hidden && widget.helper != null ? tr(widget.helper!) : widget.helper),
             helperStyle: text.bodySmall!.copyWith(fontSize: 13, color: cs.onSurfaceVariant),
             errorStyle: text.bodySmall!.copyWith(fontSize: 13, color: cs.error),
             counterText: '',

@@ -5,6 +5,7 @@ import '../theme/topildi_surfaces.dart';
 import '../theme/topildi_theme.dart';
 import 'listing_card.dart';
 import 't_button.dart';
+import '../l10n/tr.dart';
 
 /// Illustration + title + body + CTA used for empty / error / offline.
 class MessageState extends StatelessWidget {
@@ -112,9 +113,9 @@ class ErrorState extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     return MessageState(
       icon: Symbols.error_rounded,
-      title: 'Nimadir xato ketdi',
-      body: 'Maʼlumotlarni yuklab boʻlmadi. Birozdan soʻng qayta urinib koʻring.',
-      cta: 'Qayta urinish',
+      title: tr('Nimadir xato ketdi'),
+      body: tr('Maʼlumotlarni yuklab boʻlmadi. Birozdan soʻng qayta urinib koʻring.'),
+      cta: tr('Qayta urinish'),
       onCta: onRetry,
       circle: cs.errorContainer,
       fg: cs.error,
@@ -132,9 +133,9 @@ class OfflineState extends StatelessWidget {
     final tc = context.tc;
     return MessageState(
       icon: Symbols.wifi_off_rounded,
-      title: 'Internet yoʻq',
-      body: 'Ulanishni tekshiring. Internet qaytgach, hammasi oʻzi yangilanadi.',
-      cta: 'Qayta urinish',
+      title: tr('Internet yoʻq'),
+      body: tr('Ulanishni tekshiring. Internet qaytgach, hammasi oʻzi yangilanadi.'),
+      cta: tr('Qayta urinish'),
       onCta: onRetry,
       circle: tc.warningContainer,
       fg: tc.warning,
@@ -161,7 +162,7 @@ class OfflineBanner extends StatelessWidget {
             const SizedBox(width: 8),
             Expanded(
               child: Text(
-                'Oflayn rejim: oxirgi saqlangan maʼlumotlar',
+                tr('Oflayn rejim: oxirgi saqlangan maʼlumotlar'),
                 style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: tc.warning),
               ),
             ),
@@ -181,7 +182,7 @@ class CardsSkeleton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Semantics(
-      label: 'Yuklanmoqda',
+      label: tr('Yuklanmoqda'),
       child: ListView.separated(
         physics: const NeverScrollableScrollPhysics(),
         padding: const EdgeInsets.symmetric(horizontal: TSpace.screen, vertical: TSpace.md),
@@ -209,7 +210,7 @@ class RowsSkeleton extends StatelessWidget {
           child: Container(height: h, decoration: BoxDecoration(color: c, borderRadius: BorderRadius.circular(TRadius.xs))),
         );
     return Semantics(
-      label: 'Yuklanmoqda',
+      label: tr('Yuklanmoqda'),
       child: ListView.builder(
         physics: const NeverScrollableScrollPhysics(),
         itemCount: count,

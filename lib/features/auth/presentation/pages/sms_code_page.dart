@@ -11,6 +11,7 @@ import '../../../../core/widgets/t_top_bar.dart';
 import '../../domain/entities/phone_number.dart';
 import '../../domain/usecases/verify_sms_code.dart';
 import '../cubit/sms_code_cubit.dart';
+import '../../../../core/l10n/tr.dart';
 
 class SmsCodePage extends StatelessWidget {
   const SmsCodePage({super.key, required this.phone});
@@ -77,7 +78,7 @@ class _SmsCodeViewState extends State<_SmsCodeView> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Text('Kodni kiriting', style: text.headlineMedium),
+                        Text(tr('Kodni kiriting'), style: text.headlineMedium),
                         const SizedBox(height: TSpace.xs),
                         Text.rich(
                           TextSpan(
@@ -87,13 +88,13 @@ class _SmsCodeViewState extends State<_SmsCodeView> {
                                 text: widget.phone.masked,
                                 style: TextStyle(fontWeight: FontWeight.w700, color: cs.onSurface),
                               ),
-                              const TextSpan(text: ' raqamiga 6 xonali kod yubordik.'),
+                              TextSpan(text: tr(' raqamiga 6 xonali kod yubordik.')),
                             ],
                           ),
                         ),
                         const SizedBox(height: TSpace.x2l),
                         Semantics(
-                          label: 'SMS kod',
+                          label: tr('SMS kod'),
                           textField: true,
                           child: GestureDetector(
                             onTap: _focus.requestFocus,
@@ -140,7 +141,7 @@ class _SmsCodeViewState extends State<_SmsCodeView> {
                                     TextSpan(
                                       style: TextStyle(fontSize: 15, color: cs.onSurfaceVariant),
                                       children: [
-                                        const TextSpan(text: 'Kodni qayta yuborish: '),
+                                        TextSpan(text: tr('Kodni qayta yuborish: ')),
                                         TextSpan(
                                           text: '0:$secs',
                                           style: TextStyle(
@@ -152,18 +153,18 @@ class _SmsCodeViewState extends State<_SmsCodeView> {
                                       ],
                                     ),
                                   )
-                                : TButton.text(label: 'Kodni qayta yuborish', onPressed: cubit.resend),
+                                : TButton.text(label: tr('Kodni qayta yuborish'), onPressed: cubit.resend),
                           ),
                         ),
                         const Spacer(),
                         const SizedBox(height: TSpace.xl),
                         TButton.primary(
-                          label: 'Tasdiqlash',
+                          label: tr('Tasdiqlash'),
                           loading: state.verifying,
                           onPressed: state.code.length == VerifySmsCode.codeLength ? cubit.verify : null,
                         ),
                         const SizedBox(height: TSpace.xs),
-                        TButton.text(label: 'Raqamni oʻzgartirish', expand: true, onPressed: () => context.pop()),
+                        TButton.text(label: tr('Raqamni oʻzgartirish'), expand: true, onPressed: () => context.pop()),
                       ],
                     ),
                   ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import '../l10n/tr.dart';
 
 /// 60dp top bar: 48dp back button, centred title, optional trailing action.
 class TTopBar extends StatelessWidget implements PreferredSizeWidget {
@@ -10,7 +11,7 @@ class TTopBar extends StatelessWidget implements PreferredSizeWidget {
     this.onBack,
     this.showBack = true,
     this.backIcon = Symbols.arrow_back_rounded,
-    this.backLabel = 'Orqaga',
+    this.backLabel,
     this.bordered = false,
     this.background,
   });
@@ -20,7 +21,8 @@ class TTopBar extends StatelessWidget implements PreferredSizeWidget {
   final VoidCallback? onBack;
   final bool showBack, bordered;
   final IconData backIcon;
-  final String backLabel;
+  /// Defaults to "Orqaga".
+  final String? backLabel;
   final Color? background;
 
   @override
@@ -45,7 +47,7 @@ class TTopBar extends StatelessWidget implements PreferredSizeWidget {
                     dimension: 48,
                     child: showBack
                         ? IconButton(
-                            tooltip: backLabel,
+                            tooltip: backLabel ?? tr('Orqaga'),
                             icon: Icon(backIcon, size: 24),
                             onPressed: onBack ?? () => Navigator.maybePop(context),
                           )

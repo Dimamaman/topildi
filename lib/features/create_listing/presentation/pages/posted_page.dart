@@ -7,6 +7,7 @@ import '../../../../app/routes.dart';
 import '../../../../core/theme/topildi_theme.dart';
 import '../../../../core/widgets/t_button.dart';
 import '../cubit/create_flow_cubit.dart';
+import '../../../../core/l10n/tr.dart';
 
 class PostedPage extends StatelessWidget {
   const PostedPage({super.key});
@@ -20,15 +21,15 @@ class PostedPage extends StatelessWidget {
     final id = state.postedId;
     final isFound = state.draft.isFound;
     final steps = isFound
-        ? const [
-            'Soʻrov kelsa, javobni yashirin belgi bilan solishtirasiz.',
-            'Mos kelsa, qabul qilasiz va chatda uchrashuvni kelishasiz.',
-            'Buyumni gavjum, xavfsiz joyda topshirasiz.',
+        ? [
+            tr('Soʻrov kelsa, javobni yashirin belgi bilan solishtirasiz.'),
+            tr('Mos kelsa, qabul qilasiz va chatda uchrashuvni kelishasiz.'),
+            tr('Buyumni gavjum, xavfsiz joyda topshirasiz.'),
           ]
-        : const [
-            'Mos eʼlon chiqsa yoki kimdir topsa, darhol xabar beramiz.',
-            'Topuvchi bilan faqat ilova ichidagi chatda yozishasiz.',
-            'Buyumni gavjum, xavfsiz joyda olasiz.',
+        : [
+            tr('Mos eʼlon chiqsa yoki kimdir topsa, darhol xabar beramiz.'),
+            tr('Topuvchi bilan faqat ilova ichidagi chatda yozishasiz.'),
+            tr('Buyumni gavjum, xavfsiz joyda olasiz.'),
           ];
 
     return PopScope(
@@ -64,12 +65,12 @@ class PostedPage extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 18),
-                    Text('Eʼlon joylandi!', textAlign: TextAlign.center, style: text.headlineMedium),
+                    Text(tr('Eʼlon joylandi!'), textAlign: TextAlign.center, style: text.headlineMedium),
                     const SizedBox(height: 18),
                     Text(
                       isFound
-                          ? 'Rahmat! Endi egasi sizni topa oladi. Kimdir “Bu meniki” desa, darhol xabar beramiz.'
-                          : 'Eʼloningizni hamma koʻradi. Kimdir buyumingizni topsa, darhol xabar beramiz.',
+                          ? tr('Rahmat! Endi egasi sizni topa oladi. Kimdir “Bu meniki” desa, darhol xabar beramiz.')
+                          : tr('Eʼloningizni hamma koʻradi. Kimdir buyumingizni topsa, darhol xabar beramiz.'),
                       textAlign: TextAlign.center,
                       style: text.bodyLarge!.copyWith(color: cs.secondary),
                     ),
@@ -84,7 +85,7 @@ class PostedPage extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('Keyin nima boʻladi?', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+                          Text(tr('Keyin nima boʻladi?'), style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
                           for (var i = 0; i < steps.length; i++) ...[
                             const SizedBox(height: 14),
                             Row(
@@ -113,14 +114,14 @@ class PostedPage extends StatelessWidget {
                     ),
                     const SizedBox(height: TSpace.x2l),
                     TButton.primary(
-                      label: 'Eʼlonni koʻrish',
+                      label: tr('Eʼlonni koʻrish'),
                       onPressed: id == null
                           ? null
                           // Detail's back button falls back to the feed when nothing is below it.
                           : () => context.go(Routes.listing(id)),
                     ),
                     const SizedBox(height: TSpace.xs),
-                    TButton.text(label: 'Lentaga qaytish', expand: true, onPressed: () => context.go(Routes.home)),
+                    TButton.text(label: tr('Lentaga qaytish'), expand: true, onPressed: () => context.go(Routes.home)),
                   ],
                 ),
               ),

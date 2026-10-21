@@ -13,6 +13,7 @@ import '../../../../core/widgets/t_button.dart';
 import '../../../../core/widgets/t_feedback.dart';
 import '../cubit/sign_in_cubit.dart';
 import '../widgets/phone_formatter.dart';
+import '../../../../core/l10n/tr.dart';
 
 class SignInPage extends StatelessWidget {
   const SignInPage({super.key});
@@ -43,7 +44,7 @@ class _SignInView extends StatelessWidget {
           case SignInNext.none:
             TFeedback.error(
               context,
-              state.failure is NetworkFailure ? 'Internet yoʻq. Qayta urinib koʻring' : 'Kirishda xatolik yuz berdi',
+              state.failure is NetworkFailure ? tr('Internet yoʻq. Qayta urinib koʻring') : tr('Kirishda xatolik yuz berdi'),
             );
         }
       },
@@ -72,12 +73,12 @@ class _SignInView extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: TSpace.lg),
-                        Text('Xush kelibsiz!', style: text.headlineMedium),
+                        Text(tr('Xush kelibsiz!'), style: text.headlineMedium),
                         const SizedBox(height: TSpace.xs),
-                        Text('Telefon raqamingizni kiriting, sizga SMS kod yuboramiz.',
+                        Text(tr('Telefon raqamingizni kiriting, sizga SMS kod yuboramiz.'),
                             style: text.bodyLarge!.copyWith(color: cs.secondary)),
                         const SizedBox(height: TSpace.x2l),
-                        Text('Telefon raqam', style: text.labelLarge!.copyWith(color: error != null ? cs.error : null)),
+                        Text(tr('Telefon raqam'), style: text.labelLarge!.copyWith(color: error != null ? cs.error : null)),
                         const SizedBox(height: TSpace.xs),
                         TextField(
                           autofocus: true,
@@ -112,14 +113,14 @@ class _SignInView extends StatelessWidget {
                             const SizedBox(width: TSpace.xs),
                             Expanded(
                               child: Text(
-                                'Raqamingiz boshqa foydalanuvchilarga hech qachon koʻrsatilmaydi.',
+                                tr('Raqamingiz boshqa foydalanuvchilarga hech qachon koʻrsatilmaydi.'),
                                 style: TextStyle(fontSize: 13, height: 18 / 13, color: cs.onSurfaceVariant),
                               ),
                             ),
                           ],
                         ),
                         const SizedBox(height: TSpace.xl),
-                        TButton.primary(label: 'Kodni olish', loading: state.loading, onPressed: cubit.requestCode),
+                        TButton.primary(label: tr('Kodni olish'), loading: state.loading, onPressed: cubit.requestCode),
                         const SizedBox(height: TSpace.md),
                         Row(
                           children: [
@@ -139,19 +140,19 @@ class _SignInView extends StatelessWidget {
                           TextSpan(
                             style: TextStyle(fontSize: 13, height: 19 / 13, color: cs.onSurfaceVariant),
                             children: [
-                              const TextSpan(text: 'Davom etish orqali '),
+                              TextSpan(text: tr('Davom etish orqali ')),
                               TextSpan(
-                                text: 'Foydalanish shartlari',
+                                text: tr('Foydalanish shartlari'),
                                 style: linkStyle,
                                 recognizer: TapGestureRecognizer()..onTap = () => context.push(Routes.terms),
                               ),
-                              const TextSpan(text: ' va '),
+                              TextSpan(text: tr(' va ')),
                               TextSpan(
-                                text: 'Maxfiylik siyosati',
+                                text: tr('Maxfiylik siyosati'),
                                 style: linkStyle,
                                 recognizer: TapGestureRecognizer()..onTap = () => context.push(Routes.privacy),
                               ),
-                              const TextSpan(text: 'ga rozilik bildirasiz.'),
+                              TextSpan(text: tr('ga rozilik bildirasiz.')),
                             ],
                           ),
                           textAlign: TextAlign.center,

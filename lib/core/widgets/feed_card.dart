@@ -6,6 +6,7 @@ import '../theme/topildi_surfaces.dart';
 import '../theme/topildi_theme.dart';
 import 'glass_surface.dart';
 import 'photo_placeholder.dart';
+import '../l10n/tr.dart';
 
 /// Listing card, iOS 26 style (Lenta, Mening eʼlonlarim): full-width photo
 /// with two glass tags on top, then title, a meta line and a chevron.
@@ -148,7 +149,7 @@ class GlassTag extends StatelessWidget {
   /// "Topilgan" / "Yoʻqolgan" tag: coloured dot + text, never colour alone.
   factory GlassTag.type(BuildContext context, {required bool isFound}) {
     final tc = context.tc;
-    return GlassTag(label: isFound ? 'Topilgan' : 'Yoʻqolgan', color: isFound ? tc.found : tc.lost, dot: true);
+    return GlassTag(label: isFound ? tr('Topilgan') : tr('Yoʻqolgan'), color: isFound ? tc.found : tc.lost, dot: true);
   }
 
   /// Neutral text tag, e.g. the time "Bugun, 09:40".

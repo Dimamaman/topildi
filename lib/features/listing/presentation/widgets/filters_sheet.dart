@@ -15,6 +15,7 @@ import '../../domain/entities/listing.dart';
 import '../../domain/entities/regions.dart';
 import '../category_ui.dart';
 import '../cubit/filters_cubit.dart';
+import '../../../../core/l10n/tr.dart';
 
 /// Opens the Filters sheet (iOS 26 floating glass sheet); returns the
 /// applied filter, or null when closed without applying.
@@ -26,7 +27,7 @@ Future<ListingFilter?> showFiltersSheet(
 }) {
   return showGlassSheet<ListingFilter>(
     context,
-    label: 'Filtrlar',
+    label: tr('Filtrlar'),
     builder: (_) => BlocProvider(
       create: (_) => getIt<FiltersCubit>()..start(filter: filter, type: type, search: search),
       child: const _FiltersSheet(),
@@ -54,11 +55,11 @@ class _FiltersSheet extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const _SectionTitle('Kategoriya'),
+                  _SectionTitle(tr('Kategoriya')),
                   _Categories(selected: state.filter.categories),
-                  const _SectionTitle('Hudud'),
+                  _SectionTitle(tr('Hudud')),
                   _Region(filter: state.filter),
-                  const _SectionTitle('Sana'),
+                  _SectionTitle(tr('Sana')),
                   _Dates(filter: state.filter),
                 ],
               ),
@@ -91,7 +92,7 @@ class _Header extends StatelessWidget {
             alignment: Alignment.center,
             children: [
               Text(
-                'Filtrlar',
+                tr('Filtrlar'),
                 style: Theme.of(
                   context,
                 ).textTheme.titleMedium!.copyWith(fontSize: 17, height: 22 / 17).inter(FontWeight.w600),
@@ -100,7 +101,7 @@ class _Header extends StatelessWidget {
                 children: [
                   Semantics(
                     button: true,
-                    label: 'Yopish',
+                    label: tr('Yopish'),
                     excludeSemantics: true,
                     child: GestureDetector(
                       onTap: () => Navigator.of(context).pop(),
@@ -118,7 +119,7 @@ class _Header extends StatelessWidget {
                   Semantics(
                     button: true,
                     enabled: canReset,
-                    label: 'Tozalash',
+                    label: tr('Tozalash'),
                     excludeSemantics: true,
                     child: GestureDetector(
                       onTap: canReset ? context.read<FiltersCubit>().reset : null,
@@ -133,7 +134,7 @@ class _Header extends StatelessWidget {
                             child: Center(
                               widthFactor: 1,
                               child: Text(
-                                'Tozalash',
+                                tr('Tozalash'),
                                 style: Theme.of(context).textTheme.bodyMedium!
                                     .copyWith(fontSize: 15, height: 20 / 15, color: cs.primary)
                                     .inter(FontWeight.w600),
@@ -237,16 +238,16 @@ class _Region extends StatelessWidget {
         children: [
           _RegionRow(
             icon: Symbols.location_city_rounded,
-            label: 'Shahar / viloyat',
-            value: filter.city,
+            label: tr('Shahar / viloyat'),
+            value: tr(filter.city),
             divider: true,
             onPick: (anchor, drag) async {
               final v = await showPullDownMenu(
                 context,
                 anchor: anchor,
-                label: 'Shahar / viloyat',
+                label: tr('Shahar / viloyat'),
                 drag: drag,
-                items: [for (final c in Regions.cities) (c, c)],
+                items: [for (final c in Regions.cities) (c, tr(c))],
                 current: filter.city,
               );
               // Changing the city resets the district to "Barcha tumanlar".
@@ -255,18 +256,18 @@ class _Region extends StatelessWidget {
           ),
           _RegionRow(
             icon: Symbols.map_rounded,
-            label: 'Tuman',
-            value: filter.district ?? _allDistricts,
+            label: tr('Tuman'),
+            value: tr(filter.district ?? _allDistricts),
             onPick: districts.isEmpty
                 ? null
                 : (anchor, drag) async {
                     final v = await showPullDownMenu(
                       context,
                       anchor: anchor,
-                      label: 'Tuman',
+                      label: tr('Tuman'),
                       drag: drag,
                       dividersAfter: const {0},
-                      items: [(_allDistricts, _allDistricts), for (final d in districts) (d, d)],
+                      items: [(_allDistricts, tr(_allDistricts)), for (final d in districts) (d, tr(d))],
                       current: filter.district ?? _allDistricts,
                     );
                     if (v != null) cubit.setDistrict(v == _allDistricts ? null : v);
@@ -441,7 +442,7 @@ class _Dates extends StatelessWidget {
             fontSize: 14,
             inactiveColor: cs.onSurface,
             selected: _periods.indexOf(filter.period),
-            segments: [for (final l in _labels) (label: l, color: null)],
+            segments: [for (final l in _labels) (label: tr(l), color: null)],
             onChanged: (i) {
               final p = _periods[i];
               if (p == DatePeriod.custom) {
@@ -504,11 +505,11 @@ Future<DateTimeRange?> _cupertinoRange(
                   padding: const EdgeInsets.fromLTRB(8, 6, 8, 0),
                   child: Row(
                     children: [
-                      CupertinoButton(onPressed: () => Navigator.pop(ctx), child: const Text('Bekor qilish')),
+                      CupertinoButton(onPressed: () => Navigator.pop(ctx), child: Text(tr('Bekor qilish'))),
                       const Spacer(),
                       CupertinoButton(
                         onPressed: () => Navigator.pop(ctx, DateTimeRange(start: start, end: end)),
-                        child: const Text('Tayyor', style: TextStyle(fontWeight: FontWeight.w600)),
+                        child: Text(tr('Tayyor'), style: TextStyle(fontWeight: FontWeight.w600)),
                       ),
                     ],
                   ),
@@ -521,8 +522,8 @@ Future<DateTimeRange?> _cupertinoRange(
                     inactiveColor: cs.onSurface,
                     selected: editingEnd ? 1 : 0,
                     segments: [
-                      (label: 'Dan: ${TDate.dayMonth(start)}', color: null),
-                      (label: 'Gacha: ${TDate.dayMonth(end)}', color: null),
+                      (label: tr('Dan: {date}', {'date': TDate.dayMonth(start)}), color: null),
+                      (label: tr('Gacha: {date}', {'date': TDate.dayMonth(end)}), color: null),
                     ],
                     onChanged: (i) => setState(() => editingEnd = i == 1),
                   ),
@@ -567,11 +568,11 @@ class _ShowButton extends StatelessWidget {
         children: [
           CupertinoActivityIndicator(radius: 8, color: cs.onPrimary),
           const SizedBox(width: 6),
-          Flexible(child: Text('ta natijani koʻrsatish', style: style, maxLines: 1)),
+          Flexible(child: Text(tr('ta natijani koʻrsatish'), style: style, maxLines: 1)),
         ],
       ),
-      0 => Text('Natija topilmadi', style: style, maxLines: 1),
-      final n => Text('$n ta natijani koʻrsatish', style: style, maxLines: 1, overflow: TextOverflow.ellipsis),
+      0 => Text(tr('Natija topilmadi'), style: style, maxLines: 1),
+      final n => Text(tr('{n} ta natijani koʻrsatish', {'n': n}), style: style, maxLines: 1, overflow: TextOverflow.ellipsis),
     };
     return Semantics(
       button: true,

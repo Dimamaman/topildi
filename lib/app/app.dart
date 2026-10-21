@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:go_router/go_router.dart';
 
 import '../core/di/injection.dart';
+import '../core/l10n/app_language.dart';
+import '../core/l10n/language_cubit.dart';
 import '../core/theme/no_ripple.dart';
 import '../core/theme/theme_cubit.dart';
 
@@ -31,17 +34,27 @@ class _TopildiAppState extends State<TopildiApp> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider.value(
-      value: getIt<ThemeCubit>(),
-      child: BlocBuilder<ThemeCubit, ThemeMode>(
-        builder: (context, mode) => MaterialApp.router(
-          title: 'Topildi',
-          debugShowCheckedModeBanner: false,
-          theme: topildiLight.withoutRipples(),
-          darkTheme: topildiDark.withoutRipples(),
-          themeMode: mode,
-          routerConfig: _router,
-        ),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider.value(value: getIt<ThemeCubit>()),
+        BlocProvider.value(value: getIt<LanguageCubit>()),
+      ],
+      child: Builder(
+        builder: (context) {
+          final mode = context.watch<ThemeCubit>().state;
+          final language = context.watch<LanguageCubit>().state;
+          return MaterialApp.router(
+            title: 'Topildi',
+            debugShowCheckedModeBanner: false,
+            theme: topildiLight.withoutRipples(),
+            darkTheme: topildiDark.withoutRipples(),
+            themeMode: mode,
+            locale: language.materialLocale,
+            supportedLocales: [for (final l in AppLanguage.values) l.materialLocale],
+            localizationsDelegates: GlobalMaterialLocalizations.delegates,
+            routerConfig: _router,
+          );
+        },
       ),
     );
   }

@@ -5,6 +5,7 @@ import '../../../../core/error/failure.dart';
 import '../../../../core/usecase/usecase.dart';
 import '../entities/phone_number.dart';
 import '../repositories/auth_repository.dart';
+import '../../../../core/l10n/tr.dart';
 
 @injectable
 class SaveProfile implements UseCase<void, ProfileInput> {
@@ -14,7 +15,7 @@ class SaveProfile implements UseCase<void, ProfileInput> {
 
   @override
   FutureEither<void> call(ProfileInput params) async {
-    if (params.firstName.trim().length < 2) return left(const ValidationFailure('Ismingizni kiriting'));
+    if (params.firstName.trim().length < 2) return left(ValidationFailure(tr('Ismingizni kiriting')));
     return _repository.saveProfile(params);
   }
 }

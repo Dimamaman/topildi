@@ -14,6 +14,7 @@ import '../../../listing/domain/entities/listing.dart';
 import '../../domain/entities/create_draft.dart';
 import '../cubit/create_flow_cubit.dart';
 import '../widgets/create_header.dart';
+import '../../../../core/l10n/tr.dart';
 
 /// Step 1: found/lost + photos.
 class CreateTypePage extends StatelessWidget {
@@ -29,14 +30,14 @@ class CreateTypePage extends StatelessWidget {
     final tc = context.tc;
 
     return Scaffold(
-      appBar: CreateHeader(title: 'Yangi eʼlon', step: 1, isFirst: !editing),
+      appBar: CreateHeader(title: tr('Yangi eʼlon'), step: 1, isFirst: !editing),
       body: BlocBuilder<CreateFlowCubit, CreateFlowState>(
         builder: (context, state) {
           final d = state.draft;
           return ListView(
             padding: const EdgeInsets.all(TSpace.screen),
             children: [
-              Text('Nima boʻldi?', style: text.titleLarge!.copyWith(fontSize: 22, fontWeight: FontWeight.w700)),
+              Text(tr('Nima boʻldi?'), style: text.titleLarge!.copyWith(fontSize: 22, fontWeight: FontWeight.w700)),
               const SizedBox(height: TSpace.sm),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -45,8 +46,8 @@ class CreateTypePage extends StatelessWidget {
                     child: _TypeOption(
                       selected: d.isFound,
                       icon: Symbols.volunteer_activism_rounded,
-                      title: 'Topdim',
-                      subtitle: 'Egasini topishga yordam beraman',
+                      title: tr('Topdim'),
+                      subtitle: tr('Egasini topishga yordam beraman'),
                       color: tc.found,
                       container: tc.foundContainer,
                       onTap: () => cubit.setType(ListingType.found),
@@ -57,8 +58,8 @@ class CreateTypePage extends StatelessWidget {
                     child: _TypeOption(
                       selected: !d.isFound,
                       icon: Symbols.search_rounded,
-                      title: 'Yoʻqotdim',
-                      subtitle: 'Buyumimni qidiryapman',
+                      title: tr('Yoʻqotdim'),
+                      subtitle: tr('Buyumimni qidiryapman'),
                       color: tc.lost,
                       container: tc.lostContainer,
                       onTap: () => cubit.setType(ListingType.lost),
@@ -71,7 +72,7 @@ class CreateTypePage extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.baseline,
                 textBaseline: TextBaseline.alphabetic,
                 children: [
-                  Expanded(child: Text('Rasmlar', style: text.titleMedium!.copyWith(fontSize: 17, fontWeight: FontWeight.w700))),
+                  Expanded(child: Text(tr('Rasmlar'), style: text.titleMedium!.copyWith(fontSize: 17, fontWeight: FontWeight.w700))),
                   Text('${d.photos.length} / ${CreateDraft.maxPhotos}',
                       style: TextStyle(fontSize: 13, color: cs.onSurfaceVariant)),
                 ],
@@ -106,7 +107,7 @@ class CreateTypePage extends StatelessWidget {
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
-                        'Rasmda karta raqami, hujjat maʼlumotlari yoki ichidagi narsalar koʻrinmasin. Ular egasini tekshirish uchun kerak.',
+                        tr('Rasmda karta raqami, hujjat maʼlumotlari yoki ichidagi narsalar koʻrinmasin. Ular egasini tekshirish uchun kerak.'),
                         style: TextStyle(fontSize: 13, height: 19 / 13, color: tc.warning),
                       ),
                     ),
@@ -121,7 +122,7 @@ class CreateTypePage extends StatelessWidget {
         horizontal: TSpace.screen,
         children: [
           TButton.primary(
-            label: editing ? 'Saqlash' : 'Keyingi',
+            label: editing ? tr('Saqlash') : tr('Keyingi'),
             onPressed: () => editing ? context.pop() : context.push(Routes.createDetails),
           ),
         ],
@@ -213,7 +214,7 @@ class _PhotoTile extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(color: cs.primary, borderRadius: BorderRadius.circular(4)),
-                child: Text('Asosiy', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: cs.onPrimary)),
+                child: Text(tr('Asosiy'), style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: cs.onPrimary)),
               ),
             ),
           Positioned(
@@ -221,7 +222,7 @@ class _PhotoTile extends StatelessWidget {
             right: 0,
             child: Semantics(
               button: true,
-              label: 'Rasmni oʻchirish',
+              label: tr('Rasmni oʻchirish'),
               excludeSemantics: true,
               child: InkWell(
                 onTap: onRemove,
@@ -270,7 +271,7 @@ class _AddPhotoTile extends StatelessWidget {
           children: [
             Icon(Symbols.add_a_photo_rounded, color: cs.primary),
             const SizedBox(height: 6),
-            Text('Qoʻshish', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: cs.primary)),
+            Text(tr('Qoʻshish'), style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: cs.primary)),
           ],
         ),
       ),

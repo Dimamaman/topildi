@@ -26,6 +26,7 @@ import '../category_ui.dart';
 import '../cubit/detail_cubit.dart';
 import '../widgets/area_map_page.dart';
 import '../widgets/photo_viewer.dart';
+import '../../../../core/l10n/tr.dart';
 
 class DetailPage extends StatelessWidget {
   const DetailPage({super.key, required this.listingId});
@@ -83,7 +84,7 @@ class _DetailViewState extends State<_DetailView> {
       child: BlocConsumer<DetailCubit, DetailState>(
         listenWhen: (a, b) => b.deleted && !a.deleted,
         listener: (context, _) {
-          TFeedback.success(context, 'Eʼlon oʻchirildi');
+          TFeedback.success(context, tr('Eʼlon oʻchirildi'));
           _close();
         },
         builder: (context, state) {
@@ -92,7 +93,7 @@ class _DetailViewState extends State<_DetailView> {
           final bar = _TopBar(
             top: barTop,
             offset: _offset,
-            title: state.isMine ? 'Mening eʼlonim' : 'Eʼlon',
+            title: state.isMine ? tr('Mening eʼlonim') : tr('Eʼlon'),
             onBack: _close,
             trailing: listing == null
                 ? null
@@ -101,7 +102,7 @@ class _DetailViewState extends State<_DetailView> {
                 : _GlassButton(
                     icon: Symbols.ios_share_rounded,
                     iconSize: 22,
-                    label: 'Ulashish',
+                    label: tr('Ulashish'),
                     onTap: () => _share(context, listing),
                   ),
           );
@@ -117,17 +118,17 @@ class _DetailViewState extends State<_DetailView> {
                   else if (failure is NotFoundFailure)
                     EmptyState(
                       icon: Symbols.search_off_rounded,
-                      title: 'Eʼlon topilmadi',
-                      body: 'Bu eʼlon oʻchirilgan yoki yopilgan boʻlishi mumkin.',
-                      cta: 'Lentaga qaytish',
+                      title: tr('Eʼlon topilmadi'),
+                      body: tr('Bu eʼlon oʻchirilgan yoki yopilgan boʻlishi mumkin.'),
+                      cta: tr('Lentaga qaytish'),
                       onCta: () => context.go(Routes.home),
                     )
                   else
                     MessageState(
                       icon: Symbols.error_rounded,
-                      title: 'Eʼlon yuklanmadi',
-                      body: 'Birozdan soʻng qayta urinib koʻring.',
-                      cta: 'Qayta urinish',
+                      title: tr('Eʼlon yuklanmadi'),
+                      body: tr('Birozdan soʻng qayta urinib koʻring.'),
+                      cta: tr('Qayta urinish'),
                       onCta: () => cubit.load(widget.listingId),
                       circle: Theme.of(context).colorScheme.errorContainer,
                       fg: Theme.of(context).colorScheme.error,
@@ -180,17 +181,17 @@ class _DetailViewState extends State<_DetailView> {
 
 Future<void> _share(BuildContext context, Listing l) async {
   final box = context.findRenderObject() as RenderBox?;
-  final type = l.isFound ? 'Topilgan' : 'Yoʻqolgan';
+  final type = l.isFound ? tr('Topilgan') : tr('Yoʻqolgan');
   try {
     await SharePlus.instance.share(
       ShareParams(
         subject: l.title,
-        text: '$type: ${l.title}\n${l.areaName}\n\nTopildi ilovasida koʻring.',
+        text: tr('{type}: {title}\n{areaName}\n\nTopildi ilovasida koʻring.', {'type': type, 'title': l.title, 'areaName': l.areaName}),
         sharePositionOrigin: box == null ? null : box.localToGlobal(Offset.zero) & box.size,
       ),
     );
   } on Exception {
-    if (context.mounted) TFeedback.error(context, 'Ulashib boʻlmadi');
+    if (context.mounted) TFeedback.error(context, tr('Ulashib boʻlmadi'));
   }
 }
 
@@ -286,7 +287,7 @@ class _TopBar extends SliverPersistentHeaderDelegate {
           padding: EdgeInsets.fromLTRB(_side, top, _side, 0),
           child: Row(
             children: [
-              _GlassButton(icon: Symbols.chevron_left_rounded, label: 'Orqaga', onTap: onBack),
+              _GlassButton(icon: Symbols.chevron_left_rounded, label: tr('Orqaga'), onTap: onBack),
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -391,8 +392,8 @@ class _AuthorActions extends StatelessWidget {
       constraints: const BoxConstraints(minWidth: 220),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       items: [
-        item('delete', Symbols.delete_rounded, 'Eʼlonni oʻchirish', cs.error),
-        item('share', Symbols.ios_share_rounded, 'Ulashish', cs.onSurface),
+        item('delete', Symbols.delete_rounded, tr('Eʼlonni oʻchirish'), cs.error),
+        item('share', Symbols.ios_share_rounded, tr('Ulashish'), cs.onSurface),
       ],
     );
     if (!context.mounted) return;
@@ -408,15 +409,15 @@ class _AuthorActions extends StatelessWidget {
     final cubit = context.read<DetailCubit>();
     final ok = await TFeedback.confirm(
       context,
-      title: 'Eʼlonni oʻchirasizmi?',
-      body: 'Eʼlon lentadan va xaritadan olib tashlanadi. Buni qaytarib boʻlmaydi.',
-      confirmLabel: 'Oʻchirish',
-      cancelLabel: 'Bekor qilish',
+      title: tr('Eʼlonni oʻchirasizmi?'),
+      body: tr('Eʼlon lentadan va xaritadan olib tashlanadi. Buni qaytarib boʻlmaydi.'),
+      confirmLabel: tr('Oʻchirish'),
+      cancelLabel: tr('Bekor qilish'),
       destructive: true,
     );
     if (!ok) return;
     final f = await cubit.delete();
-    if (f != null && context.mounted) TFeedback.error(context, 'Eʼlonni oʻchirib boʻlmadi');
+    if (f != null && context.mounted) TFeedback.error(context, tr('Eʼlonni oʻchirib boʻlmadi'));
   }
 
   @override
@@ -442,10 +443,10 @@ class _AuthorActions extends StatelessWidget {
           children: [
             button(
               Symbols.edit_rounded,
-              'Tahrirlash',
-              (_) => TFeedback.success(context, 'Eʼlonni tahrirlash tez orada qoʻshiladi'),
+              tr('Tahrirlash'),
+              (_) => TFeedback.success(context, tr('Eʼlonni tahrirlash tez orada qoʻshiladi')),
             ),
-            button(Symbols.more_horiz_rounded, 'Yana', (anchor) => _more(context, anchor)),
+            button(Symbols.more_horiz_rounded, tr('Yana'), (anchor) => _more(context, anchor)),
           ],
         ),
       ),
@@ -555,7 +556,7 @@ class _CarouselState extends State<_Carousel> {
                   itemCount: count,
                   onPageChanged: context.read<DetailCubit>().selectPhoto,
                   itemBuilder: (context, i) => _Tap(
-                    label: '${l.title}, ${i + 1}-rasm, jami $count. Kattalashtirish',
+                    label: tr('{title}, {i}-rasm, jami {count}. Kattalashtirish', {'title': l.title, 'i': i + 1, 'count': count}),
                     onTap: () => _view(count),
                     child: PhotoPlaceholder(
                       icon: l.category.icon,
@@ -576,12 +577,12 @@ class _CarouselState extends State<_Carousel> {
                     spacing: 6,
                     runSpacing: 6,
                     children: [
-                      _Tag(label: l.isFound ? 'Topilgan' : 'Yoʻqolgan', fg: l.isFound ? tc.found : tc.lost, dot: true),
+                      _Tag(label: l.isFound ? tr('Topilgan') : tr('Yoʻqolgan'), fg: l.isFound ? tc.found : tc.lost, dot: true),
                       if (widget.isMine)
                         returned
-                            ? _Tag(label: 'Qaytarildi', fg: tc.success, bg: tc.successContainer)
+                            ? _Tag(label: tr('Qaytarildi'), fg: tc.success, bg: tc.successContainer)
                             : _Tag(
-                                label: 'Faol',
+                                label: tr('Faol'),
                                 fg: cs.onPrimaryContainer,
                                 bg: cs.primaryContainer.withValues(alpha: 0.85),
                               ),
@@ -610,7 +611,7 @@ class _CarouselState extends State<_Carousel> {
                 Semantics(
                   selected: i == widget.index,
                   child: _Tap(
-                    label: '${i + 1}-rasm',
+                    label: tr('{i}-rasm', {'i': i + 1}),
                     onTap: () => _go(i),
                     child: Container(
                       width: thumb,
@@ -698,8 +699,11 @@ class _ClaimsCard extends StatelessWidget {
 
   /// "Ikki kishi bu buyum ularniki ekanini aytmoqda." (words up to ten).
   static String body(int n) {
-    final who = n <= 10 ? _words[n - 1] : '$n';
-    return n == 1 ? '$who kishi bu buyum uniki ekanini aytmoqda.' : '$who kishi bu buyum ularniki ekanini aytmoqda.';
+    final who = n <= 10 ? tr(_words[n - 1]) : '$n';
+    // {n} lets languages that don't spell numbers out (Russian) use digits.
+    return n == 1
+        ? tr('Bir kishi bu buyum uniki ekanini aytmoqda.')
+        : tr('{who} kishi bu buyum ularniki ekanini aytmoqda.', {'who': who, 'n': n});
   }
 
   @override
@@ -707,7 +711,7 @@ class _ClaimsCard extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     final tc = context.tc;
     final text = Theme.of(context).textTheme;
-    final title = '$count ta yangi soʻrov';
+    final title = tr('{count} ta yangi soʻrov', {'count': count});
     return Padding(
       padding: const EdgeInsets.only(top: 14),
       child: _Tap(
@@ -799,7 +803,7 @@ class _Details extends StatelessWidget {
       ),
     );
 
-    final time = listing.isFound ? 'Topilgan vaqt' : 'Yoʻqolgan vaqt';
+    final time = listing.isFound ? tr('Topilgan vaqt') : tr('Yoʻqolgan vaqt');
     return Padding(
       padding: const EdgeInsets.only(top: 16),
       child: Container(
@@ -808,9 +812,9 @@ class _Details extends StatelessWidget {
         child: Column(
           children: [
             Semantics(
-              label: 'Joy: ${listing.areaName}',
+              label: tr('Joy: {areaName}', {'areaName': listing.areaName}),
               excludeSemantics: true,
-              child: row(Symbols.location_on_rounded, 'Joy', listing.areaName),
+              child: row(Symbols.location_on_rounded, tr('Joy'), listing.areaName),
             ),
             separator,
             Semantics(
@@ -821,9 +825,9 @@ class _Details extends StatelessWidget {
             if (showMap) ...[
               separator,
               _Tap(
-                label: 'Xaritada, taxminan 300 metrlik hudud',
+                label: tr('Xaritada, taxminan 300 metrlik hudud'),
                 onTap: () => AreaMapPage.open(context, point: listing.area, area: listing.areaName),
-                child: row(Symbols.map_rounded, 'Xaritada', '~300 m hudud', chevron: true),
+                child: row(Symbols.map_rounded, tr('Xaritada'), tr('~300 m hudud'), chevron: true),
               ),
             ],
           ],
@@ -846,7 +850,7 @@ class _PrivacyNote extends StatelessWidget {
     final style = Theme.of(
       context,
     ).textTheme.bodySmall!.copyWith(fontSize: 12, height: 16 / 12, color: cs.onSurfaceVariant).inter(FontWeight.w400);
-    const note = 'Telefon raqamlar yashirin. Aloqa faqat ilova ichida.';
+    final note = tr('Telefon raqamlar yashirin. Aloqa faqat ilova ichida.');
     final lock = Icon(Symbols.lock_rounded, size: iconSize, fill: 1, color: cs.primary);
     // Centred: the lock flows with the text so it stays next to it when wrapping.
     if (center) {
@@ -857,7 +861,7 @@ class _PrivacyNote extends StatelessWidget {
               alignment: PlaceholderAlignment.middle,
               child: Padding(padding: const EdgeInsets.only(right: 6), child: lock),
             ),
-            const TextSpan(text: note),
+            TextSpan(text: note),
           ],
         ),
         textAlign: TextAlign.center,
@@ -942,10 +946,10 @@ class _VisitorPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     final tc = context.tc;
     final Widget action = claimSent
-        ? _PillButton(label: 'Soʻrov yuborildi', onTap: null, bg: tc.warningContainer, fg: tc.warning)
+        ? _PillButton(label: tr('Soʻrov yuborildi'), onTap: null, bg: tc.warningContainer, fg: tc.warning)
         : listing.isFound
-        ? _PillButton(label: 'Bu meniki', onTap: () => _claim(context))
-        : _PillButton(label: 'Men topdim', onTap: () => TFeedback.success(context, 'Egasiga xabar yuborildi'));
+        ? _PillButton(label: tr('Bu meniki'), onTap: () => _claim(context))
+        : _PillButton(label: tr('Men topdim'), onTap: () => TFeedback.success(context, tr('Egasiga xabar yuborildi')));
     return GlassSurface(
       color: context.glass.panel,
       padding: const EdgeInsets.fromLTRB(22, 10, 10, 10),
@@ -981,17 +985,17 @@ class _AuthorPanel extends StatelessWidget {
     final cubit = context.read<DetailCubit>();
     final ok = await TFeedback.confirm(
       context,
-      title: 'Buyum egasiga qaytarildimi?',
-      body: 'Eʼlon yopiladi va lentadan olib tashlanadi.',
-      confirmLabel: 'Ha, qaytarildi',
-      cancelLabel: 'Bekor qilish',
+      title: tr('Buyum egasiga qaytarildimi?'),
+      body: tr('Eʼlon yopiladi va lentadan olib tashlanadi.'),
+      confirmLabel: tr('Ha, qaytarildi'),
+      cancelLabel: tr('Bekor qilish'),
     );
     if (!ok) return;
     final f = await cubit.markReturned();
     if (!context.mounted) return;
     f == null
-        ? TFeedback.success(context, 'Eʼlon qaytarilgan deb belgilandi')
-        : TFeedback.error(context, 'Belgilab boʻlmadi');
+        ? TFeedback.success(context, tr('Eʼlon qaytarilgan deb belgilandi'))
+        : TFeedback.error(context, tr('Belgilab boʻlmadi'));
   }
 
   @override
@@ -1011,7 +1015,7 @@ class _AuthorPanel extends StatelessWidget {
             children: [
               if (!returned) ...[
                 _Tap(
-                  label: 'Qaytarildi deb belgilash',
+                  label: tr('Qaytarildi deb belgilash'),
                   onTap: busy ? null : () => _markReturned(context),
                   child: Container(
                     width: 52,
@@ -1024,7 +1028,7 @@ class _AuthorPanel extends StatelessWidget {
               ],
               Expanded(
                 child: _PillButton(
-                  label: pending > 0 ? 'Soʻrovlarni koʻrish · $pending' : 'Soʻrovlar yoʻq',
+                  label: pending > 0 ? tr('Soʻrovlarni koʻrish · {pending}', {'pending': pending}) : tr('Soʻrovlar yoʻq'),
                   icon: Symbols.verified_user_rounded,
                   onTap: pending > 0 ? () => _openClaims(context, listing) : null,
                 ),
@@ -1049,7 +1053,7 @@ class _Skeleton extends StatelessWidget {
       decoration: BoxDecoration(color: ts.skeleton, borderRadius: BorderRadius.circular(r)),
     );
     return Semantics(
-      label: 'Yuklanmoqda',
+      label: tr('Yuklanmoqda'),
       excludeSemantics: true,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1114,20 +1118,20 @@ class _OfflineBanner extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Internet yoʻq',
+                    tr('Internet yoʻq'),
                     style: text.titleMedium!
                         .copyWith(fontSize: 15, height: 20 / 15, color: tc.warning)
                         .inter(FontWeight.w600),
                   ),
                   Text(
-                    'Ulanishni tekshirib, qayta urinib koʻring.',
+                    tr('Ulanishni tekshirib, qayta urinib koʻring.'),
                     style: text.bodySmall!.copyWith(fontSize: 13, height: 18 / 13).inter(FontWeight.w400),
                   ),
                 ],
               ),
             ),
             _Tap(
-              label: 'Qayta urinish',
+              label: tr('Qayta urinish'),
               onTap: onRetry,
               child: ConstrainedBox(
                 constraints: const BoxConstraints(minHeight: 44, minWidth: 44),
@@ -1136,7 +1140,7 @@ class _OfflineBanner extends StatelessWidget {
                   child: Center(
                     widthFactor: 1,
                     child: Text(
-                      'Qayta urinish',
+                      tr('Qayta urinish'),
                       style: text.labelLarge!.copyWith(fontSize: 15, color: tc.warning).inter(FontWeight.w600),
                     ),
                   ),

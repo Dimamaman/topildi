@@ -14,6 +14,7 @@ import '../../../../core/widgets/t_button.dart';
 import '../../../../core/widgets/t_feedback.dart';
 import '../../domain/entities/chat.dart';
 import '../cubit/success_cubit.dart';
+import '../../../../core/l10n/tr.dart';
 
 class SuccessPage extends StatelessWidget {
   const SuccessPage({super.key, required this.chatId});
@@ -100,15 +101,15 @@ class _Content extends StatelessWidget {
                     ),
                     const SizedBox(height: 18),
                     Text(
-                      summary.iAmFinder ? 'Buyum egasiga qaytdi!' : 'Buyumingiz qaytdi!',
+                      summary.iAmFinder ? tr('Buyum egasiga qaytdi!') : tr('Buyumingiz qaytdi!'),
                       textAlign: TextAlign.center,
                       style: text.headlineMedium!.copyWith(fontSize: 30, height: 38 / 30, letterSpacing: -0.3),
                     ),
                     const SizedBox(height: 18),
                     Text(
                       summary.iAmFinder
-                          ? '$firstName, bugun siz birovning kunini yaxshiladingiz. Halolligingiz uchun rahmat!'
-                          : '${summary.finderName} buyumingizni qaytardi. Unga rahmat aytishni unutmang!',
+                          ? tr('{firstName}, bugun siz birovning kunini yaxshiladingiz. Halolligingiz uchun rahmat!', {'firstName': firstName})
+                          : tr('{finderName} buyumingizni qaytardi. Unga rahmat aytishni unutmang!', {'finderName': summary.finderName}),
                       textAlign: TextAlign.center,
                       style: text.bodyLarge!.copyWith(fontSize: 17, height: 26 / 17, color: cs.secondary),
                     ),
@@ -132,7 +133,7 @@ class _Content extends StatelessWidget {
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Text('${owner.displayName} yozdi',
+                                      Text(tr('{displayName} yozdi', {'displayName': owner.displayName}),
                                           style: TextStyle(fontSize: 13, color: cs.onSurfaceVariant)),
                                       const SizedBox(height: 4),
                                       Text(
@@ -164,10 +165,10 @@ class _Content extends StatelessWidget {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    const Text('Mehribon qoʻshni', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+                                    Text(tr('Mehribon qoʻshni'), style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
                                     const SizedBox(height: 2),
                                     Text(
-                                      'Siz ${summary.returnedCount} ta buyumni egasiga qaytardingiz',
+                                      tr('Siz {returnedCount} ta buyumni egasiga qaytardingiz', {'returnedCount': summary.returnedCount}),
                                       style: TextStyle(fontSize: 13, color: cs.onSurfaceVariant),
                                     ),
                                   ],
@@ -179,11 +180,11 @@ class _Content extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: TSpace.x2l),
-                    TButton.primary(label: 'Lentaga qaytish', onPressed: () => context.go(Routes.home)),
+                    TButton.primary(label: tr('Lentaga qaytish'), onPressed: () => context.go(Routes.home)),
                     const SizedBox(height: TSpace.xs),
                     TButton.outline(
-                      label: 'Doʻstlarga ulashish',
-                      onPressed: () => TFeedback.success(context, 'Havola nusxalandi'),
+                      label: tr('Doʻstlarga ulashish'),
+                      onPressed: () => TFeedback.success(context, tr('Havola nusxalandi')),
                     ),
                   ],
                 ),

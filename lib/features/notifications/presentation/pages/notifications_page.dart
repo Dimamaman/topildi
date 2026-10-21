@@ -18,6 +18,7 @@ import '../../../../core/widgets/state_views.dart';
 import '../../../../core/widgets/t_refresh_scroll_view.dart';
 import '../../domain/entities/app_notification.dart';
 import '../cubit/notifications_cubit.dart';
+import '../../../../core/l10n/tr.dart';
 
 const _title = 'Bildirishnomalar';
 const _side = GlassHeader.side;
@@ -74,7 +75,7 @@ class _NotificationsViewState extends State<_NotificationsView> {
                     pinned: true,
                     delegate: _Bar(top: top, offset: _offset, onReadAll: hasUnread ? cubit.markAllRead : null),
                   ),
-                  const SliverToBoxAdapter(child: GlassLargeTitle(_title)),
+                  SliverToBoxAdapter(child: GlassLargeTitle(tr(_title))),
                   ..._body(context, state),
                 ],
               );
@@ -106,9 +107,9 @@ class _NotificationsViewState extends State<_NotificationsView> {
         fill(
           EmptyState(
             icon: Symbols.notifications_rounded,
-            title: 'Yangi xabar yoʻq',
-            body: 'Mos eʼlon yoki yangi soʻrov chiqsa, shu yerda koʻrasiz.',
-            cta: 'Sozlamalar',
+            title: tr('Yangi xabar yoʻq'),
+            body: tr('Mos eʼlon yoki yangi soʻrov chiqsa, shu yerda koʻrasiz.'),
+            cta: tr('Sozlamalar'),
             onCta: () => context.go(Routes.profile),
           ),
         ),
@@ -128,10 +129,10 @@ class _NotificationsViewState extends State<_NotificationsView> {
   List<Widget> _grouped(List<AppNotification> items) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    final groups = <String, List<AppNotification>>{'Bugun': [], 'Shu hafta': [], 'Oldinroq': []};
+    final groups = <String, List<AppNotification>>{tr('Bugun'): [], tr('Shu hafta'): [], tr('Oldinroq'): []};
     for (final n in items) {
       final d = n.createdAt;
-      final key = !d.isBefore(today) ? 'Bugun' : (today.difference(d).inDays < 7 ? 'Shu hafta' : 'Oldinroq');
+      final key = !d.isBefore(today) ? tr('Bugun') : (today.difference(d).inDays < 7 ? tr('Shu hafta') : tr('Oldinroq'));
       groups[key]!.add(n);
     }
     var first = true;
@@ -194,11 +195,11 @@ class _Bar extends SliverPersistentHeaderDelegate {
                   GlassCircleButton(
                     icon: Symbols.chevron_left_rounded,
                     iconSize: 24,
-                    semantic: 'Orqaga',
+                    semantic: tr('Orqaga'),
                     onTap: () => context.canPop() ? context.pop() : context.go(Routes.home),
                   ),
                   const SizedBox(width: 8),
-                  Expanded(child: compact ? GlassInlineTitle(_title, offset: offset) : const SizedBox.shrink()),
+                  Expanded(child: compact ? GlassInlineTitle(tr(_title), offset: offset) : const SizedBox.shrink()),
                   const SizedBox(width: 8),
                   AnimatedOpacity(
                     duration: const Duration(milliseconds: 200),
@@ -207,7 +208,7 @@ class _Bar extends SliverPersistentHeaderDelegate {
                       ignoring: onReadAll == null,
                       child: Semantics(
                         button: true,
-                        label: 'Hammasi oʻqildi',
+                        label: tr('Hammasi oʻqildi'),
                         excludeSemantics: true,
                         child: GestureDetector(
                           onTap: onReadAll,
@@ -233,7 +234,7 @@ class _Bar extends SliverPersistentHeaderDelegate {
                                             maxWidth: MediaQuery.sizeOf(context).width - 2 * _side - 44 - 16 - 54 - 4,
                                           ),
                                           child: Text(
-                                            'Hammasi oʻqildi',
+                                            tr('Hammasi oʻqildi'),
                                             maxLines: 1,
                                             overflow: TextOverflow.ellipsis,
                                             style: label,
@@ -315,9 +316,9 @@ class _Row extends StatelessWidget {
   String _time(DateTime d) {
     final now = DateTime.now();
     final diff = now.difference(d);
-    if (diff.inMinutes < 1) return 'Hozirgina';
-    if (diff.inMinutes < 60) return '${diff.inMinutes} daqiqa oldin';
-    if (diff.inHours < 24 && now.day == d.day) return '${diff.inHours} soat oldin';
+    if (diff.inMinutes < 1) return tr('Hozirgina');
+    if (diff.inMinutes < 60) return tr('{n} daqiqa oldin', {'n': diff.inMinutes});
+    if (diff.inHours < 24 && now.day == d.day) return tr('{n} soat oldin', {'n': diff.inHours});
     return TDate.relative(d, withTimeForOld: true);
   }
 
@@ -354,7 +355,7 @@ class _Row extends StatelessWidget {
     final text = Theme.of(context).textTheme;
     return Semantics(
       button: true,
-      label: '${unread ? 'Oʻqilmagan. ' : ''}${n.text}. $time',
+      label: '${unread ? tr('Oʻqilmagan. ') : ''}${n.text}. $time',
       excludeSemantics: true,
       child: GestureDetector(
         onTap: () => _go(context),

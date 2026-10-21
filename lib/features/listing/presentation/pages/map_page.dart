@@ -25,6 +25,7 @@ import '../../domain/entities/listing.dart';
 import '../category_ui.dart';
 import '../cubit/map_cubit.dart';
 import '../widgets/filters_sheet.dart';
+import '../../../../core/l10n/tr.dart';
 
 /// Map tab: OpenStreetMap tiles, pins at each listing's approximate area
 /// centre (never the exact spot), screen-space clustering.
@@ -87,7 +88,7 @@ class _MapViewState extends State<_MapView> {
     TFeedback.error(
       context,
       problem.message,
-      action: problem == LocationProblem.deniedForever || problem == LocationProblem.serviceOff ? 'Sozlamalar' : null,
+      action: problem == LocationProblem.deniedForever || problem == LocationProblem.serviceOff ? tr('Sozlamalar') : null,
       onAction: cubit.openLocationSettings,
     );
   }
@@ -162,7 +163,7 @@ class _MapViewState extends State<_MapView> {
                             width: 18,
                             height: 18,
                             child: Semantics(
-                              label: 'Siz shu yerdasiz',
+                              label: tr('Siz shu yerdasiz'),
                               child: _MeDot(colors: pc),
                             ),
                           ),
@@ -221,14 +222,14 @@ class _MapViewState extends State<_MapView> {
                         runSpacing: TSpace.xs,
                         children: [
                           _TypeToggle(
-                            label: 'Topilgan · ${state.count(ListingType.found)}',
+                            label: tr('Topilgan · {n}', {'n': state.count(ListingType.found)}),
                             color: context.tc.found,
                             dot: pc.found,
                             on: state.showFound,
                             onTap: cubit.toggleFound,
                           ),
                           _TypeToggle(
-                            label: 'Yoʻqolgan · ${state.count(ListingType.lost)}',
+                            label: tr('Yoʻqolgan · {n}', {'n': state.count(ListingType.lost)}),
                             color: context.tc.lost,
                             dot: pc.lost,
                             on: state.showLost,
@@ -242,7 +243,7 @@ class _MapViewState extends State<_MapView> {
                           const Expanded(child: OsmAttribution()),
                           _FloatingButton(
                             icon: Symbols.my_location_rounded,
-                            tooltip: 'Mening joylashuvim',
+                            tooltip: tr('Mening joylashuvim'),
                             onTap: _locate,
                           ),
                         ],
@@ -357,7 +358,7 @@ class _Pin extends StatelessWidget {
       button: true,
       selected: selected,
       label:
-          '${listing.isFound ? 'Topilgan' : 'Yoʻqolgan'}: ${listing.title}'
+          '${listing.isFound ? tr('Topilgan') : tr('Yoʻqolgan')}: ${listing.title}'
           '${hiddenNearby > 0 ? ', yana $hiddenNearby ta yaqin atrofda' : ''}',
       excludeSemantics: true,
       child: GestureDetector(
@@ -403,7 +404,7 @@ class _ClusterBubble extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     return Semantics(
       button: true,
-      label: '$count ta eʼlon, yaqinlashtirish',
+      label: tr('{count} ta eʼlon, yaqinlashtirish', {'count': count}),
       excludeSemantics: true,
       child: GestureDetector(
         onTap: onTap,
@@ -455,7 +456,7 @@ class _TopBar extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     return Row(
       children: [
-        _FloatingButton(icon: Symbols.list_rounded, tooltip: 'Roʻyxatga qaytish', onTap: onBack, color: cs.onSurface),
+        _FloatingButton(icon: Symbols.list_rounded, tooltip: tr('Roʻyxatga qaytish'), onTap: onBack, color: cs.onSurface),
         const SizedBox(width: TSpace.xs),
         Expanded(
           child: _Floating(
@@ -465,7 +466,7 @@ class _TopBar extends StatelessWidget {
                 onChanged: onSearch,
                 textInputAction: TextInputAction.search,
                 decoration: InputDecoration(
-                  hintText: 'Shu hududda qidirish',
+                  hintText: tr('Shu hududda qidirish'),
                   fillColor: cs.surfaceContainerLowest,
                   contentPadding: const EdgeInsets.symmetric(horizontal: 14),
                   prefixIcon: Icon(Symbols.search_rounded, size: 20, color: cs.onSurfaceVariant),
@@ -487,7 +488,7 @@ class _TopBar extends StatelessWidget {
           isLabelVisible: filtersActive,
           smallSize: 10,
           backgroundColor: cs.primary,
-          child: _FloatingButton(icon: Symbols.tune_rounded, tooltip: 'Filtrlar', onTap: onFilters),
+          child: _FloatingButton(icon: Symbols.tune_rounded, tooltip: tr('Filtrlar'), onTap: onFilters),
         ),
       ],
     );
@@ -651,7 +652,7 @@ class _PreviewCard extends StatelessWidget {
                       Row(
                         children: [
                           Text(
-                            'Batafsil',
+                            tr('Batafsil'),
                             style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: cs.primary),
                           ),
                           const SizedBox(width: 4),
@@ -685,14 +686,14 @@ class _EmptyCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Text('Yaqin atrofda eʼlon yoʻq', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+            Text(tr('Yaqin atrofda eʼlon yoʻq'), style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
             const SizedBox(height: 4),
             Text(
-              'Xaritani suring yoki qidiruv hududini kengaytiring.',
+              tr('Xaritani suring yoki qidiruv hududini kengaytiring.'),
               style: TextStyle(fontSize: 14, color: cs.secondary),
             ),
             const SizedBox(height: TSpace.sm),
-            TButton.secondary(label: 'Hududni kengaytirish', onPressed: onWiden),
+            TButton.secondary(label: tr('Hududni kengaytirish'), onPressed: onWiden),
           ],
         ),
       ),
@@ -707,7 +708,7 @@ class _LoadingPill extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     return Semantics(
-      label: 'Xarita yuklanmoqda',
+      label: tr('Xarita yuklanmoqda'),
       child: _Floating(
         radius: 20,
         child: Padding(
@@ -717,7 +718,7 @@ class _LoadingPill extends StatelessWidget {
             children: [
               SizedBox.square(dimension: 16, child: CircularProgressIndicator(strokeWidth: 2.5, color: cs.primary)),
               const SizedBox(width: 10),
-              const Text('Eʼlonlar yuklanmoqda', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+              Text(tr('Eʼlonlar yuklanmoqda'), style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
             ],
           ),
         ),

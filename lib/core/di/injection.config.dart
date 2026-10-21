@@ -14,6 +14,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart' as _i558;
 import 'package:get_it/get_it.dart' as _i174;
 import 'package:injectable/injectable.dart' as _i526;
 import 'package:shared_preferences/shared_preferences.dart' as _i460;
+import 'package:topildi/core/l10n/language_cubit.dart' as _i122;
 import 'package:topildi/core/location/location_service.dart' as _i305;
 import 'package:topildi/core/map/map_tiles.dart' as _i297;
 import 'package:topildi/core/media/app_dirs.dart' as _i706;
@@ -239,6 +240,9 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i1037.KeyValueStore>(
       () => _i1037.PrefsKeyValueStore(gh<_i460.SharedPreferences>()),
       registerFor: {_prod},
+    );
+    gh.lazySingleton<_i122.LanguageCubit>(
+      () => _i122.LanguageCubit(gh<_i1037.KeyValueStore>()),
     );
     gh.lazySingleton<_i271.ThemeCubit>(
       () => _i271.ThemeCubit(gh<_i1037.KeyValueStore>()),

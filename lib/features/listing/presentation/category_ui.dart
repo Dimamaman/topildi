@@ -2,18 +2,19 @@ import 'package:flutter/widgets.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
 import '../domain/entities/listing.dart';
+import '../../../core/l10n/tr.dart';
 
 extension ItemCategoryUi on ItemCategory {
   String get label => switch (this) {
-        ItemCategory.documents => 'Hujjatlar',
-        ItemCategory.phones => 'Telefonlar',
-        ItemCategory.keys => 'Kalitlar',
-        ItemCategory.bags => 'Sumkalar',
-        ItemCategory.wallets => 'Hamyonlar',
-        ItemCategory.electronics => 'Elektronika',
-        ItemCategory.clothes => 'Kiyim',
-        ItemCategory.kids => 'Bolalar buyumlari',
-        ItemCategory.other => 'Boshqa',
+        ItemCategory.documents => tr('Hujjatlar'),
+        ItemCategory.phones => tr('Telefonlar'),
+        ItemCategory.keys => tr('Kalitlar'),
+        ItemCategory.bags => tr('Sumkalar'),
+        ItemCategory.wallets => tr('Hamyonlar'),
+        ItemCategory.electronics => tr('Elektronika'),
+        ItemCategory.clothes => tr('Kiyim'),
+        ItemCategory.kids => tr('Bolalar buyumlari'),
+        ItemCategory.other => tr('Boshqa'),
       };
 
   IconData get icon => switch (this) {

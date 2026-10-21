@@ -8,6 +8,7 @@ import '../../../../core/session/session.dart';
 import '../../../../core/theme/topildi_theme.dart';
 import '../../../../core/widgets/t_button.dart';
 import '../widgets/onboarding_art.dart';
+import '../../../../core/l10n/tr.dart';
 
 class OnboardingPage extends StatefulWidget {
   const OnboardingPage({super.key});
@@ -20,15 +21,15 @@ class _OnboardingPageState extends State<OnboardingPage> {
   final _pages = PageController();
   int _index = 0;
 
-  static const _slides = [
-    ('Nimadir topdingizmi?', 'Rasmga oling va eʼlon bering. Egasi sizni ilova orqali topadi, raqamingiz koʻrinmaydi.'),
+  static List<(String, String)> get _slides => [
+    (tr('Nimadir topdingizmi?'), tr('Rasmga oling va eʼlon bering. Egasi sizni ilova orqali topadi, raqamingiz koʻrinmaydi.')),
     (
-      'Nimadir yoʻqotdingizmi?',
-      'Lentadan qidiring yoki “Yoʻqolgan” eʼlonini bering. Yangi mos eʼlon chiqsa, sizga xabar beramiz.',
+      tr('Nimadir yoʻqotdingizmi?'),
+      tr('Lentadan qidiring yoki “Yoʻqolgan” eʼlonini bering. Yangi mos eʼlon chiqsa, sizga xabar beramiz.'),
     ),
     (
-      'Xavfsiz qaytaring',
-      'Egasi faqat siz bilgan yashirin belgini toʻgʻri aytsa, buyumni topshirasiz. Firibgarlarga yoʻl yoʻq.',
+      tr('Xavfsiz qaytaring'),
+      tr('Egasi faqat siz bilgan yashirin belgini toʻgʻri aytsa, buyumni topshirasiz. Firibgarlarga yoʻl yoʻq.'),
     ),
   ];
 
@@ -75,7 +76,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                           overlayColor: Colors.transparent,
                           foregroundColor: cs.onSurfaceVariant,
                         ),
-                        child: const Text('Oʻtkazib yuborish', style: TextStyle(fontSize: 15)),
+                        child: Text(tr('Oʻtkazib yuborish'), style: TextStyle(fontSize: 15)),
                       ),
                     ),
                   ),
@@ -108,14 +109,14 @@ class _OnboardingPageState extends State<OnboardingPage> {
               if (_isLast) ...[
                 _Dots(index: _index, count: _slides.length, center: true),
                 const SizedBox(height: TSpace.lg),
-                TButton.primary(label: 'Boshlash', onPressed: _finish),
+                TButton.primary(label: tr('Boshlash'), onPressed: _finish),
               ] else
                 Row(
                   children: [
                     _Dots(index: _index, count: _slides.length),
                     const Spacer(),
                     TButton.primary(
-                      label: 'Keyingi',
+                      label: tr('Keyingi'),
                       icon: Symbols.arrow_forward_rounded,
                       expand: false,
                       onPressed: _next,
@@ -140,7 +141,7 @@ class _Dots extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     return Semantics(
-      label: '${index + 1}-sahifa, jami $count',
+      label: tr('{i}-sahifa, jami {count}', {'i': index + 1, 'count': count}),
       excludeSemantics: true,
       child: Row(
         mainAxisSize: MainAxisSize.min,

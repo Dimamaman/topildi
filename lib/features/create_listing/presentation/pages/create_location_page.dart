@@ -22,6 +22,7 @@ import '../../../../core/widgets/t_top_bar.dart';
 import '../../domain/entities/create_draft.dart';
 import '../cubit/create_flow_cubit.dart';
 import '../widgets/create_header.dart';
+import '../../../../core/l10n/tr.dart';
 
 /// Step 3: approximate area (~300 m) and when it happened.
 class CreateLocationPage extends StatefulWidget {
@@ -83,7 +84,7 @@ class _CreateLocationPageState extends State<CreateLocationPage> {
     final info = await _geocoder.areaFor(cell);
     if (!mounted || id != _request) return;
     setState(() => _resolving = false);
-    _cubit.setArea(info?.name ?? 'Belgilangan hudud', cell, district: info?.district);
+    _cubit.setArea(info?.name ?? tr('Belgilangan hudud'), cell, district: info?.district);
   }
 
   Future<void> _pickDate() async {
@@ -115,7 +116,7 @@ class _CreateLocationPageState extends State<CreateLocationPage> {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     return Scaffold(
-      appBar: const CreateHeader(title: 'Qayerda va qachon?', step: 3),
+      appBar: CreateHeader(title: tr('Qayerda va qachon?'), step: 3),
       body: BlocBuilder<CreateFlowCubit, CreateFlowState>(
         builder: (context, state) {
           final d = state.draft;
@@ -137,7 +138,7 @@ class _CreateLocationPageState extends State<CreateLocationPage> {
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            _resolving ? 'Hudud aniqlanmoqda…' : (d.areaName ?? 'Joy belgilanmagan'),
+                            _resolving ? tr('Hudud aniqlanmoqda…') : (d.areaName ?? tr('Joy belgilanmagan')),
                             style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                           ),
                         ),
@@ -145,12 +146,12 @@ class _CreateLocationPageState extends State<CreateLocationPage> {
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      'Boshqalarga aniq nuqta emas, taxminan 300 m lik hudud koʻrsatiladi.',
+                      tr('Boshqalarga aniq nuqta emas, taxminan 300 m lik hudud koʻrsatiladi.'),
                       style: TextStyle(fontSize: 13, height: 19 / 13, color: cs.onSurfaceVariant),
                     ),
                     const SizedBox(height: 18),
                     Text(
-                      d.isFound ? 'Qachon topdingiz?' : 'Qachon yoʻqotdingiz?',
+                      d.isFound ? tr('Qachon topdingiz?') : tr('Qachon yoʻqotdingiz?'),
                       style: Theme.of(context).textTheme.labelLarge,
                     ),
                     const SizedBox(height: 4),
@@ -158,27 +159,27 @@ class _CreateLocationPageState extends State<CreateLocationPage> {
                       spacing: TSpace.xs,
                       children: [
                         TChip(
-                          label: 'Bugun',
+                          label: tr('Bugun'),
                           selected: d.day == DraftDay.today,
                           onTap: () => _cubit.setDay(DraftDay.today),
                         ),
                         TChip(
-                          label: 'Kecha',
+                          label: tr('Kecha'),
                           selected: d.day == DraftDay.yesterday,
                           onTap: () => _cubit.setDay(DraftDay.yesterday),
                         ),
-                        TChip(label: 'Boshqa sana', selected: d.day == DraftDay.other, onTap: _pickDate),
+                        TChip(label: tr('Boshqa sana'), selected: d.day == DraftDay.other, onTap: _pickDate),
                       ],
                     ),
                     const SizedBox(height: 6),
                     Row(
                       children: [
                         Expanded(
-                          child: _PickerField(label: 'Sana', value: TDate.dayMonth(happened), onTap: _pickDate),
+                          child: _PickerField(label: tr('Sana'), value: TDate.dayMonth(happened), onTap: _pickDate),
                         ),
                         const SizedBox(width: 10),
                         Expanded(
-                          child: _PickerField(label: 'Taxminiy vaqt', value: TDate.time(happened), onTap: _pickTime),
+                          child: _PickerField(label: tr('Taxminiy vaqt'), value: TDate.time(happened), onTap: _pickTime),
                         ),
                       ],
                     ),
@@ -191,7 +192,7 @@ class _CreateLocationPageState extends State<CreateLocationPage> {
       ),
       bottomNavigationBar: TBottomBar(
         horizontal: TSpace.screen,
-        children: [TButton.primary(label: widget.editing ? 'Saqlash' : 'Koʻrib chiqish', onPressed: _next)],
+        children: [TButton.primary(label: widget.editing ? tr('Saqlash') : tr('Koʻrib chiqish'), onPressed: _next)],
       ),
     );
   }
@@ -290,7 +291,7 @@ class _AreaPicker extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 decoration: BoxDecoration(color: cs.inverseSurface, borderRadius: BorderRadius.circular(18)),
                 child: Text(
-                  'Xaritani surib, joyni belgilang',
+                  tr('Xaritani surib, joyni belgilang'),
                   style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: cs.onInverseSurface),
                 ),
               ),
@@ -307,7 +308,7 @@ class _AreaPicker extends StatelessWidget {
             shadowColor: cs.scrim.withValues(alpha: 0.3),
             borderRadius: BorderRadius.circular(TRadius.md),
             child: IconButton(
-              tooltip: 'Mening joylashuvim',
+              tooltip: tr('Mening joylashuvim'),
               onPressed: onLocate,
               icon: Icon(Symbols.my_location_rounded, color: cs.primary),
             ),

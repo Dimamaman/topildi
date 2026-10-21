@@ -18,6 +18,7 @@ import '../../../../core/widgets/t_top_bar.dart';
 import '../../../listing/presentation/category_ui.dart';
 import '../../domain/entities/claim.dart';
 import '../cubit/claim_cubit.dart';
+import '../../../../core/l10n/tr.dart';
 
 class ClaimPage extends StatelessWidget {
   const ClaimPage({super.key, required this.listingId});
@@ -52,9 +53,9 @@ class _ClaimView extends StatelessWidget {
           TFeedback.error(
             context,
             switch (state.submitFailure) {
-              NetworkFailure() => 'Internet yoʻq. Qayta urinib koʻring',
-              ValidationFailure(:final message) => message ?? 'Soʻrovni yuborib boʻlmadi',
-              _ => 'Soʻrovni yuborib boʻlmadi',
+              NetworkFailure() => tr('Internet yoʻq. Qayta urinib koʻring'),
+              ValidationFailure(:final message) => message ?? tr('Soʻrovni yuborib boʻlmadi'),
+              _ => tr('Soʻrovni yuborib boʻlmadi'),
             },
           );
         }
@@ -62,7 +63,7 @@ class _ClaimView extends StatelessWidget {
       builder: (context, state) {
         final view = state.view;
         return Scaffold(
-          appBar: const TTopBar(title: 'Egaligingizni tasdiqlang', bordered: true),
+          appBar: TTopBar(title: tr('Egaligingizni tasdiqlang'), bordered: true),
           body: switch (view) {
             ViewLoading() || ViewEmpty() => const Center(child: CircularProgressIndicator()),
             ViewError(:final isOffline) => isOffline
@@ -115,7 +116,7 @@ class _Form extends StatelessWidget {
                     Text(l.title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
                     const SizedBox(height: 3),
                     Text(
-                      'Topuvchi: ${l.author.displayName} · ${l.areaName.split(',').first}',
+                      tr('Topuvchi: {name} · {area}', {'name': l.author.displayName, 'area': l.areaName.split(',').first}),
                       style: TextStyle(fontSize: 13, color: cs.onSurfaceVariant),
                     ),
                   ],
@@ -142,11 +143,10 @@ class _Form extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Nega bu savol?', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+                    Text(tr('Nega bu savol?'), style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
                     const SizedBox(height: 4),
                     Text(
-                      'Topuvchi buyumning faqat egasi biladigan bir belgisini yashirib qoʻygan. Uni toʻgʻri aytsangiz, '
-                      'buyum sizniki ekani tasdiqlanadi. Bu begonalar olib ketishining oldini oladi.',
+                      tr('Topuvchi buyumning faqat egasi biladigan bir belgisini yashirib qoʻygan. Uni toʻgʻri aytsangiz, buyum sizniki ekani tasdiqlanadi. Bu begonalar olib ketishining oldini oladi.'),
                       style: TextStyle(fontSize: 14, height: 20 / 14, color: cs.secondary),
                     ),
                   ],
@@ -156,7 +156,7 @@ class _Form extends StatelessWidget {
           ),
         ),
         const SizedBox(height: TSpace.md),
-        Text('Buyumingizda qanday belgi bor?',
+        Text(tr('Buyumingizda qanday belgi bor?'),
             style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: error != null ? cs.error : null)),
         const SizedBox(height: TSpace.xs),
         TextField(
@@ -167,14 +167,14 @@ class _Form extends StatelessWidget {
           enabled: target.attemptsLeft > 0,
           style: const TextStyle(fontSize: 15, height: 22 / 15),
           decoration: InputDecoration(
-            hintText: 'Masalan: ichida koʻk rangli bank kartam bor',
+            hintText: tr('Masalan: ichida koʻk rangli bank kartam bor'),
             counterText: '',
             errorText: error,
             errorMaxLines: 2,
           ),
         ),
         const SizedBox(height: TSpace.md),
-        Text('Nimani yozish mumkin:', style: TextStyle(fontSize: 13, color: cs.onSurfaceVariant)),
+        Text(tr('Nimani yozish mumkin:'), style: TextStyle(fontSize: 13, color: cs.onSurfaceVariant)),
         const SizedBox(height: TSpace.xs),
         Wrap(
           spacing: 6,
@@ -184,7 +184,7 @@ class _Form extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(color: cs.surfaceContainerHigh, borderRadius: BorderRadius.circular(TRadius.sm)),
-                child: Text(h, style: TextStyle(fontSize: 13, color: cs.secondary)),
+                child: Text(tr(h), style: TextStyle(fontSize: 13, color: cs.secondary)),
               ),
           ],
         ),
@@ -200,7 +200,7 @@ class _Form extends StatelessWidget {
           attached: state.hasProofPhoto,
           onTap: () async {
             if (state.hasProofPhoto) return cubit.setProofPhoto(null);
-            final path = await pickPhoto(context, title: 'Dalil rasm');
+            final path = await pickPhoto(context, title: tr('Dalil rasm'));
             if (path != null) cubit.setProofPhoto(path);
           },
         ),
@@ -239,12 +239,12 @@ class _ProofButton extends StatelessWidget {
               Flexible(
                 child: Text.rich(
                   TextSpan(
-                    text: attached ? 'Dalil rasmni olib tashlash' : 'Dalil rasm qoʻshish ',
+                    text: attached ? tr('Dalil rasmni olib tashlash') : tr('Dalil rasm qoʻshish '),
                     style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: attached ? tc.success : cs.onSurface),
                     children: [
                       if (!attached)
                         TextSpan(
-                          text: '(ixtiyoriy)',
+                          text: tr('(ixtiyoriy)'),
                           style: TextStyle(fontWeight: FontWeight.w400, color: cs.onSurfaceVariant),
                         ),
                     ],
@@ -274,13 +274,13 @@ class _Footer extends StatelessWidget {
       horizontal: TSpace.screen,
       children: [
         Text(
-          none ? 'Urinishlar tugadi' : '$attemptsLeft ta urinishingiz bor · Javobni faqat topuvchi koʻradi',
+          none ? tr('Urinishlar tugadi') : tr('{attemptsLeft} ta urinishingiz bor · Javobni faqat topuvchi koʻradi', {'attemptsLeft': attemptsLeft}),
           textAlign: TextAlign.center,
           style: TextStyle(fontSize: 12, color: none ? cs.error : cs.onSurfaceVariant),
         ),
         const SizedBox(height: TSpace.xs),
         TButton.primary(
-          label: 'Soʻrov yuborish',
+          label: tr('Soʻrov yuborish'),
           loading: submitting,
           onPressed: none ? null : context.read<ClaimCubit>().submit,
         ),

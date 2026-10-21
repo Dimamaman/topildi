@@ -26,6 +26,10 @@ import '../../../listing/domain/entities/listing.dart';
 import '../../../listing/presentation/category_ui.dart';
 import '../../domain/entities/profile_summary.dart';
 import '../cubit/profile_cubit.dart';
+import '../../../../core/l10n/tr.dart';
+import '../../../../core/utils/date_format.dart';
+import '../../../../core/l10n/app_language.dart';
+import '../../../../core/l10n/language_cubit.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -43,21 +47,6 @@ const _side = 16.0;
 /// the shell's glass tab bar and "+" float over it.
 class _ProfileView extends StatelessWidget {
   const _ProfileView();
-
-  static const _months = [
-    'Yanvar',
-    'Fevral',
-    'Mart',
-    'Aprel',
-    'May',
-    'Iyun',
-    'Iyul',
-    'Avgust',
-    'Sentyabr',
-    'Oktyabr',
-    'Noyabr',
-    'Dekabr',
-  ];
 
   @override
   Widget build(BuildContext context) {
@@ -80,10 +69,7 @@ class _ProfileView extends StatelessWidget {
                 SliverPadding(
                   padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
                   sliver: SliverToBoxAdapter(
-                    child: _Header(
-                      p: data,
-                      since: '${_months[data.memberSince.month - 1]} ${data.memberSince.year} dan beri aʼzo',
-                    ),
+                    child: _Header(p: data, since: TDate.memberSince(data.memberSince)),
                   ),
                 ),
                 SliverToBoxAdapter(child: _MyListings(p: data)),
@@ -148,7 +134,7 @@ class _Header extends StatelessWidget {
           Align(
             alignment: Alignment.centerRight,
             child: _Tap(
-              label: 'Profilni tahrirlash',
+              label: tr('Profilni tahrirlash'),
               onTap: () => context.push('${Routes.profileSetup}?edit=1'),
               child: SizedBox.square(
                 dimension: 44,
@@ -196,15 +182,15 @@ class _Header extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Expanded(
-                  child: _Stat(n: p.total, label: 'Eʼlonlar'),
+                  child: _Stat(n: p.total, label: tr('Eʼlonlar')),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: _Stat(n: p.returned.length, label: 'Qaytarilgan', color: tc.found),
+                  child: _Stat(n: p.returned.length, label: tr('Qaytarilgan'), color: tc.found),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: _Stat(n: p.gotBack, label: 'Topib olgan'),
+                  child: _Stat(n: p.gotBack, label: tr('Topib olgan')),
                 ),
               ],
             ),
@@ -345,19 +331,19 @@ class _MyListings extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         _SectionTitle(
-          'Mening eʼlonlarim',
+          tr('Mening eʼlonlarim'),
           padding: const EdgeInsets.fromLTRB(_side + 4, 20, _side + 4, 10),
           trailing: items.isEmpty
               ? null
               : _Tap(
-                  label: 'Hammasi',
+                  label: tr('Hammasi'),
                   onTap: () => context.push(Routes.myListings),
                   child: ConstrainedBox(
                     constraints: const BoxConstraints(minHeight: 44, minWidth: 44),
                     child: Center(
                       widthFactor: 1,
                       child: Text(
-                        'Hammasi',
+                        tr('Hammasi'),
                         style: Theme.of(context).textTheme.bodyLarge!
                             .copyWith(fontSize: 16, height: 21 / 16, color: cs.primary)
                             .inter(FontWeight.w400),
@@ -405,11 +391,15 @@ class _MineCard extends StatelessWidget {
     final l = m.listing;
     final returned = l.status == ListingStatus.returned;
     final (tagLabel, tagBg, tagFg) = returned
-        ? ('Qaytarildi', tc.successContainer, tc.success)
+        ? (tr('Qaytarildi'), tc.successContainer, tc.success)
         : m.pendingClaims > 0
-        ? ('Soʻrov bor · ${m.pendingClaims}', tc.warningContainer.withValues(alpha: 0.9), tc.warning)
-        : ('Faol', cs.primaryContainer.withValues(alpha: 0.9), cs.onPrimaryContainer);
-    final type = l.isFound ? 'Topilgan' : 'Yoʻqolgan';
+        ? (
+            tr('Soʻrov bor · {pendingClaims}', {'pendingClaims': m.pendingClaims}),
+            tc.warningContainer.withValues(alpha: 0.9),
+            tc.warning,
+          )
+        : (tr('Faol'), cs.primaryContainer.withValues(alpha: 0.9), cs.onPrimaryContainer);
+    final type = l.isFound ? tr('Topilgan') : tr('Yoʻqolgan');
     final area = l.areaName.split(',').first;
     return _Tap(
       label: '${l.title}, $type, $area, $tagLabel',
@@ -514,7 +504,7 @@ class _NoListings extends StatelessWidget {
           Icon(Symbols.inventory_2_rounded, size: 40, weight: 300, color: context.ts.placeholderIcon),
           const SizedBox(height: 10),
           Text(
-            'Hali eʼlon bermagansiz',
+            tr('Hali eʼlon bermagansiz'),
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.titleMedium!.copyWith(fontSize: 16).inter(FontWeight.w600),
           ),
@@ -525,7 +515,7 @@ class _NoListings extends StatelessWidget {
               overlayColor: Colors.transparent,
             ),
             onPressed: () => context.push(Routes.create),
-            child: const Text('Eʼlon berish'),
+            child: Text(tr('Eʼlon berish')),
           ),
         ],
       ),
@@ -540,43 +530,38 @@ class _Settings extends StatelessWidget {
 
   static const _themes = [(ThemeMode.system, 'Tizim'), (ThemeMode.light, 'Yorugʻ'), (ThemeMode.dark, 'Qorongʻi')];
 
-  Future<void> _language(BuildContext context) => showModalBottomSheet<void>(
-    context: context,
-    builder: (ctx) => SafeArea(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const Padding(
-            padding: EdgeInsets.fromLTRB(TSpace.screen, 0, TSpace.screen, TSpace.xs),
-            child: Text('Til', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
-          ),
-          ListTile(
-            title: const Text('Oʻzbekcha'),
-            trailing: const Icon(Symbols.check_rounded),
-            onTap: () => Navigator.pop(ctx),
-          ),
-          const ListTile(enabled: false, title: Text('Ўзбекча'), subtitle: Text('Tez orada')),
-          const ListTile(enabled: false, title: Text('Русский'), subtitle: Text('Tez orada')),
-        ],
-      ),
-    ),
-  );
+  /// Glass pull-down with the three interface languages, each named in itself.
+  Future<void> _language(BuildContext context, BuildContext anchor, AppLanguage current) async {
+    final cubit = context.read<LanguageCubit>();
+    final picked = await showPullDownMenu(
+      context,
+      anchor: anchor,
+      label: tr('Til'),
+      items: [for (final l in AppLanguage.values) (l, l.nativeName)],
+      current: current,
+    );
+    if (picked != null) cubit.set(picked);
+  }
 
   /// Pull-down menu anchored under the row's trailing value.
   Future<void> _theme(BuildContext context, BuildContext anchor, ThemeMode current) async {
     final themeCubit = context.read<ThemeCubit>();
-    final picked = await showPullDownMenu(context, anchor: anchor, items: _themes, current: current);
+    final picked = await showPullDownMenu(
+      context,
+      anchor: anchor,
+      items: [for (final (m, l) in _themes) (m, tr(l))],
+      current: current,
+    );
     if (picked != null) themeCubit.set(picked);
   }
 
   Future<void> _signOut(BuildContext context) async {
     final ok = await TFeedback.confirm(
       context,
-      title: 'Hisobdan chiqasizmi?',
-      body: 'Eʼlonlaringiz va chatlaringiz saqlanib qoladi. Qayta kirish uchun telefon raqamingiz kerak boʻladi.',
-      confirmLabel: 'Chiqish',
-      cancelLabel: 'Bekor qilish',
+      title: tr('Hisobdan chiqasizmi?'),
+      body: tr('Eʼlonlaringiz va chatlaringiz saqlanib qoladi. Qayta kirish uchun telefon raqamingiz kerak boʻladi.'),
+      confirmLabel: tr('Chiqish'),
+      cancelLabel: tr('Bekor qilish'),
       destructive: true,
     );
     if (ok && context.mounted) context.read<ProfileCubit>().signOut();
@@ -626,32 +611,36 @@ class _Settings extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const _SectionTitle('Sozlamalar', padding: EdgeInsets.fromLTRB(4, 22, 4, 10)),
+        _SectionTitle(tr('Sozlamalar'), padding: EdgeInsets.fromLTRB(4, 22, 4, 10)),
         Container(
           padding: const EdgeInsets.symmetric(vertical: 4),
           decoration: BoxDecoration(color: cs.surfaceContainerLowest, borderRadius: BorderRadius.circular(26)),
           child: Column(
             children: [
-              _Tap(
-                label: 'Til, Oʻzbekcha',
-                onTap: () => _language(context),
-                child: row(
-                  icon: Symbols.language_rounded,
-                  label: 'Til',
-                  trailing: value('Oʻzbekcha', Symbols.chevron_right_rounded),
+              BlocBuilder<LanguageCubit, AppLanguage>(
+                builder: (context, language) => Builder(
+                  builder: (anchor) => _Tap(
+                    label: '${tr('Til')}, ${language.nativeName}',
+                    onTap: () => _language(context, anchor, language),
+                    child: row(
+                      icon: Symbols.language_rounded,
+                      label: tr('Til'),
+                      trailing: value(language.nativeName, Symbols.unfold_more_rounded),
+                    ),
+                  ),
                 ),
               ),
               separator,
               BlocBuilder<ThemeCubit, ThemeMode>(
                 builder: (context, mode) {
-                  final label = _themes.firstWhere((t) => t.$1 == mode).$2;
+                  final label = tr(_themes.firstWhere((t) => t.$1 == mode).$2);
                   return Builder(
                     builder: (anchor) => _Tap(
-                      label: 'Mavzu, $label',
+                      label: tr('Mavzu, {label}', {'label': label}),
                       onTap: () => _theme(context, anchor, mode),
                       child: row(
                         icon: Symbols.contrast_rounded,
-                        label: 'Mavzu',
+                        label: tr('Mavzu'),
                         trailing: value(label, Symbols.unfold_more_rounded),
                       ),
                     ),
@@ -661,14 +650,14 @@ class _Settings extends StatelessWidget {
               separator,
               Semantics(
                 toggled: notificationsOn,
-                label: 'Bildirishnomalar',
+                label: tr('Bildirishnomalar'),
                 excludeSemantics: true,
                 child: GestureDetector(
                   onTap: () => cubit.setNotifications(!notificationsOn),
                   behavior: HitTestBehavior.opaque,
                   child: row(
                     icon: Symbols.notifications_rounded,
-                    label: 'Bildirishnomalar',
+                    label: tr('Bildirishnomalar'),
                     trailing: CupertinoSwitch(
                       value: notificationsOn,
                       activeTrackColor: tc.success,
@@ -682,7 +671,7 @@ class _Settings extends StatelessWidget {
         ),
         const SizedBox(height: 14),
         _Tap(
-          label: 'Chiqish',
+          label: tr('Chiqish'),
           onTap: () => _signOut(context),
           child: Container(
             constraints: const BoxConstraints(minHeight: 52),
@@ -693,7 +682,7 @@ class _Settings extends StatelessWidget {
               children: [
                 Icon(Symbols.logout_rounded, size: 20, color: cs.error),
                 const SizedBox(width: 8),
-                Text('Chiqish', style: body.copyWith(color: cs.error).inter(FontWeight.w600)),
+                Text(tr('Chiqish'), style: body.copyWith(color: cs.error).inter(FontWeight.w600)),
               ],
             ),
           ),
