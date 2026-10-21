@@ -5,6 +5,7 @@ import 'package:material_symbols_icons/symbols.dart';
 
 import '../../../../app/routes.dart';
 import '../../../../core/di/injection.dart';
+import '../../../../core/l10n/tr.dart';
 import '../../../../core/theme/topildi_theme.dart';
 import '../../../../core/utils/date_format.dart';
 import '../../../../core/view_state.dart';
@@ -15,7 +16,6 @@ import '../../../../core/widgets/t_feedback.dart';
 import '../../../listing/presentation/category_ui.dart';
 import '../../domain/entities/chat.dart';
 import '../cubit/chat_cubit.dart';
-import '../../../../core/l10n/tr.dart';
 
 class ChatPage extends StatelessWidget {
   const ChatPage({super.key, required this.chatId});
@@ -40,19 +40,26 @@ class _ChatView extends StatelessWidget {
   Widget build(BuildContext context) {
     final cubit = context.read<ChatCubit>();
     return BlocConsumer<ChatCubit, ChatState>(
-      listenWhen: (a, b) => b.returnedSummary != null || (b.failure != null && a.failure != b.failure),
+      listenWhen: (a, b) =>
+          b.returnedSummary != null ||
+          (b.failure != null && a.failure != b.failure),
       listener: (context, state) {
         if (state.returnedSummary != null) {
           context.push(Routes.success(chatId));
         } else if (state.failure != null) {
-          TFeedback.error(context, tr('Amalni bajarib boʻlmadi. Qayta urinib koʻring'));
+          TFeedback.error(
+            context,
+            tr('Amalni bajarib boʻlmadi. Qayta urinib koʻring'),
+          );
         }
       },
       builder: (context, state) {
         final view = state.view;
         return Scaffold(
           body: switch (view) {
-            ViewLoading() || ViewEmpty() => const Center(child: CircularProgressIndicator()),
+            ViewLoading() || ViewEmpty() => const Center(
+              child: CircularProgressIndicator.adaptive(),
+            ),
             ViewError(:final isOffline) => SafeArea(
               child: isOffline
                   ? OfflineState(onRetry: () => cubit.load(chatId))
@@ -62,7 +69,10 @@ class _ChatView extends StatelessWidget {
               children: [
                 _Header(thread: data.thread, returning: state.returning),
                 Expanded(child: _Messages(messages: data.messages)),
-                if (!data.thread.returned) const _Composer() else const _ClosedNote(),
+                if (!data.thread.returned)
+                  const _Composer()
+                else
+                  const _ClosedNote(),
               ],
             ),
           },
@@ -111,29 +121,50 @@ class _Header extends StatelessWidget {
                     IconButton(
                       tooltip: tr('Orqaga'),
                       icon: const Icon(Symbols.arrow_back_rounded),
-                      onPressed: () => context.canPop() ? context.pop() : context.go(Routes.chats),
+                      onPressed: () => context.canPop()
+                          ? context.pop()
+                          : context.go(Routes.chats),
                     ),
                     const SizedBox(width: TSpace.xs),
                     TAvatar(
                       initials: TAvatar.initialsOf(other.displayName),
-                      tone: thread.iAmFinder ? AvatarTone.lost : AvatarTone.primary,
+                      tone: thread.iAmFinder
+                          ? AvatarTone.lost
+                          : AvatarTone.primary,
                     ),
                     const SizedBox(width: TSpace.xs),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(other.displayName, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                          Text(
+                            other.displayName,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                           const SizedBox(height: 1),
                           Row(
                             children: [
-                              Icon(Symbols.verified_rounded, size: 14, color: tc.success, fill: 1),
+                              Icon(
+                                Symbols.verified_rounded,
+                                size: 14,
+                                color: tc.success,
+                                fill: 1,
+                              ),
                               const SizedBox(width: 4),
                               Flexible(
                                 child: Text(
-                                  thread.iAmFinder ? tr('Egaligi tasdiqlangan') : tr('Topuvchi'),
+                                  thread.iAmFinder
+                                      ? tr('Egaligi tasdiqlangan')
+                                      : tr('Topuvchi'),
                                   overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: tc.success),
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: tc.success,
+                                  ),
                                 ),
                               ),
                             ],
@@ -153,10 +184,19 @@ class _Header extends StatelessWidget {
                             confirmLabel: tr('Shikoyat qilish'),
                             destructive: true,
                           );
-                          if (ok && context.mounted) TFeedback.success(context, tr('Shikoyat yuborildi'));
+                          if (ok && context.mounted)
+                            TFeedback.success(
+                              context,
+                              tr('Shikoyat yuborildi'),
+                            );
                         }
                       },
-                      itemBuilder: (_) => [PopupMenuItem(value: 'report', child: Text(tr('Shikoyat qilish')))],
+                      itemBuilder: (_) => [
+                        PopupMenuItem(
+                          value: 'report',
+                          child: Text(tr('Shikoyat qilish')),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -186,32 +226,50 @@ class _Header extends StatelessWidget {
                             thread.listingTitle,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            thread.returned ? tr('Egasiga qaytarilgan') : tr('Soʻrov qabul qilingan'),
-                            style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant),
+                            thread.returned
+                                ? tr('Egasiga qaytarilgan')
+                                : tr('Soʻrov qabul qilingan'),
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: cs.onSurfaceVariant,
+                            ),
                           ),
                         ],
                       ),
                     ),
                     if (thread.iAmFinder && !thread.returned)
                       FilledButton.icon(
-                        onPressed: returning ? null : () => _confirmReturned(context),
+                        onPressed: returning
+                            ? null
+                            : () => _confirmReturned(context),
                         style: FilledButton.styleFrom(
                           overlayColor: Colors.transparent,
                           minimumSize: const Size(0, 44),
                           padding: const EdgeInsets.symmetric(horizontal: 12),
                           backgroundColor: tc.success,
                           foregroundColor: cs.surface,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                          textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          textStyle: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
                         icon: returning
                             ? SizedBox.square(
                                 dimension: 16,
-                                child: CircularProgressIndicator(strokeWidth: 2, color: cs.surface),
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: cs.surface,
+                                ),
                               )
                             : const Icon(Symbols.check_rounded, size: 18),
                         label: Text(tr('Qaytarildi')),
@@ -219,7 +277,11 @@ class _Header extends StatelessWidget {
                     else if (thread.returned)
                       Padding(
                         padding: const EdgeInsets.only(right: 8),
-                        child: Icon(Symbols.check_circle_rounded, color: tc.success, fill: 1),
+                        child: Icon(
+                          Symbols.check_circle_rounded,
+                          color: tc.success,
+                          fill: 1,
+                        ),
                       ),
                   ],
                 ),
@@ -280,7 +342,10 @@ class _SystemNote extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (safety) ...[Icon(Symbols.shield_rounded, size: 16, color: cs.secondary), const SizedBox(width: 6)],
+              if (safety) ...[
+                Icon(Symbols.shield_rounded, size: 16, color: cs.secondary),
+                const SizedBox(width: 6),
+              ],
               Flexible(
                 child: Text(
                   message.text,
@@ -314,7 +379,9 @@ class _Bubble extends StatelessWidget {
     return Align(
       alignment: me ? Alignment.centerRight : Alignment.centerLeft,
       child: ConstrainedBox(
-        constraints: BoxConstraints(maxWidth: MediaQuery.sizeOf(context).width * 0.72),
+        constraints: BoxConstraints(
+          maxWidth: MediaQuery.sizeOf(context).width * 0.72,
+        ),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           decoration: BoxDecoration(
@@ -338,7 +405,13 @@ class _Bubble extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 4),
-              Text(TDate.time(message.sentAt), style: TextStyle(fontSize: 11, color: fg.withValues(alpha: 0.75))),
+              Text(
+                TDate.time(message.sentAt),
+                style: TextStyle(
+                  fontSize: 11,
+                  color: fg.withValues(alpha: 0.75),
+                ),
+              ),
             ],
           ),
         ),
@@ -392,9 +465,13 @@ class _ComposerState extends State<_Composer> {
                   overlayColor: Colors.transparent,
                   backgroundColor: cs.surfaceContainerHigh,
                   fixedSize: const Size(48, 48),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(TRadius.md)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(TRadius.md),
+                  ),
                 ),
-                onPressed: () => _controller.text = tr('Taxminiy uchrashuv joyi: metro kirish joyi'),
+                onPressed: () => _controller.text = tr(
+                  'Taxminiy uchrashuv joyi: metro kirish joyi',
+                ),
                 icon: const Icon(Symbols.location_on_rounded),
               ),
               const SizedBox(width: TSpace.xs),
@@ -408,7 +485,10 @@ class _ComposerState extends State<_Composer> {
                   decoration: InputDecoration(
                     hintText: tr('Xabar yozing…'),
                     fillColor: cs.surface,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 12,
+                    ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(24),
                       borderSide: BorderSide(color: cs.outlineVariant),
@@ -427,7 +507,10 @@ class _ComposerState extends State<_Composer> {
               const SizedBox(width: TSpace.xs),
               IconButton.filled(
                 tooltip: tr('Yuborish'),
-                style: IconButton.styleFrom(overlayColor: Colors.transparent, fixedSize: const Size(48, 48)),
+                style: IconButton.styleFrom(
+                  overlayColor: Colors.transparent,
+                  fixedSize: const Size(48, 48),
+                ),
                 onPressed: _send,
                 icon: const Icon(Symbols.send_rounded),
               ),
