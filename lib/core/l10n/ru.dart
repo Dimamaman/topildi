@@ -118,6 +118,7 @@ const ruStrings = <String, String>{
   'Xush kelibsiz!': 'Добро пожаловать!',
   'Telefon raqamingizni kiriting, sizga SMS kod yuboramiz.': 'Введите номер телефона — мы отправим SMS-код.',
   'Telefon raqam': 'Номер телефона',
+  'yoki': 'или',
   'Raqamingiz boshqa foydalanuvchilarga hech qachon koʻrsatilmaydi.': 'Ваш номер никогда не показывается другим пользователям.',
   'Kodni olish': 'Получить код',
   'Davom etish orqali ': 'Продолжая, вы принимаете ',
