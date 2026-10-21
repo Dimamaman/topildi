@@ -71,7 +71,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Chiqish'));
     await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(TextButton, 'Chiqish'));
+    await tester.tap(find.bySemanticsLabel('Chiqish').last);
     await _settle(tester);
     expect(find.text('Xush kelibsiz!'), findsOneWidget);
   });

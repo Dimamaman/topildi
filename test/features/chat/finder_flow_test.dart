@@ -41,7 +41,7 @@ void main() {
     await tester.tap(find.text('Rad etish').last);
     await tester.pumpAndSettle();
     expect(find.text('Soʻrovni rad etasizmi?'), findsOneWidget);
-    await tester.tap(find.widgetWithText(TextButton, 'Rad etish'));
+    await tester.tap(find.bySemanticsLabel('Rad etish').last);
     await _settle(tester);
     expect(find.text('Rad etildi'), findsOneWidget);
 

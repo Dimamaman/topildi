@@ -66,7 +66,7 @@ void main() {
 
     await tester.tap(find.bySemanticsLabel('Qaytarildi deb belgilash'));
     await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(TextButton, 'Ha, qaytarildi'));
+    await tester.tap(find.bySemanticsLabel('Ha, qaytarildi').last);
     await _settle(tester);
     expect(find.text('Qaytarildi'), findsOneWidget);
     expect(find.text('Faol'), findsNothing);
@@ -83,7 +83,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Eʼlonni oʻchirish'));
     await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(TextButton, 'Oʻchirish'));
+    await tester.tap(find.bySemanticsLabel('Oʻchirish').last);
     await _settle(tester);
 
     expect(find.text('Mening eʼlonim'), findsNothing);
