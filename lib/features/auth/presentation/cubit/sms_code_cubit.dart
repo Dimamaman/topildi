@@ -11,23 +11,41 @@ import '../../domain/usecases/verify_sms_code.dart';
 import '../../../../core/l10n/tr.dart';
 
 class SmsCodeState extends Equatable {
-  const SmsCodeState({this.code = '', this.seconds = SmsCodeCubit.resendAfter, this.verifying = false, this.error, this.verified = false});
+  const SmsCodeState({
+    this.code = '',
+    this.seconds = SmsCodeCubit.resendAfter,
+    this.verifying = false,
+    this.error,
+    this.verified = false,
+    this.offline = false,
+  });
 
   final String code;
   final int seconds;
   final bool verifying, verified;
   final String? error;
 
-  SmsCodeState copyWith({String? code, int? seconds, bool? verifying, String? Function()? error, bool? verified}) => SmsCodeState(
+  /// The last check failed for lack of network (shown as a banner, not as a wrong code).
+  final bool offline;
+
+  SmsCodeState copyWith({
+    String? code,
+    int? seconds,
+    bool? verifying,
+    String? Function()? error,
+    bool? verified,
+    bool? offline,
+  }) => SmsCodeState(
         code: code ?? this.code,
         seconds: seconds ?? this.seconds,
         verifying: verifying ?? this.verifying,
         error: error != null ? error() : this.error,
         verified: verified ?? this.verified,
+        offline: offline ?? this.offline,
       );
 
   @override
-  List<Object?> get props => [code, seconds, verifying, error, verified];
+  List<Object?> get props => [code, seconds, verifying, error, verified, offline];
 }
 
 @injectable
@@ -57,18 +75,19 @@ class SmsCodeCubit extends Cubit<SmsCodeState> {
 
   /// Auto-submits once all 6 digits are in.
   void setCode(String v) {
-    emit(state.copyWith(code: v, error: () => null));
+    emit(state.copyWith(code: v, error: () => null, offline: false));
     if (v.length == VerifySmsCode.codeLength) verify();
   }
 
   Future<void> verify() async {
     if (state.verifying) return;
-    emit(state.copyWith(verifying: true, error: () => null));
+    emit(state.copyWith(verifying: true, error: () => null, offline: false));
     final r = await _verify((phone: _phone, code: state.code));
     if (isClosed) return;
     r.match(
       (f) => emit(state.copyWith(
         verifying: false,
+        offline: f is NetworkFailure,
         error: () => switch (f) {
           NetworkFailure() => tr('Internet yoʻq. Qayta urinib koʻring'),
           ValidationFailure(:final message) => message,
@@ -78,6 +97,9 @@ class SmsCodeCubit extends Cubit<SmsCodeState> {
       (_) => emit(state.copyWith(verifying: false, verified: true)),
     );
   }
+
+  /// Empties the cells after a wrong code; the error message stays until the next digit.
+  void clearCode() => emit(state.copyWith(code: ''));
 
   Future<void> resend() async {
     if (state.seconds > 0) return;
