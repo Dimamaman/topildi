@@ -58,11 +58,15 @@ void main() {
     await tester.tap(find.text('Eʼlonni koʻrish'));
     await tester.pump(const Duration(seconds: 1));
     await tester.pumpAndSettle();
+    // Claims count loads after the listing.
+    await tester.pump(const Duration(seconds: 1));
+    await tester.pumpAndSettle();
     expect(find.text('Kumush uzuk'), findsOneWidget);
     // Hidden detail never appears on the public detail page.
     expect(find.text('Ichki tomonida sana yozilgan'), findsNothing);
-    // Author sees claims, not "Bu meniki".
-    expect(find.text('Soʻrovlarni koʻrish'), findsOneWidget);
+    // Author sees claims (none yet), not "Bu meniki".
+    expect(find.text('Soʻrovlar yoʻq'), findsOneWidget);
+    expect(find.text('Bu meniki'), findsNothing);
     expect(find.byType(Scaffold), findsWidgets);
   });
 }

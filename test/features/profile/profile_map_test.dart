@@ -4,6 +4,7 @@ import 'package:injectable/injectable.dart';
 import 'package:topildi/app/app.dart';
 import 'package:topildi/app/routes.dart';
 import 'package:topildi/core/di/injection.dart';
+import 'package:topildi/features/listing/presentation/pages/detail_page.dart';
 
 Future<void> _settle(WidgetTester t) async {
   await t.pumpAndSettle();
@@ -31,7 +32,7 @@ void main() {
 
     await tester.tap(find.text('Batafsil'));
     await _settle(tester);
-    expect(find.text('Eʼlon'), findsOneWidget);
+    expect(find.byType(DetailPage), findsOneWidget);
   });
 
   testWidgets('Profile: stats, my listings, theme menu, sign out', (tester) async {

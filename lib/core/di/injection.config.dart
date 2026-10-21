@@ -105,6 +105,8 @@ import 'package:topildi/features/listing/domain/usecases/get_listings.dart'
     as _i1022;
 import 'package:topildi/features/listing/domain/usecases/get_map_listings.dart'
     as _i619;
+import 'package:topildi/features/listing/domain/usecases/manage_listing.dart'
+    as _i487;
 import 'package:topildi/features/listing/domain/usecases/watch_listings.dart'
     as _i592;
 import 'package:topildi/features/listing/presentation/cubit/detail_cubit.dart'
@@ -238,40 +240,8 @@ extension GetItInjectableX on _i174.GetIt {
       () => _i1037.PrefsKeyValueStore(gh<_i460.SharedPreferences>()),
       registerFor: {_prod},
     );
-    gh.lazySingleton<_i856.ListingRepository>(
-      () => _i786.ListingRepositoryImpl(
-        gh<_i904.ListingMockDataSource>(),
-        gh<_i263.NetworkInfo>(),
-      ),
-    );
     gh.lazySingleton<_i271.ThemeCubit>(
       () => _i271.ThemeCubit(gh<_i1037.KeyValueStore>()),
-    );
-    gh.factory<_i445.GetListingDetail>(
-      () => _i445.GetListingDetail(gh<_i856.ListingRepository>()),
-    );
-    gh.factory<_i1022.GetListings>(
-      () => _i1022.GetListings(gh<_i856.ListingRepository>()),
-    );
-    gh.factory<_i619.GetMapListings>(
-      () => _i619.GetMapListings(gh<_i856.ListingRepository>()),
-    );
-    gh.factory<_i592.WatchListings>(
-      () => _i592.WatchListings(gh<_i856.ListingRepository>()),
-    );
-    gh.factory<_i534.FiltersCubit>(
-      () => _i534.FiltersCubit(gh<_i1022.GetListings>()),
-    );
-    gh.factory<_i516.FeedCubit>(
-      () =>
-          _i516.FeedCubit(gh<_i1022.GetListings>(), gh<_i592.WatchListings>()),
-    );
-    gh.factory<_i446.MapCubit>(
-      () => _i446.MapCubit(
-        gh<_i619.GetMapListings>(),
-        gh<_i305.LocationService>(),
-        gh<_i592.WatchListings>(),
-      ),
     );
     gh.factory<_i582.GetNotifications>(
       () => _i582.GetNotifications(gh<_i1040.NotificationRepository>()),
@@ -302,8 +272,33 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i567.NotificationBadgeCubit>(
       () => _i567.NotificationBadgeCubit(gh<_i582.WatchUnreadNotifications>()),
     );
-    gh.factory<_i64.DetailCubit>(
-      () => _i64.DetailCubit(gh<_i445.GetListingDetail>(), gh<_i554.Session>()),
+    gh.lazySingleton<_i856.ListingRepository>(
+      () => _i786.ListingRepositoryImpl(
+        gh<_i904.ListingMockDataSource>(),
+        gh<_i263.NetworkInfo>(),
+        gh<_i554.Session>(),
+      ),
+    );
+    gh.factory<_i445.GetListingDetail>(
+      () => _i445.GetListingDetail(gh<_i856.ListingRepository>()),
+    );
+    gh.factory<_i1022.GetListings>(
+      () => _i1022.GetListings(gh<_i856.ListingRepository>()),
+    );
+    gh.factory<_i619.GetMapListings>(
+      () => _i619.GetMapListings(gh<_i856.ListingRepository>()),
+    );
+    gh.factory<_i487.DeleteListing>(
+      () => _i487.DeleteListing(gh<_i856.ListingRepository>()),
+    );
+    gh.factory<_i487.MarkListingReturned>(
+      () => _i487.MarkListingReturned(gh<_i856.ListingRepository>()),
+    );
+    gh.factory<_i592.WatchListings>(
+      () => _i592.WatchListings(gh<_i856.ListingRepository>()),
+    );
+    gh.factory<_i534.FiltersCubit>(
+      () => _i534.FiltersCubit(gh<_i1022.GetListings>()),
     );
     gh.lazySingleton<_i28.ClaimRepository>(
       () => _i763.ClaimRepositoryImpl(
@@ -328,6 +323,17 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.factory<_i774.SubmitClaim>(
       () => _i774.SubmitClaim(gh<_i28.ClaimRepository>()),
+    );
+    gh.factory<_i516.FeedCubit>(
+      () =>
+          _i516.FeedCubit(gh<_i1022.GetListings>(), gh<_i592.WatchListings>()),
+    );
+    gh.factory<_i446.MapCubit>(
+      () => _i446.MapCubit(
+        gh<_i619.GetMapListings>(),
+        gh<_i305.LocationService>(),
+        gh<_i592.WatchListings>(),
+      ),
     );
     gh.lazySingleton<_i762.CreateListingRepository>(
       () => _i434.CreateListingRepositoryImpl(
@@ -426,6 +432,16 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.factory<_i64.CreateFlowCubit>(
       () => _i64.CreateFlowCubit(gh<_i113.PostListing>()),
+    );
+    gh.factory<_i64.DetailCubit>(
+      () => _i64.DetailCubit(
+        gh<_i445.GetListingDetail>(),
+        gh<_i554.Session>(),
+        gh<_i445.GetClaimReview>(),
+        gh<_i164.GetClaimTarget>(),
+        gh<_i487.DeleteListing>(),
+        gh<_i487.MarkListingReturned>(),
+      ),
     );
     gh.factory<_i176.ClaimCubit>(
       () =>

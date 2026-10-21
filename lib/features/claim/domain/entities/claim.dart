@@ -45,15 +45,18 @@ class Claim extends Equatable {
 
 /// What the would-be owner sees before claiming.
 class ClaimTarget extends Equatable {
-  const ClaimTarget({required this.listing, required this.attemptsLeft});
+  const ClaimTarget({required this.listing, required this.attemptsLeft, this.hasPending = false});
 
   static const maxAttempts = 3;
 
   final Listing listing;
   final int attemptsLeft;
 
+  /// The signed-in user already has a claim waiting for the author's answer.
+  final bool hasPending;
+
   @override
-  List<Object?> get props => [listing, attemptsLeft];
+  List<Object?> get props => [listing, attemptsLeft, hasPending];
 }
 
 /// Author-only view: the hidden detail next to every claimant's answer.
