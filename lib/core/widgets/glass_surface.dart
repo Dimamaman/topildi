@@ -15,6 +15,16 @@ class TGlass {
     required this.quiet,
     required this.tile,
     required this.panel,
+    required this.control,
+    required this.scrim,
+    required this.sheetRim,
+    required this.sheetShadow,
+    required this.menu,
+    required this.menuRim,
+    required this.menuShadow,
+    required this.menuPressed,
+    required this.menuDivider,
+    required this.menuSourceOpen,
     required this.rimTop,
     required this.rim,
     required this.rimBottom,
@@ -45,6 +55,21 @@ class TGlass {
   /// Floating bottom action panel (Eʼlon detail).
   final Color panel;
 
+  /// Buttons inside a glass sheet (Yopish, Tozalash).
+  final Color control;
+
+  /// Dimmed page behind a floating sheet.
+  final Color scrim;
+
+  /// Floating sheet's inner rim and drop shadow.
+  final Color sheetRim, sheetShadow;
+
+  /// Pull-down menu: material, rim, shadow, pressed row, group divider.
+  final Color menu, menuRim, menuShadow, menuPressed, menuDivider;
+
+  /// The capsule a pull-down menu was opened from, while it is open.
+  final Color menuSourceOpen;
+
   final Color rimTop, rim, rimBottom, shadow;
 
   static const _light = TGlass._(
@@ -56,6 +81,16 @@ class TGlass {
     quiet: Color(0x1F767680),
     tile: Color(0xB8FFFFFF),
     panel: Color(0xB8FFFFFF),
+    control: Color(0xCCFFFFFF),
+    scrim: Color(0x470F1420),
+    sheetRim: Color(0x80FFFFFF),
+    sheetShadow: Color(0x470F1420),
+    menu: Color(0xE0FAFBFD),
+    menuRim: Color(0x8CFFFFFF),
+    menuShadow: Color(0x380F1420),
+    menuPressed: Color(0x29767680),
+    menuDivider: Color(0x2E3C3C43),
+    menuSourceOpen: Color(0x29767680),
     rimTop: Color(0xF2FFFFFF),
     rim: Color(0x73FFFFFF),
     rimBottom: Color(0x59FFFFFF),
@@ -65,12 +100,22 @@ class TGlass {
   static const _dark = TGlass._(
     fill: Color(0x992A3550),
     bar: Color(0xB3212A3D),
-    thumb: Color(0xEB2A3550),
+    thumb: Color(0x8C5D6A84),
     tag: Color(0xBF182031),
     activeTab: Color(0x1AFFFFFF),
     quiet: Color(0x3D767680),
     tile: Color(0x730F1420),
     panel: Color(0xBF212A3D),
+    control: Color(0x3D767680),
+    scrim: Color(0x73000000),
+    sheetRim: Color(0x2EFFFFFF),
+    sheetShadow: Color(0x99000000),
+    menu: Color(0xE0212A3D),
+    menuRim: Color(0x2EFFFFFF),
+    menuShadow: Color(0x80000000),
+    menuPressed: Color(0x1AFFFFFF),
+    menuDivider: Color(0x1FFFFFFF),
+    menuSourceOpen: Color(0x47767680),
     rimTop: Color(0x38FFFFFF),
     rim: Color(0x1AFFFFFF),
     rimBottom: Color(0x1AFFFFFF),
@@ -88,7 +133,19 @@ extension TGlassX on BuildContext {
 /// a thin light rim (brighter along the top edge) and a soft drop shadow
 /// that is painted only outside the shape, so it never greys the glass.
 class GlassSurface extends StatelessWidget {
-  const GlassSurface({super.key, required this.child, this.color, this.radius = 999, this.padding, this.shadow = true});
+  const GlassSurface({
+    super.key,
+    required this.child,
+    this.color,
+    this.radius = 999,
+    this.padding,
+    this.shadow = true,
+    this.blur = 18,
+    this.shadowColor,
+    this.shadowBlur = 28,
+    this.shadowOffset = 8,
+    this.rim,
+  });
 
   final Widget child;
 
@@ -98,8 +155,20 @@ class GlassSurface extends StatelessWidget {
   final EdgeInsetsGeometry? padding;
   final bool shadow;
 
-  static final _filter = ImageFilter.compose(
-    outer: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+  /// Backdrop blur radius.
+  final double blur;
+
+  /// Drop shadow `0 [shadowOffset] [shadowBlur] [shadowColor]`; colour defaults to [TGlass.shadow].
+  final Color? shadowColor;
+  final double shadowBlur, shadowOffset;
+
+  /// Rim colour along the sides and bottom; defaults to [TGlass.rim] / [TGlass.rimBottom].
+  final Color? rim;
+
+  static final _filter18 = _filter(18);
+
+  static ImageFilter _filter(double blur) => ImageFilter.compose(
+    outer: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
     inner: const ColorFilter.matrix(_saturate180),
   );
 
@@ -116,13 +185,25 @@ class GlassSurface extends StatelessWidget {
     final g = context.glass;
     final r = BorderRadius.circular(radius);
     return CustomPaint(
-      painter: shadow ? _OuterShadowPainter(radius: radius, color: g.shadow) : null,
+      painter: shadow
+          ? _OuterShadowPainter(
+              radius: radius,
+              color: shadowColor ?? g.shadow,
+              blur: shadowBlur,
+              offset: shadowOffset,
+            )
+          : null,
       child: ClipRRect(
         borderRadius: r,
         child: BackdropFilter(
-          filter: _filter,
+          filter: blur == 18 ? _filter18 : _filter(blur),
           child: CustomPaint(
-            foregroundPainter: _RimPainter(radius: radius, top: g.rimTop, mid: g.rim, bottom: g.rimBottom),
+            foregroundPainter: _RimPainter(
+              radius: radius,
+              top: g.rimTop,
+              mid: rim ?? g.rim,
+              bottom: rim ?? g.rimBottom,
+            ),
             child: Container(padding: padding, color: color ?? g.fill, child: child),
           ),
         ),
@@ -131,11 +212,11 @@ class GlassSurface extends StatelessWidget {
   }
 }
 
-/// `0 8 28 shadow`, clipped to the outside of the rounded rect.
+/// `0 offset blur color`, clipped to the outside of the rounded rect.
 class _OuterShadowPainter extends CustomPainter {
-  const _OuterShadowPainter({required this.radius, required this.color});
+  const _OuterShadowPainter({required this.radius, required this.color, required this.blur, required this.offset});
 
-  final double radius;
+  final double radius, blur, offset;
   final Color color;
 
   @override
@@ -145,21 +226,22 @@ class _OuterShadowPainter extends CustomPainter {
     canvas.clipPath(
       Path.combine(
         PathOperation.difference,
-        Path()..addRect((Offset.zero & size).inflate(80)),
+        Path()..addRect((Offset.zero & size).inflate(blur * 3 + offset)),
         Path()..addRRect(rrect),
       ),
     );
     canvas.drawRRect(
-      rrect.shift(const Offset(0, 8)),
+      rrect.shift(Offset(0, offset)),
       Paint()
         ..color = color
-        ..maskFilter = MaskFilter.blur(BlurStyle.normal, Shadow.convertRadiusToSigma(28)),
+        ..maskFilter = MaskFilter.blur(BlurStyle.normal, Shadow.convertRadiusToSigma(blur)),
     );
     canvas.restore();
   }
 
   @override
-  bool shouldRepaint(_OuterShadowPainter old) => old.radius != radius || old.color != color;
+  bool shouldRepaint(_OuterShadowPainter old) =>
+      old.radius != radius || old.color != color || old.blur != blur || old.offset != offset;
 }
 
 /// 1px inner rim with a highlight along the top edge.

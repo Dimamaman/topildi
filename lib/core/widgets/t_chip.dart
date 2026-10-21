@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:material_symbols_icons/symbols.dart';
 
 import '../theme/topildi_theme.dart';
 import '../theme/t_text.dart';
@@ -15,7 +14,6 @@ class TChip extends StatelessWidget {
     required this.selected,
     required this.onTap,
     this.icon,
-    this.showCheck = false,
   });
 
   final String label;
@@ -23,14 +21,11 @@ class TChip extends StatelessWidget {
   final VoidCallback onTap;
   final IconData? icon;
 
-  /// Multi-select contexts (Filters): a check replaces the icon when selected.
-  final bool showCheck;
-
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final fg = selected ? cs.onPrimary : cs.onSurface;
-    final leading = showCheck && selected ? Symbols.check_rounded : icon;
+    final leading = icon;
     return Semantics(
       button: true,
       selected: selected,
@@ -43,8 +38,9 @@ class TChip extends StatelessWidget {
             widthFactor: 1,
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 150),
-              constraints: const BoxConstraints(minHeight: 36),
-              padding: EdgeInsets.only(left: leading == null ? 16 : 12, right: 16, top: 4, bottom: 4),
+              // Bounded, so a very long label (large text) ellipsizes instead of overflowing.
+              constraints: BoxConstraints(minHeight: 36, maxWidth: MediaQuery.sizeOf(context).width - 64),
+              padding: EdgeInsets.only(left: leading == null ? 16 : 10, right: leading == null ? 16 : 12, top: 4, bottom: 4),
               decoration: BoxDecoration(
                 color: selected ? cs.primary : context.glass.quiet,
                 borderRadius: BorderRadius.circular(TRadius.full),
@@ -53,11 +49,15 @@ class TChip extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   if (leading != null) ...[Icon(leading, size: 18, color: fg), const SizedBox(width: 6)],
-                  Text(
-                    label,
-                    style: Theme.of(context).textTheme.bodyMedium!
-                        .copyWith(fontSize: 14, height: 20 / 14, color: fg)
-                        .inter(selected ? FontWeight.w600 : FontWeight.w500),
+                  Flexible(
+                    child: Text(
+                      label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.bodyMedium!
+                          .copyWith(fontSize: 14, height: 20 / 14, color: fg)
+                          .inter(selected ? FontWeight.w600 : FontWeight.w500),
+                    ),
                   ),
                 ],
               ),
@@ -109,27 +109,62 @@ class TChipRow extends StatelessWidget {
   }
 }
 
-/// Found / Lost segmented control, iOS 26 style: a capsule track with a
-/// sliding glass thumb. Tap or drag across to switch. Each segment shows a
-/// coloured dot *and* text, so the choice never relies on colour alone.
+/// Found / Lost segmented control: [TCapsuleSegmented] where each segment
+/// shows a coloured dot *and* text, so the choice never relies on colour alone.
 class TTypeTabs extends StatelessWidget {
   const TTypeTabs({super.key, required this.isFound, required this.onChanged});
 
   final bool isFound;
   final ValueChanged<bool> onChanged;
 
-  static const _height = 44.0;
+  @override
+  Widget build(BuildContext context) {
+    final tc = context.tc;
+    return TCapsuleSegmented(
+      selected: isFound ? 0 : 1,
+      onChanged: (i) => onChanged(i == 0),
+      segments: [
+        (label: 'Topilgan', color: tc.found),
+        (label: 'Yoʻqolgan', color: tc.lost),
+      ],
+    );
+  }
+}
+
+/// Segmented control, iOS 26 style: a capsule track with a sliding glass
+/// thumb and equal segments. Tap or drag across to switch. A segment with a
+/// `color` gets a dot in that colour and, when selected, coloured text;
+/// otherwise the selected text is `on-surface`.
+class TCapsuleSegmented extends StatelessWidget {
+  const TCapsuleSegmented({
+    super.key,
+    required this.segments,
+    required this.selected,
+    required this.onChanged,
+    this.height = 44,
+    this.fontSize = 15,
+    this.inactiveColor,
+  }) : assert(segments.length >= 2);
+
+  final List<({String label, Color? color})> segments;
+  final int selected;
+  final ValueChanged<int> onChanged;
+  final double height, fontSize;
+
+  /// Unselected text; defaults to `secondary`.
+  final Color? inactiveColor;
+
   static const _inset = 3.0;
   static const _duration = Duration(milliseconds: 250);
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final tc = context.tc;
     final g = context.glass;
 
-    Widget segment(bool found, String label, Color color) {
-      final active = found == isFound;
+    Widget segment(int i) {
+      final active = i == selected;
+      final color = segments[i].color;
       return Expanded(
         child: Semantics(
           selected: active,
@@ -137,24 +172,30 @@ class TTypeTabs extends StatelessWidget {
           inMutuallyExclusiveGroup: true,
           child: GestureDetector(
             behavior: HitTestBehavior.opaque,
-            onTap: () => onChanged(found),
+            onTap: () => onChanged(i),
             child: Center(
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Container(
-                    width: 7,
-                    height: 7,
-                    decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-                  ),
-                  const SizedBox(width: 6),
+                  if (color != null) ...[
+                    Container(
+                      width: 7,
+                      height: 7,
+                      decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+                    ),
+                    const SizedBox(width: 6),
+                  ],
                   Flexible(
                     child: AnimatedDefaultTextStyle(
                       duration: _duration,
                       style: Theme.of(context).textTheme.bodyMedium!
-                          .copyWith(fontSize: 15, height: 20 / 15, color: active ? color : cs.secondary)
+                          .copyWith(
+                            fontSize: fontSize,
+                            height: 20 / fontSize,
+                            color: active ? (color ?? cs.onSurface) : (inactiveColor ?? cs.secondary),
+                          )
                           .inter(active ? FontWeight.w600 : FontWeight.w500),
-                      child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
+                      child: Text(segments[i].label, maxLines: 1, overflow: TextOverflow.ellipsis),
                     ),
                   ),
                 ],
@@ -169,11 +210,12 @@ class TTypeTabs extends StatelessWidget {
       builder: (context, c) => GestureDetector(
         // Drag across the track to switch, like UISegmentedControl.
         onHorizontalDragUpdate: (d) {
-          final toFound = d.localPosition.dx < c.maxWidth / 2;
-          if (toFound != isFound) onChanged(toFound);
+          final n = segments.length;
+          final to = (d.localPosition.dx / c.maxWidth * n).floor().clamp(0, n - 1);
+          if (to != selected) onChanged(to);
         },
         child: Container(
-          height: _height,
+          height: height,
           padding: const EdgeInsets.all(_inset),
           decoration: BoxDecoration(color: g.quiet, borderRadius: BorderRadius.circular(TRadius.full)),
           child: Stack(
@@ -181,14 +223,14 @@ class TTypeTabs extends StatelessWidget {
               AnimatedAlign(
                 duration: _duration,
                 curve: Curves.easeOutCubic,
-                alignment: isFound ? Alignment.centerLeft : Alignment.centerRight,
+                alignment: Alignment(-1 + 2 * selected / (segments.length - 1), 0),
                 child: FractionallySizedBox(
-                  widthFactor: 0.5,
+                  widthFactor: 1 / segments.length,
                   heightFactor: 1,
                   child: GlassSurface(color: g.thumb, child: const SizedBox.expand()),
                 ),
               ),
-              Row(children: [segment(true, 'Topilgan', tc.found), segment(false, 'Yoʻqolgan', tc.lost)]),
+              Row(children: [for (var i = 0; i < segments.length; i++) segment(i)]),
             ],
           ),
         ),

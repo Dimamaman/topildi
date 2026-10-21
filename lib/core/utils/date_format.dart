@@ -20,6 +20,15 @@ abstract final class TDate {
     return withTimeForOld ? '${dayMonth(d)}, ${_hm(d)}' : dayMonth(d);
   }
 
+  /// "Bugun" · "Kecha" · "21-oktabr" (no time).
+  static String day(DateTime d, {DateTime? now}) {
+    final n = now ?? DateTime.now();
+    final diff = DateTime(n.year, n.month, n.day).difference(DateTime(d.year, d.month, d.day)).inDays;
+    if (diff == 0) return 'Bugun';
+    if (diff == 1) return 'Kecha';
+    return dayMonth(d);
+  }
+
   /// "20-oktabr, 09:40".
   static String full(DateTime d) => '${dayMonth(d)}, ${_hm(d)}';
 

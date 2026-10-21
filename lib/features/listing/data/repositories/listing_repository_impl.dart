@@ -35,7 +35,9 @@ class ListingRepositoryImpl implements ListingRepository {
           .where((m) => !m.happenedAt.isBefore(from) && m.happenedAt.isBefore(to))
           .where((m) => needle.isEmpty || m.title.toLowerCase().contains(needle) || m.areaName.toLowerCase().contains(needle))
           .map((m) => m.toEntity())
-          .toList();
+          .toList()
+        // Newest first.
+        ..sort((a, b) => b.happenedAt.compareTo(a.happenedAt));
       return right(ListingPage(items: items, total: items.length));
     } catch (e) {
       return left(ServerFailure(e.toString()));

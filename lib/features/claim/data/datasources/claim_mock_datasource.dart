@@ -23,6 +23,36 @@ class ClaimMockDataSource {
         answer: 'Qora hamyon, ichida pul bor edi.',
         createdAt: now.subtract(const Duration(minutes: 40)),
       ),
+      // Claims on the user's other found listings.
+      Claim(
+        id: 'cl_ozoda',
+        listingId: 'l_mine2',
+        claimant: const PublicUser(id: 'u_ozoda', displayName: 'Ozoda N.'),
+        answer: 'Ekran fonida oʻgʻlimning surati bor, oltin rangli gʻilofda.',
+        createdAt: now.subtract(const Duration(hours: 3)),
+      ),
+      Claim(
+        id: 'cl_rustam',
+        listingId: 'l_mine3',
+        claimant: const PublicUser(id: 'u_rustam', displayName: 'Rustam Y.'),
+        answer: 'Muqova ichiga sariq stiker yopishtirganman, unda telefon raqamim yozilgan.',
+        createdAt: now.subtract(const Duration(hours: 6)),
+      ),
+      Claim(
+        id: 'cl_dilnoza',
+        listingId: 'l_mine3',
+        claimant: const PublicUser(id: 'u_dilnoza', displayName: 'Dilnoza A.'),
+        answer: 'Qizil pasport, ichida hech narsa yoʻq edi.',
+        createdAt: now.subtract(const Duration(hours: 9)),
+      ),
+      Claim(
+        id: 'cl_kamol',
+        listingId: 'l_mine3',
+        claimant: const PublicUser(id: 'u_kamol', displayName: 'Kamol B.'),
+        answer: 'Pasport otamniki, muqovasi qizil.',
+        createdAt: now.subtract(const Duration(days: 1)),
+        status: ClaimStatus.rejected,
+      ),
     ]);
   }
 

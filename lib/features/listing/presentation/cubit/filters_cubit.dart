@@ -52,7 +52,7 @@ class FiltersCubit extends Cubit<FiltersState> {
   void _update(ListingFilter f) {
     emit(FiltersState(filter: f));
     _debounce?.cancel();
-    _debounce = Timer(const Duration(milliseconds: 200), _count);
+    _debounce = Timer(const Duration(milliseconds: 300), _count);
   }
 
   Future<void> _count() async {

@@ -26,7 +26,7 @@ void main() {
     await tester.pumpWidget(const TopildiApp(initialLocation: Routes.map));
     await _settle(tester);
 
-    expect(find.text('Topilgan · 6'), findsOneWidget);
+    expect(find.text('Topilgan · 18'), findsOneWidget);
     expect(find.textContaining('Yoʻqolgan · '), findsOneWidget);
     expect(find.text('Batafsil'), findsOneWidget);
 
@@ -50,9 +50,9 @@ void main() {
     await tester.tap(find.text('Hammasi'));
     await _settle(tester);
     await tester.tap(find.textContaining('Qaytarilgan · '));
-    await tester.pumpAndSettle();
+    await _settle(tester);
     expect(find.text('Kalitlar toʻplami'), findsOneWidget);
-    await tester.tap(find.byTooltip('Orqaga'));
+    await tester.tap(find.bySemanticsLabel('Orqaga'));
     await _settle(tester);
 
     await tester.tap(find.text('Mavzu'));

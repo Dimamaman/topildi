@@ -1,46 +1,51 @@
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
+import '../theme/t_text.dart';
 import '../theme/topildi_surfaces.dart';
 import '../theme/topildi_theme.dart';
 import 'glass_surface.dart';
 import 'photo_placeholder.dart';
-import '../theme/t_text.dart';
 
-/// Feed card (iOS 26 Lenta): full-width 168dp photo with glass tags for the
-/// type and time, then title, "Kategoriya · Hudud" and a chevron.
+/// Listing card, iOS 26 style (Lenta, Mening eʼlonlarim): full-width photo
+/// with two glass tags on top, then title, a meta line and a chevron.
 class FeedCard extends StatelessWidget {
   const FeedCard({
     super.key,
     required this.title,
     required this.meta,
-    required this.time,
-    required this.isFound,
     required this.icon,
+    required this.leadingTag,
+    required this.trailingTag,
+    required this.semanticLabel,
     this.tint = 0,
     this.imagePath,
+    this.photoHeight = 168,
+    this.iconSize = 64,
     this.onTap,
   });
 
   static const radius = 28.0;
-  static const photoHeight = 168.0;
 
-  final String title, meta, time;
-  final bool isFound;
+  final String title, meta;
   final IconData icon;
+
+  /// Tags over the photo, top-left and top-right (see [GlassTag]).
+  final Widget leadingTag, trailingTag;
+
+  /// Whole-card label for screen readers (tags are excluded).
+  final String semanticLabel;
   final int tint;
   final String? imagePath;
+  final double photoHeight, iconSize;
   final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final tc = context.tc;
-    final type = isFound ? 'Topilgan' : 'Yoʻqolgan';
-    final typeColor = isFound ? tc.found : tc.lost;
     return Semantics(
       button: true,
-      label: '$type. $title. $meta. $time',
+      label: semanticLabel,
       excludeSemantics: true,
       child: GestureDetector(
         onTap: onTap,
@@ -62,43 +67,21 @@ class FeedCard extends StatelessWidget {
                       path: imagePath,
                       width: double.infinity,
                       height: photoHeight,
-                      iconSize: 64,
+                      iconSize: iconSize,
                       radius: 0,
                     ),
                     Positioned(
                       top: 12,
                       left: 12,
                       right: 12,
+                      // Each tag shrinks to fit; free space goes between them.
                       child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          _GlassTag(
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Container(
-                                  width: 6,
-                                  height: 6,
-                                  decoration: BoxDecoration(color: typeColor, shape: BoxShape.circle),
-                                ),
-                                const SizedBox(width: 6),
-                                Text(type, style: _tagStyle(context, FontWeight.w600, typeColor)),
-                              ],
-                            ),
+                          Flexible(
+                            child: Padding(padding: const EdgeInsets.only(right: 8), child: leadingTag),
                           ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Align(
-                              alignment: Alignment.centerRight,
-                              child: _GlassTag(
-                                child: Text(
-                                  time,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: _tagStyle(context, FontWeight.w500, cs.onSurface),
-                                ),
-                              ),
-                            ),
-                          ),
+                          Flexible(child: trailingTag),
                         ],
                       ),
                     ),
@@ -148,26 +131,71 @@ class FeedCard extends StatelessWidget {
       ),
     );
   }
-
-  static TextStyle _tagStyle(BuildContext context, FontWeight w, Color c) =>
-      Theme.of(context).textTheme.bodySmall!.copyWith(fontSize: 13, height: 18 / 13, color: c).inter(w);
 }
 
-/// 30dp glass capsule laid over the photo.
-class _GlassTag extends StatelessWidget {
-  const _GlassTag({required this.child});
+/// 30dp glass capsule laid over a listing photo.
+class GlassTag extends StatelessWidget {
+  const GlassTag({
+    super.key,
+    required this.label,
+    required this.color,
+    this.fill,
+    this.icon,
+    this.dot = false,
+    this.weight = FontWeight.w600,
+  });
 
-  final Widget child;
+  /// "Topilgan" / "Yoʻqolgan" tag: coloured dot + text, never colour alone.
+  factory GlassTag.type(BuildContext context, {required bool isFound}) {
+    final tc = context.tc;
+    return GlassTag(label: isFound ? 'Topilgan' : 'Yoʻqolgan', color: isFound ? tc.found : tc.lost, dot: true);
+  }
+
+  /// Neutral text tag, e.g. the time "Bugun, 09:40".
+  factory GlassTag.text(BuildContext context, String label) =>
+      GlassTag(label: label, color: Theme.of(context).colorScheme.onSurface, weight: FontWeight.w500);
+
+  final String label;
+  final Color color;
+
+  /// Glass fill; defaults to [TGlass.tag].
+  final Color? fill;
+  final IconData? icon;
+  final bool dot;
+  final FontWeight weight;
 
   @override
   Widget build(BuildContext context) {
     return GlassSurface(
-      color: context.glass.tag,
+      color: fill ?? context.glass.tag,
       child: ConstrainedBox(
         constraints: const BoxConstraints(minHeight: 30),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-          child: Align(widthFactor: 1, heightFactor: 1, child: child),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (dot) ...[
+                Container(
+                  width: 6,
+                  height: 6,
+                  decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+                ),
+                const SizedBox(width: 6),
+              ],
+              if (icon != null) ...[Icon(icon, size: 16, fill: 1, color: color), const SizedBox(width: 6)],
+              Flexible(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall!.copyWith(fontSize: 13, height: 18 / 13, color: color).inter(weight),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -176,7 +204,9 @@ class _GlassTag extends StatelessWidget {
 
 /// Skeleton matching [FeedCard]'s layout.
 class FeedCardSkeleton extends StatelessWidget {
-  const FeedCardSkeleton({super.key});
+  const FeedCardSkeleton({super.key, this.photoHeight = 168});
+
+  final double photoHeight;
 
   @override
   Widget build(BuildContext context) {
@@ -196,7 +226,7 @@ class FeedCardSkeleton extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Container(height: FeedCard.photoHeight, color: ts.skeleton),
+          Container(height: photoHeight, color: ts.skeleton),
           Padding(
             padding: const EdgeInsets.fromLTRB(18, 16, 18, 18),
             child: Row(
@@ -204,7 +234,11 @@ class FeedCardSkeleton extends StatelessWidget {
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [bar(0.7, 18, ts.skeleton), const SizedBox(height: 8), bar(0.45, 13, ts.skeletonSoft)],
+                    children: [
+                      bar(0.7, 18, ts.skeleton),
+                      const SizedBox(height: 8),
+                      bar(0.45, 13, ts.skeletonSoft),
+                    ],
                   ),
                 ),
                 const SizedBox(width: 10),

@@ -1,5 +1,3 @@
-import 'dart:ui' show ImageFilter;
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -12,6 +10,7 @@ import '../../../../core/di/injection.dart';
 import '../../../../core/utils/date_format.dart';
 import '../../../../core/view_state.dart';
 import '../../../../core/widgets/feed_card.dart';
+import '../../../../core/widgets/glass_header.dart';
 import '../../../../core/widgets/glass_surface.dart';
 import '../../../../core/widgets/state_views.dart';
 import '../../../../core/widgets/t_chip.dart';
@@ -32,11 +31,7 @@ class HomePage extends StatelessWidget {
   }
 }
 
-const _side = 16.0;
-
-/// Large title block: 14 above (split 8 in the bar + 6 here), 41 line, 14 below.
-const _titleTop = 6.0, _titleLine = 41.0, _titleBottom = 14.0;
-const _titleExtent = _titleTop + _titleLine + _titleBottom;
+const _side = GlassHeader.side;
 
 /// Lenta, iOS 26 style. One scroll view: the glass buttons stay pinned at
 /// the top, the large "Lenta" title scrolls under them and turns into an
@@ -62,8 +57,7 @@ class _HomeViewState extends State<_HomeView> {
   Widget build(BuildContext context) {
     final dark = Theme.of(context).brightness == Brightness.dark;
     final cubit = context.read<FeedCubit>();
-    final top = MediaQuery.paddingOf(context).top;
-    final barTop = top + (top < 30 ? 8 : 0);
+    final barTop = GlassHeader.top(context);
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: dark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
       child: Scaffold(
@@ -81,7 +75,7 @@ class _HomeViewState extends State<_HomeView> {
                   pinned: true,
                   delegate: _TopBar(top: barTop, offset: _offset),
                 ),
-                const SliverToBoxAdapter(child: _LargeTitle()),
+                const SliverToBoxAdapter(child: GlassLargeTitle('Lenta')),
                 SliverPersistentHeader(pinned: true, delegate: _PinnedTabs(offset: _offset)),
                 ..._content(context, state),
               ],
@@ -146,11 +140,14 @@ class _HomeViewState extends State<_HomeView> {
             separatorBuilder: (_, _) => const SizedBox(height: 14),
             itemBuilder: (context, i) {
               final l = data.items[i];
+              final meta = '${l.category.label} · ${l.areaName.split(',').first}';
+              final time = TDate.relative(l.happenedAt);
               return FeedCard(
                 title: l.title,
-                meta: '${l.category.label} · ${l.areaName.split(',').first}',
-                time: TDate.relative(l.happenedAt),
-                isFound: l.isFound,
+                meta: meta,
+                leadingTag: GlassTag.type(context, isFound: l.isFound),
+                trailingTag: GlassTag.text(context, time),
+                semanticLabel: '${l.isFound ? 'Topilgan' : 'Yoʻqolgan'}. ${l.title}. $meta. $time',
                 icon: l.category.icon,
                 tint: l.tint,
                 imagePath: l.photoAt(0),
@@ -171,57 +168,13 @@ Future<void> _openFilters(BuildContext context) async {
   if (picked != null) cubit.setFilter(picked);
 }
 
-/// Translucent blurred page background for the pinned parts, so cards
-/// scrolling underneath show through softly.
-class _BarBackground extends StatelessWidget {
-  const _BarBackground({required this.child, this.offset});
-
-  final Widget child;
-
-  /// When given, a hairline shows along the bottom once the tabs are pinned.
-  final ValueListenable<double>? offset;
-
-  @override
-  Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    final o = offset;
-    Widget hairline(bool show) => DecoratedBox(
-      decoration: BoxDecoration(
-        border: Border(bottom: BorderSide(color: show ? cs.outlineVariant : Colors.transparent, width: 0.5)),
-      ),
-    );
-    return Stack(
-      children: [
-        // Only the backdrop is clipped, so the glass buttons' shadows are not cut off.
-        Positioned.fill(
-          child: ClipRect(
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-              child: ColoredBox(
-                color: cs.surface.withValues(alpha: 0.86),
-                child: o == null
-                    ? const SizedBox.expand()
-                    : ValueListenableBuilder<double>(
-                        valueListenable: o,
-                        builder: (context, v, _) => hairline(v >= _titleExtent),
-                      ),
-              ),
-            ),
-          ),
-        ),
-        child,
-      ],
-    );
-  }
-}
-
 /// Pinned row of glass buttons: location capsule left, Filtrlar and
 /// Bildirishnomalar right; the inline "Lenta" fades in once the large
 /// title has scrolled under it.
 class _TopBar extends SliverPersistentHeaderDelegate {
   const _TopBar({required this.top, required this.offset});
 
-  static const height = 44.0 + 8;
+  static const height = GlassHeader.barHeight;
 
   final double top;
   final ValueListenable<double> offset;
@@ -238,7 +191,7 @@ class _TopBar extends SliverPersistentHeaderDelegate {
   @override
   Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
     final cs = Theme.of(context).colorScheme;
-    return _BarBackground(
+    return GlassBarBackground(
       child: BlocSelector<FeedCubit, FeedState, ListingFilter>(
         selector: (s) => s.filter,
         builder: (context, filter) => Padding(
@@ -250,24 +203,9 @@ class _TopBar extends SliverPersistentHeaderDelegate {
                 child: _LocationCapsule(label: filter.district ?? filter.city, onTap: () => _openFilters(context)),
               ),
               Expanded(
-                child: ValueListenableBuilder<double>(
-                  valueListenable: offset,
-                  builder: (context, o, child) =>
-                      Opacity(opacity: ((o - _titleTop - _titleLine * 0.6) / 16).clamp(0.0, 1.0), child: child),
-                  child: ExcludeSemantics(
-                    child: Text(
-                      'Lenta',
-                      textAlign: TextAlign.center,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(
-                        context,
-                      ).textTheme.titleMedium!.copyWith(fontSize: 17, height: 22 / 17).inter(FontWeight.w600),
-                    ),
-                  ),
-                ),
+                child: GlassInlineTitle('Lenta', offset: offset),
               ),
-              _GlassCircle(
+              GlassCircleButton(
                 icon: Symbols.tune_rounded,
                 semantic: filter.isDefault ? 'Filtrlar' : 'Filtrlar, faol',
                 dot: filter.isDefault ? null : cs.primary,
@@ -275,7 +213,7 @@ class _TopBar extends SliverPersistentHeaderDelegate {
               ),
               const SizedBox(width: 8),
               BlocBuilder<NotificationBadgeCubit, int>(
-                builder: (context, unread) => _GlassCircle(
+                builder: (context, unread) => GlassCircleButton(
                   icon: Symbols.notifications_rounded,
                   semantic: unread > 0 ? 'Bildirishnomalar, $unread ta yangi' : 'Bildirishnomalar',
                   dot: unread > 0 ? cs.error : null,
@@ -284,27 +222,6 @@ class _TopBar extends SliverPersistentHeaderDelegate {
               ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _LargeTitle extends StatelessWidget {
-  const _LargeTitle();
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(_side + 4, _titleTop, _side + 4, _titleBottom),
-      child: Semantics(
-        header: true,
-        child: Text(
-          'Lenta',
-          maxLines: 1,
-          style: Theme.of(context).textTheme.headlineMedium!
-              .copyWith(fontSize: 34, height: _titleLine / 34, letterSpacing: -0.7)
-              .inter(FontWeight.w700),
         ),
       ),
     );
@@ -332,8 +249,9 @@ class _PinnedTabs extends SliverPersistentHeaderDelegate {
   @override
   Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
     final cubit = context.read<FeedCubit>();
-    return _BarBackground(
+    return GlassBarBackground(
       offset: offset,
+      hairlineAt: GlassHeader.titleExtent - 1,
       child: Padding(
         padding: const EdgeInsets.only(bottom: 8),
         child: Column(
@@ -419,51 +337,3 @@ class _LocationCapsule extends StatelessWidget {
 }
 
 /// 44×44 glass circle with an optional status dot (8×8, 2px rim).
-class _GlassCircle extends StatelessWidget {
-  const _GlassCircle({required this.icon, required this.semantic, required this.onTap, this.dot});
-
-  final IconData icon;
-  final String semantic;
-  final VoidCallback onTap;
-  final Color? dot;
-
-  @override
-  Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    return Semantics(
-      button: true,
-      label: semantic,
-      excludeSemantics: true,
-      child: GestureDetector(
-        onTap: onTap,
-        behavior: HitTestBehavior.opaque,
-        child: SizedBox.square(
-          dimension: 44,
-          child: GlassSurface(
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                Icon(icon, size: 22, color: cs.onSurface),
-                if (dot != null)
-                  Positioned(
-                    top: 9,
-                    right: 10,
-                    child: Container(
-                      // 8×8 dot inside a 2px rim.
-                      width: 12,
-                      height: 12,
-                      decoration: BoxDecoration(
-                        color: dot,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: cs.surfaceContainerLowest, width: 2),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}

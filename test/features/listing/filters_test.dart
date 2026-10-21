@@ -25,14 +25,14 @@ void main() {
 
     await tester.tap(find.bySemanticsLabel('Filtrlar'));
     await _settle(tester);
-    expect(find.text('6 ta natijani koʻrsatish'), findsOneWidget);
+    expect(find.text('18 ta natijani koʻrsatish'), findsOneWidget);
 
     await tester.tap(find.text('Kalitlar').last);
     await tester.tap(find.text('Hamyonlar').last);
     await _settle(tester);
-    expect(find.text('2 ta natijani koʻrsatish'), findsOneWidget);
+    expect(find.text('4 ta natijani koʻrsatish'), findsOneWidget);
 
-    await tester.tap(find.text('2 ta natijani koʻrsatish'));
+    await tester.tap(find.text('4 ta natijani koʻrsatish'));
     await _settle(tester);
     expect(find.text('Qora charm hamyon'), findsOneWidget);
     expect(find.text('Kalitlar toʻplami, 3 dona'), findsOneWidget);
@@ -43,6 +43,7 @@ void main() {
     await tester.tap(find.text('Hammasi'));
     await _settle(tester);
     expect(find.bySemanticsLabel('Filtrlar'), findsOneWidget);
-    expect(find.text('Bolalar ryukzagi, koʻk'), findsOneWidget);
+    // Back to every category: a document listing (not keys/wallets) shows again.
+    expect(find.text('ID karta, yashil gʻilofda'), findsOneWidget);
   });
 }

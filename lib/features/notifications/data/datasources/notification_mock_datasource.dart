@@ -55,6 +55,60 @@ class NotificationMockDataSource {
         target: const OpenProfile(),
         read: true,
       ),
+      AppNotification(
+        id: 'n7',
+        kind: NotificationKind.message,
+        text: 'Ozoda N. sizga xabar yozdi',
+        createdAt: ago(const Duration(minutes: 35)),
+        target: const OpenChat('c_ozoda'),
+      ),
+      AppNotification(
+        id: 'n8',
+        kind: NotificationKind.newClaim,
+        text: '“Pasport, qizil muqovali” eʼloningizga 2 ta yangi soʻrov keldi.',
+        createdAt: ago(const Duration(hours: 6)),
+        target: const OpenClaims('l_mine3'),
+      ),
+      AppNotification(
+        id: 'n9',
+        kind: NotificationKind.newClaim,
+        text: '“Telefon, oltin rangli” eʼloningizga yangi soʻrov keldi.',
+        createdAt: ago(const Duration(hours: 3)),
+        target: const OpenClaims('l_mine2'),
+        read: true,
+      ),
+      AppNotification(
+        id: 'n10',
+        kind: NotificationKind.match,
+        text: '“Quloqchin” eʼloningizga oʻxshash buyum topildi: Chilonzor',
+        createdAt: ago(const Duration(days: 1, hours: 5)),
+        target: const OpenListing('l6'),
+        read: true,
+      ),
+      AppNotification(
+        id: 'n11',
+        kind: NotificationKind.claimAccepted,
+        text: 'Jasur M. soʻrovingizni qabul qildi. Chatda kelishib oling.',
+        createdAt: ago(const Duration(days: 2)),
+        target: const OpenChat('c_jasur'),
+        read: true,
+      ),
+      AppNotification(
+        id: 'n12',
+        kind: NotificationKind.returned,
+        text: 'Hamyon egasiga qaytdi. Rahmat, siz tufayli bir kishi xursand!',
+        createdAt: ago(const Duration(days: 14)),
+        target: const OpenSuccess('c_timur'),
+        read: true,
+      ),
+      AppNotification(
+        id: 'n13',
+        kind: NotificationKind.expiring,
+        text: '“Haydovchilik guvohnomasi” eʼloningiz 5 kundan soʻng arxivlanadi. Yangilaysizmi?',
+        createdAt: ago(const Duration(days: 6)),
+        target: const OpenProfile(),
+        read: true,
+      ),
     ];
   }
 
@@ -70,7 +124,7 @@ class NotificationMockDataSource {
 
   Future<List<AppNotification>> fetchAll() async {
     await Future<void>.delayed(const Duration(milliseconds: 400));
-    return List.unmodifiable(_items);
+    return List.unmodifiable([..._items]..sort((a, b) => b.createdAt.compareTo(a.createdAt)));
   }
 
   void markAll() {

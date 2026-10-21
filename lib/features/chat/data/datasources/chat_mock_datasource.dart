@@ -66,6 +66,123 @@ class ChatMockDataSource {
       ChatMessage(id: 'm6', text: 'Katta rahmat, kalitlarim yana menda!', sentAt: ago(const Duration(days: 2))),
     ];
     _ownerNotes['c_nilufar'] = 'Katta rahmat, kalitlarim yana menda!';
+    // More threads.
+    _threads['c_ozoda'] = ChatThread(
+      id: 'c_ozoda',
+      listingId: 'l_mine2',
+      listingTitle: 'Telefon, oltin rangli',
+      listingCategory: ItemCategory.phones,
+      listingTint: 1,
+      other: const PublicUser(id: 'u_ozoda', displayName: 'Ozoda N.'),
+      iAmFinder: true,
+      lastMessage: 'Qachon va qayerda uchrashsak boʻladi?',
+      lastAt: ago(const Duration(minutes: 35)),
+      unread: 2,
+    );
+    _messages['c_ozoda'] = [
+      ChatMessage(id: 'c_ozoda_m', text: matchedText, sentAt: ago(const Duration(minutes: 125)), kind: MessageKind.matched),
+      ChatMessage(id: 'c_ozoda_s', text: safetyTip, sentAt: ago(const Duration(minutes: 125)), kind: MessageKind.safety),
+      ChatMessage(id: 'c_ozoda_1', text: 'Assalomu alaykum! Buyum hali sizdami?', sentAt: ago(const Duration(minutes: 95)), fromMe: false),
+      ChatMessage(id: 'c_ozoda_2', text: 'Ha, menda. Qachon olib keta olasiz?', sentAt: ago(const Duration(minutes: 65)), fromMe: true),
+      ChatMessage(id: 'c_ozoda_3', text: 'Qachon va qayerda uchrashsak boʻladi?', sentAt: ago(const Duration(minutes: 35)), fromMe: false),
+    ];
+    _threads['c_jasur'] = ChatThread(
+      id: 'c_jasur',
+      listingId: 'l11',
+      listingTitle: 'ID karta, yashil gʻilofda',
+      listingCategory: ItemCategory.documents,
+      listingTint: 3,
+      other: const PublicUser(id: 'u_jasur', displayName: 'Jasur M.', returnedCount: 3),
+      iAmFinder: false,
+      lastMessage: 'Ertaga soat 10 da kutubxona oldida boʻlaman',
+      lastAt: ago(const Duration(minutes: 180)),
+    );
+    _messages['c_jasur'] = [
+      ChatMessage(id: 'c_jasur_m', text: matchedText, sentAt: ago(const Duration(minutes: 270)), kind: MessageKind.matched),
+      ChatMessage(id: 'c_jasur_s', text: safetyTip, sentAt: ago(const Duration(minutes: 270)), kind: MessageKind.safety),
+      ChatMessage(id: 'c_jasur_1', text: 'Assalomu alaykum! Buyum hali sizdami?', sentAt: ago(const Duration(minutes: 240)), fromMe: true),
+      ChatMessage(id: 'c_jasur_2', text: 'Ha, menda. Qachon olib keta olasiz?', sentAt: ago(const Duration(minutes: 210)), fromMe: false),
+      ChatMessage(id: 'c_jasur_3', text: 'Ertaga soat 10 da kutubxona oldida boʻlaman', sentAt: ago(const Duration(minutes: 180)), fromMe: false),
+    ];
+    _threads['c_gulnora'] = ChatThread(
+      id: 'c_gulnora',
+      listingId: 'l12',
+      listingTitle: 'Powerbank, kulrang',
+      listingCategory: ItemCategory.electronics,
+      listingTint: 0,
+      other: const PublicUser(id: 'u_gulnora', displayName: 'Gulnora X.', returnedCount: 2),
+      iAmFinder: false,
+      lastMessage: 'Stiker rasmini yuboring, iltimos',
+      lastAt: ago(const Duration(minutes: 1200)),
+      unread: 1,
+    );
+    _messages['c_gulnora'] = [
+      ChatMessage(id: 'c_gulnora_m', text: matchedText, sentAt: ago(const Duration(minutes: 1290)), kind: MessageKind.matched),
+      ChatMessage(id: 'c_gulnora_s', text: safetyTip, sentAt: ago(const Duration(minutes: 1290)), kind: MessageKind.safety),
+      ChatMessage(id: 'c_gulnora_1', text: 'Assalomu alaykum! Buyum hali sizdami?', sentAt: ago(const Duration(minutes: 1260)), fromMe: true),
+      ChatMessage(id: 'c_gulnora_2', text: 'Ha, menda. Qachon olib keta olasiz?', sentAt: ago(const Duration(minutes: 1230)), fromMe: false),
+      ChatMessage(id: 'c_gulnora_3', text: 'Stiker rasmini yuboring, iltimos', sentAt: ago(const Duration(minutes: 1200)), fromMe: false),
+    ];
+    _threads['c_shahlo'] = ChatThread(
+      id: 'c_shahlo',
+      listingId: 'l13',
+      listingTitle: 'Oʻyinchoq ayiqcha, jigarrang',
+      listingCategory: ItemCategory.kids,
+      listingTint: 2,
+      other: const PublicUser(id: 'u_shahlo', displayName: 'Shahlo R.', returnedCount: 1),
+      iAmFinder: false,
+      lastMessage: 'Qizim juda xursand boʻldi, rahmat!',
+      lastAt: ago(const Duration(minutes: 4320)),
+      returned: true,
+    );
+    _messages['c_shahlo'] = [
+      ChatMessage(id: 'c_shahlo_m', text: matchedText, sentAt: ago(const Duration(minutes: 4410)), kind: MessageKind.matched),
+      ChatMessage(id: 'c_shahlo_s', text: safetyTip, sentAt: ago(const Duration(minutes: 4410)), kind: MessageKind.safety),
+      ChatMessage(id: 'c_shahlo_1', text: 'Assalomu alaykum! Buyum hali sizdami?', sentAt: ago(const Duration(minutes: 4380)), fromMe: true),
+      ChatMessage(id: 'c_shahlo_2', text: 'Ha, menda. Qachon olib keta olasiz?', sentAt: ago(const Duration(minutes: 4350)), fromMe: false),
+      ChatMessage(id: 'c_shahlo_r', text: 'Buyum egasiga qaytarildi', sentAt: ago(const Duration(minutes: 4325)), kind: MessageKind.returned),
+      ChatMessage(id: 'c_shahlo_3', text: 'Qizim juda xursand boʻldi, rahmat!', sentAt: ago(const Duration(minutes: 4320)), fromMe: false),
+    ];
+    _ownerNotes['c_shahlo'] = 'Qizim juda xursand boʻldi, rahmat!';
+    _threads['c_timur'] = ChatThread(
+      id: 'c_timur',
+      listingId: 'l_old3',
+      listingTitle: 'Hamyon, qizil',
+      listingCategory: ItemCategory.wallets,
+      listingTint: 0,
+      other: const PublicUser(id: 'u_timur', displayName: 'Timur K.'),
+      iAmFinder: true,
+      lastMessage: 'Hamyonni oldim, katta rahmat sizga',
+      lastAt: ago(const Duration(minutes: 20160)),
+      returned: true,
+    );
+    _messages['c_timur'] = [
+      ChatMessage(id: 'c_timur_m', text: matchedText, sentAt: ago(const Duration(minutes: 20250)), kind: MessageKind.matched),
+      ChatMessage(id: 'c_timur_s', text: safetyTip, sentAt: ago(const Duration(minutes: 20250)), kind: MessageKind.safety),
+      ChatMessage(id: 'c_timur_1', text: 'Assalomu alaykum! Buyum hali sizdami?', sentAt: ago(const Duration(minutes: 20220)), fromMe: false),
+      ChatMessage(id: 'c_timur_2', text: 'Ha, menda. Qachon olib keta olasiz?', sentAt: ago(const Duration(minutes: 20190)), fromMe: true),
+      ChatMessage(id: 'c_timur_r', text: 'Buyum egasiga qaytarildi', sentAt: ago(const Duration(minutes: 20165)), kind: MessageKind.returned),
+      ChatMessage(id: 'c_timur_3', text: 'Hamyonni oldim, katta rahmat sizga', sentAt: ago(const Duration(minutes: 20160)), fromMe: false),
+    ];
+    _ownerNotes['c_timur'] = 'Hamyonni oldim, katta rahmat sizga';
+    _threads['c_bekzod'] = ChatThread(
+      id: 'c_bekzod',
+      listingId: 'l14',
+      listingTitle: 'Sport sumkasi, qora',
+      listingCategory: ItemCategory.bags,
+      listingTint: 1,
+      other: const PublicUser(id: 'u_bekzod', displayName: 'Bekzod U.'),
+      iAmFinder: false,
+      lastMessage: 'Sochiq rangini toʻgʻri aytdingiz, chat ochildi',
+      lastAt: ago(const Duration(minutes: 5760)),
+    );
+    _messages['c_bekzod'] = [
+      ChatMessage(id: 'c_bekzod_m', text: matchedText, sentAt: ago(const Duration(minutes: 5850)), kind: MessageKind.matched),
+      ChatMessage(id: 'c_bekzod_s', text: safetyTip, sentAt: ago(const Duration(minutes: 5850)), kind: MessageKind.safety),
+      ChatMessage(id: 'c_bekzod_1', text: 'Assalomu alaykum! Buyum hali sizdami?', sentAt: ago(const Duration(minutes: 5820)), fromMe: true),
+      ChatMessage(id: 'c_bekzod_2', text: 'Ha, menda. Qachon olib keta olasiz?', sentAt: ago(const Duration(minutes: 5790)), fromMe: false),
+      ChatMessage(id: 'c_bekzod_3', text: 'Sochiq rangini toʻgʻri aytdingiz, chat ochildi', sentAt: ago(const Duration(minutes: 5760)), fromMe: false),
+    ];
   }
 
   Future<List<ChatThread>> fetchThreads() async {

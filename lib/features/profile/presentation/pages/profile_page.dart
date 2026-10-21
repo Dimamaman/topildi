@@ -16,6 +16,7 @@ import '../../../../core/theme/topildi_surfaces.dart';
 import '../../../../core/theme/topildi_theme.dart';
 import '../../../../core/view_state.dart';
 import '../../../../core/widgets/glass_surface.dart';
+import '../../../../core/widgets/pull_down_menu.dart';
 import '../../../../core/widgets/photo_placeholder.dart';
 import '../../../../core/widgets/state_views.dart';
 import '../../../../core/widgets/t_avatar.dart';
@@ -564,38 +565,8 @@ class _Settings extends StatelessWidget {
 
   /// Pull-down menu anchored under the row's trailing value.
   Future<void> _theme(BuildContext context, BuildContext anchor, ThemeMode current) async {
-    final cs = Theme.of(context).colorScheme;
     final themeCubit = context.read<ThemeCubit>();
-    final box = anchor.findRenderObject()! as RenderBox;
-    final overlay = Navigator.of(context).overlay!.context.findRenderObject()! as RenderBox;
-    final rect = Rect.fromPoints(
-      box.localToGlobal(box.size.bottomLeft(Offset.zero), ancestor: overlay),
-      box.localToGlobal(box.size.bottomRight(Offset.zero), ancestor: overlay),
-    );
-    final picked = await showMenu<ThemeMode>(
-      context: context,
-      position: RelativeRect.fromRect(rect, Offset.zero & overlay.size),
-      color: cs.surfaceContainerLowest,
-      elevation: 8,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-      items: [
-        for (final (m, label) in _themes)
-          PopupMenuItem(
-            value: m,
-            height: 44,
-            child: Row(
-              children: [
-                SizedBox(
-                  width: 24,
-                  child: m == current ? Icon(Symbols.check_rounded, size: 20, color: cs.primary) : null,
-                ),
-                const SizedBox(width: 8),
-                Text(label, style: const TextStyle(fontSize: 16)),
-              ],
-            ),
-          ),
-      ],
-    );
+    final picked = await showPullDownMenu(context, anchor: anchor, items: _themes, current: current);
     if (picked != null) themeCubit.set(picked);
   }
 
