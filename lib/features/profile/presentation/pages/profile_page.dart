@@ -59,7 +59,7 @@ class _ProfileView extends StatelessWidget {
         listener: (context, _) => context.go(Routes.signIn),
         builder: (context, state) => Scaffold(
           body: switch (state.view) {
-            ViewLoading() || ViewEmpty() => const SafeArea(child: CardsSkeleton(count: 3)),
+            ViewLoading() || ViewEmpty() => const _ProfileSkeleton(),
             ViewError(:final isOffline) => SafeArea(
               child: isOffline ? OfflineState(onRetry: cubit.load) : ErrorState(onRetry: cubit.load),
             ),
@@ -688,6 +688,124 @@ class _Settings extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// Loading placeholder in the shape of the loaded page: tinted header with
+/// avatar and three stat tiles, the horizontal "Mening eʼlonlarim" cards
+/// and the settings group — so nothing jumps when the data arrives.
+class _ProfileSkeleton extends StatelessWidget {
+  const _ProfileSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final ts = context.ts;
+    final g = context.glass;
+    Widget bar(double w, double h, Color c, {double r = TRadius.xs}) => Container(
+      width: w,
+      height: h,
+      decoration: BoxDecoration(color: c, borderRadius: BorderRadius.circular(r)),
+    );
+    Widget card() => Container(
+      width: 236,
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(color: cs.surfaceContainerLowest, borderRadius: BorderRadius.circular(26)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(height: 104, color: ts.skeleton),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [bar(150, 16, ts.skeleton), const SizedBox(height: 8), bar(110, 12, ts.skeletonSoft)],
+            ),
+          ),
+        ],
+      ),
+    );
+    Widget settingsRow() => Padding(
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+      child: Row(
+        children: [
+          bar(22, 22, ts.skeleton, r: 11),
+          const SizedBox(width: 12),
+          bar(110, 14, ts.skeleton),
+          const Spacer(),
+          bar(70, 14, ts.skeletonSoft),
+        ],
+      ),
+    );
+    return Semantics(
+      label: tr('Yuklanmoqda'),
+      child: ExcludeSemantics(
+        child: ListView(
+          physics: const NeverScrollableScrollPhysics(),
+          padding: EdgeInsets.zero,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
+              child: Container(
+                padding: const EdgeInsets.fromLTRB(16, 46, 16, 16),
+                decoration: BoxDecoration(
+                  color: cs.primaryContainer,
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(48), bottom: Radius.circular(36)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Align(alignment: Alignment.centerRight, child: bar(44, 44, g.tile, r: 22)),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        bar(82, 82, g.tile, r: 41),
+                        const SizedBox(width: 14),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [bar(130, 26, g.tile), const SizedBox(height: 10), bar(180, 14, g.tile)],
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        for (var i = 0; i < 3; i++) ...[
+                          if (i > 0) const SizedBox(width: 8),
+                          Expanded(child: bar(double.infinity, 68, g.tile, r: 22)),
+                        ],
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(_side + 4, 24, _side + 4, 12),
+              child: Row(children: [bar(170, 20, ts.skeleton), const Spacer(), bar(64, 16, ts.skeletonSoft)]),
+            ),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              physics: const NeverScrollableScrollPhysics(),
+              padding: const EdgeInsets.symmetric(horizontal: _side),
+              child: Row(children: [card(), const SizedBox(width: 12), card()]),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(_side + 4, 26, _side + 4, 12),
+              child: Align(alignment: Alignment.centerLeft, child: bar(130, 20, ts.skeleton)),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: _side),
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                decoration: BoxDecoration(color: cs.surfaceContainerLowest, borderRadius: BorderRadius.circular(26)),
+                child: Column(children: [settingsRow(), settingsRow(), settingsRow()]),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

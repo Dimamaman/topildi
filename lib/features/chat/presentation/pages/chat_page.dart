@@ -184,11 +184,9 @@ class _Header extends StatelessWidget {
                             confirmLabel: tr('Shikoyat qilish'),
                             destructive: true,
                           );
-                          if (ok && context.mounted)
-                            TFeedback.success(
-                              context,
-                              tr('Shikoyat yuborildi'),
-                            );
+                          if (ok && context.mounted) {
+                            TFeedback.success(context, tr('Shikoyat yuborildi'));
+                          }
                         }
                       },
                       itemBuilder: (_) => [
