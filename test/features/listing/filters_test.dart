@@ -21,7 +21,7 @@ void main() {
 
     await tester.pumpWidget(const TopildiApp(initialLocation: Routes.home));
     await _settle(tester);
-    expect(find.text('6 ta topilgan buyum'), findsOneWidget);
+    expect(find.text('Qora charm hamyon'), findsOneWidget);
 
     await tester.tap(find.bySemanticsLabel('Filtrlar'));
     await _settle(tester);
@@ -34,13 +34,15 @@ void main() {
 
     await tester.tap(find.text('2 ta natijani koʻrsatish'));
     await _settle(tester);
-    expect(find.text('2 ta topilgan buyum'), findsOneWidget);
     expect(find.text('Qora charm hamyon'), findsOneWidget);
+    expect(find.text('Kalitlar toʻplami, 3 dona'), findsOneWidget);
+    expect(find.text('Bolalar ryukzagi, koʻk'), findsNothing);
     expect(find.text('Telefon, oq gʻilofda'), findsNothing);
 
     // Category chip resets to a single category.
     await tester.tap(find.text('Hammasi'));
     await _settle(tester);
-    expect(find.text('6 ta topilgan buyum'), findsOneWidget);
+    expect(find.bySemanticsLabel('Filtrlar'), findsOneWidget);
+    expect(find.text('Bolalar ryukzagi, koʻk'), findsOneWidget);
   });
 }

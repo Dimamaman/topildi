@@ -12,7 +12,7 @@ void main() {
     await tester.pumpWidget(const TopildiApp(initialLocation: Routes.home));
     await tester.pump(const Duration(seconds: 1));
 
-    await tester.tap(find.text('Qoʻshish'));
+    await tester.tap(find.bySemanticsLabel('Eʼlon berish'));
     await tester.pumpAndSettle();
     expect(find.text('Nima boʻldi?'), findsOneWidget);
 

@@ -59,7 +59,7 @@ void main() {
     await tester.tap(find.text('Tayyor'));
     await _settle(tester);
 
-    expect(find.text('Lenta'), findsOneWidget);
+    expect(find.text('Hammasi'), findsOneWidget);
     final session = getIt<Session>();
     expect(session.signedIn, isTrue);
     expect(session.displayName, 'Malika K.');

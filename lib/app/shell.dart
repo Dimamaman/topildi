@@ -17,8 +17,6 @@ class AppShell extends StatelessWidget {
 
   final StatefulNavigationShell shell;
 
-  static const _branchToNav = [0, 1, 3, 4];
-
   @override
   Widget build(BuildContext context) {
     // Chat list lives at shell level so the nav badge and the Chats tab share it.
@@ -28,16 +26,16 @@ class AppShell extends StatelessWidget {
         BlocProvider(create: (_) => getIt<NotificationBadgeCubit>()),
       ],
       child: Scaffold(
+        // The glass tab bar floats over the content; pages get its height
+        // as bottom padding.
+        extendBody: true,
         body: shell,
         bottomNavigationBar: BlocBuilder<ChatListCubit, ViewState<List<ChatThread>>>(
           builder: (context, _) => TBottomNav(
-            currentIndex: _branchToNav[shell.currentIndex],
+            currentIndex: shell.currentIndex,
             unreadChats: context.read<ChatListCubit>().unread,
             onAdd: () => context.push(Routes.create),
-            onSelect: (navIndex) {
-              final branch = _branchToNav.indexOf(navIndex);
-              shell.goBranch(branch, initialLocation: branch == shell.currentIndex);
-            },
+            onSelect: (branch) => shell.goBranch(branch, initialLocation: branch == shell.currentIndex),
           ),
         ),
       ),

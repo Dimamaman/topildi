@@ -2,49 +2,62 @@ import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
 import '../theme/topildi_theme.dart';
+import '../theme/t_text.dart';
+import 'glass_surface.dart';
 
-/// 36dp filter chip; the hit area is padded to 48dp.
+/// Capsule filter chip (36dp, hit area padded to 44dp) with an optional
+/// leading icon. Selected: filled `primary`; unselected: quiet grey fill,
+/// `on-surface` text, no border.
 class TChip extends StatelessWidget {
-  const TChip({super.key, required this.label, required this.selected, required this.onTap, this.showCheck = false});
+  const TChip({
+    super.key,
+    required this.label,
+    required this.selected,
+    required this.onTap,
+    this.icon,
+    this.showCheck = false,
+  });
 
   final String label;
   final bool selected;
   final VoidCallback onTap;
+  final IconData? icon;
+
+  /// Multi-select contexts (Filters): a check replaces the icon when selected.
   final bool showCheck;
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final fg = selected ? cs.onPrimaryContainer : cs.onSurface;
+    final fg = selected ? cs.onPrimary : cs.onSurface;
+    final leading = showCheck && selected ? Symbols.check_rounded : icon;
     return Semantics(
       button: true,
       selected: selected,
-      child: InkWell(
+      child: GestureDetector(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(TRadius.sm),
+        behavior: HitTestBehavior.opaque,
         child: ConstrainedBox(
-          constraints: const BoxConstraints(minHeight: TSize.tapTarget),
+          constraints: const BoxConstraints(minHeight: 44),
           child: Center(
             widthFactor: 1,
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 150),
               constraints: const BoxConstraints(minHeight: 36),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+              padding: EdgeInsets.only(left: leading == null ? 16 : 12, right: 16, top: 4, bottom: 4),
               decoration: BoxDecoration(
-                color: selected ? cs.primaryContainer : cs.surfaceContainerLowest,
-                borderRadius: BorderRadius.circular(TRadius.sm),
-                border: Border.all(color: selected ? cs.primaryContainer : cs.outlineVariant),
+                color: selected ? cs.primary : context.glass.quiet,
+                borderRadius: BorderRadius.circular(TRadius.full),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  if (showCheck && selected) ...[
-                    Icon(Symbols.check_rounded, size: 16, color: fg, weight: 600),
-                    const SizedBox(width: 6),
-                  ],
+                  if (leading != null) ...[Icon(leading, size: 18, color: fg), const SizedBox(width: 6)],
                   Text(
                     label,
-                    style: TextStyle(fontSize: 14, fontWeight: selected ? FontWeight.w600 : FontWeight.w500, color: fg),
+                    style: Theme.of(context).textTheme.bodyMedium!
+                        .copyWith(fontSize: 14, height: 20 / 14, color: fg)
+                        .inter(selected ? FontWeight.w600 : FontWeight.w500),
                   ),
                 ],
               ),
@@ -56,11 +69,20 @@ class TChip extends StatelessWidget {
   }
 }
 
-/// Horizontally scrolling single-select chip row.
+/// Horizontally scrolling single-select chip row. [icons] (optional) gives a
+/// leading icon per label; null entries have none.
 class TChipRow extends StatelessWidget {
-  const TChipRow({super.key, required this.labels, required this.selected, required this.onSelected, this.padding});
+  const TChipRow({
+    super.key,
+    required this.labels,
+    required this.selected,
+    required this.onSelected,
+    this.icons,
+    this.padding,
+  });
 
   final List<String> labels;
+  final List<IconData?>? icons;
   final int selected;
   final ValueChanged<int> onSelected;
   final EdgeInsetsGeometry? padding;
@@ -74,7 +96,12 @@ class TChipRow extends StatelessWidget {
         children: [
           for (var i = 0; i < labels.length; i++) ...[
             if (i > 0) const SizedBox(width: TSpace.xs),
-            TChip(label: labels[i], selected: i == selected, onTap: () => onSelected(i)),
+            TChip(
+              label: labels[i],
+              icon: icons != null && i < icons!.length ? icons![i] : null,
+              selected: i == selected,
+              onTap: () => onSelected(i),
+            ),
           ],
         ],
       ),
@@ -82,8 +109,8 @@ class TChipRow extends StatelessWidget {
   }
 }
 
-/// Found / Lost segmented control, iOS style: a rounded track with a
-/// sliding thumb. Tap or drag across to switch. Each segment shows a
+/// Found / Lost segmented control, iOS 26 style: a capsule track with a
+/// sliding glass thumb. Tap or drag across to switch. Each segment shows a
 /// coloured dot *and* text, so the choice never relies on colour alone.
 class TTypeTabs extends StatelessWidget {
   const TTypeTabs({super.key, required this.isFound, required this.onChanged});
@@ -91,17 +118,15 @@ class TTypeTabs extends StatelessWidget {
   final bool isFound;
   final ValueChanged<bool> onChanged;
 
-  static const _height = TSize.tapTarget;
-  static const _inset = 4.0;
-  static const _duration = Duration(milliseconds: 220);
+  static const _height = 44.0;
+  static const _inset = 3.0;
+  static const _duration = Duration(milliseconds: 250);
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final tc = context.tc;
-    final dark = Theme.of(context).brightness == Brightness.dark;
-    final track = dark ? cs.surface : cs.surfaceContainerHigh;
-    final thumb = dark ? cs.surfaceContainerHighest : cs.surfaceContainerLowest;
+    final g = context.glass;
 
     Widget segment(bool found, String label, Color color) {
       final active = found == isFound;
@@ -117,16 +142,18 @@ class TTypeTabs extends StatelessWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Container(width: 8, height: 8, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
-                  const SizedBox(width: 8),
+                  Container(
+                    width: 7,
+                    height: 7,
+                    decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+                  ),
+                  const SizedBox(width: 6),
                   Flexible(
                     child: AnimatedDefaultTextStyle(
                       duration: _duration,
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: active ? FontWeight.w700 : FontWeight.w600,
-                        color: active ? color : cs.onSurfaceVariant,
-                      ),
+                      style: Theme.of(context).textTheme.bodyMedium!
+                          .copyWith(fontSize: 15, height: 20 / 15, color: active ? color : cs.secondary)
+                          .inter(active ? FontWeight.w600 : FontWeight.w500),
                       child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
                     ),
                   ),
@@ -148,7 +175,7 @@ class TTypeTabs extends StatelessWidget {
         child: Container(
           height: _height,
           padding: const EdgeInsets.all(_inset),
-          decoration: BoxDecoration(color: track, borderRadius: BorderRadius.circular(TRadius.md + _inset)),
+          decoration: BoxDecoration(color: g.quiet, borderRadius: BorderRadius.circular(TRadius.full)),
           child: Stack(
             children: [
               AnimatedAlign(
@@ -158,18 +185,7 @@ class TTypeTabs extends StatelessWidget {
                 child: FractionallySizedBox(
                   widthFactor: 0.5,
                   heightFactor: 1,
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      color: thumb,
-                      borderRadius: BorderRadius.circular(TRadius.md),
-                      boxShadow: dark
-                          ? null
-                          : [
-                              BoxShadow(color: cs.scrim.withValues(alpha: 0.10), blurRadius: 8, offset: const Offset(0, 2)),
-                              BoxShadow(color: cs.scrim.withValues(alpha: 0.04), blurRadius: 1, offset: const Offset(0, 1)),
-                            ],
-                    ),
-                  ),
+                  child: GlassSurface(color: g.thumb, child: const SizedBox.expand()),
                 ),
               ),
               Row(children: [segment(true, 'Topilgan', tc.found), segment(false, 'Yoʻqolgan', tc.lost)]),

@@ -103,6 +103,7 @@ class _FiltersSheet extends StatelessWidget {
                         for (final c in ItemCategory.values)
                           TChip(
                             label: c.label,
+                            icon: c.icon,
                             selected: f.categories.contains(c),
                             showCheck: true,
                             onTap: () => cubit.toggleCategory(c),

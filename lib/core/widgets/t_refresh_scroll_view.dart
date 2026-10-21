@@ -13,6 +13,7 @@ class TRefreshScrollView extends StatelessWidget {
     required this.slivers,
     this.controller,
     this.overscrollColor,
+    this.edgeOffset = 0,
   });
 
   final Future<void> Function() onRefresh;
@@ -24,6 +25,9 @@ class TRefreshScrollView extends StatelessWidget {
   /// instead of opening an empty gap. Later slivers must paint their own
   /// background, since this colour sits behind the whole scroll view.
   final Color? overscrollColor;
+
+  /// Android: where the Material indicator starts (below a pinned header).
+  final double edgeOffset;
 
   @override
   Widget build(BuildContext context) {
@@ -55,6 +59,7 @@ class TRefreshScrollView extends StatelessWidget {
     final cs = theme.colorScheme;
     return RefreshIndicator(
       onRefresh: onRefresh,
+      edgeOffset: edgeOffset,
       color: cs.primary,
       backgroundColor: cs.surfaceContainerLowest,
       child: CustomScrollView(

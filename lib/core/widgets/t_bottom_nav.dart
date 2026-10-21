@@ -1,16 +1,17 @@
-import 'dart:ui' show ImageFilter;
+import 'dart:math' as math;
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
-import '../theme/topildi_theme.dart';
+import 'glass_surface.dart';
+import '../theme/t_text.dart';
 
-/// Bottom nav: Lenta · Xarita · Qoʻshish · Chatlar · Profil.
-/// Index 2 ("Qoʻshish") is an action, not a destination: it calls [onAdd].
-/// iOS gets a Cupertino-style tab bar, everything else the Material 3 bar.
-/// [currentIndex] is the destination index (0 Lenta, 1 Xarita, 3 Chatlar, 4 Profil).
+/// Floating Liquid Glass tab bar (iOS 26 style, used on both platforms):
+/// a glass capsule with Lenta · Xarita · Chatlar · Profil, and next to it a
+/// round primary "+" that starts the Eʼlon berish flow (an action, not a tab).
+/// Floats over the content: host it with `Scaffold(extendBody: true)`.
+/// [currentIndex]: 0 Lenta, 1 Xarita, 2 Chatlar, 3 Profil.
 class TBottomNav extends StatelessWidget {
   const TBottomNav({
     super.key,
@@ -25,263 +26,153 @@ class TBottomNav extends StatelessWidget {
   final VoidCallback onAdd;
   final int unreadChats;
 
+  static const barHeight = 62.0;
+
   static const _items = [
     (Symbols.home_rounded, 'Lenta'),
     (Symbols.map_rounded, 'Xarita'),
-    (Symbols.add_rounded, 'Qoʻshish'),
     (Symbols.chat_bubble_rounded, 'Chatlar'),
-    (Symbols.person_rounded, 'Profil'),
+    (Symbols.account_circle_rounded, 'Profil'),
   ];
 
+  /// Gap under the bar: 24 above the screen edge, never inside the
+  /// home-indicator / gesture area.
+  static double bottomGap(BuildContext context) => math.max(24, MediaQuery.paddingOf(context).bottom - 10);
+
   @override
   Widget build(BuildContext context) {
-    if (Theme.of(context).platform == TargetPlatform.iOS) {
-      return _CupertinoNav(
-        items: _items,
-        currentIndex: currentIndex,
-        unreadChats: unreadChats,
-        onTap: (i) => i == 2 ? onAdd() : onSelect(i),
-      );
-    }
     final cs = Theme.of(context).colorScheme;
-    final bottom = MediaQuery.paddingOf(context).bottom;
-    return Container(
-      height: TSize.navBar + bottom,
-      padding: EdgeInsets.only(left: 8, right: 8, bottom: bottom),
-      decoration: BoxDecoration(
-        color: cs.surfaceContainerLowest,
-        border: Border(top: BorderSide(color: cs.outlineVariant)),
-      ),
-      child: Row(
-        children: [
-          for (var i = 0; i < _items.length; i++)
+    final g = context.glass;
+    return Padding(
+      padding: EdgeInsets.fromLTRB(16, 0, 16, bottomGap(context)),
+      child: SizedBox(
+        height: barHeight,
+        child: Row(
+          children: [
             Expanded(
-              child: _NavItem(
-                icon: _items[i].$1,
-                label: _items[i].$2,
-                active: i == currentIndex,
-                isAdd: i == 2,
-                badge: i == 3 ? unreadChats : 0,
-                onTap: () => i == 2 ? onAdd() : onSelect(i),
+              child: GlassSurface(
+                color: g.bar,
+                padding: const EdgeInsets.all(4),
+                child: LayoutBuilder(
+                  builder: (context, c) {
+                    final w = c.maxWidth / _items.length;
+                    return Stack(
+                      children: [
+                        // Active-tab capsule slides between tabs.
+                        AnimatedPositioned(
+                          duration: const Duration(milliseconds: 250),
+                          curve: Curves.easeOutCubic,
+                          left: w * currentIndex,
+                          top: 0,
+                          bottom: 0,
+                          width: w,
+                          child: DecoratedBox(
+                            decoration: BoxDecoration(color: g.activeTab, borderRadius: BorderRadius.circular(999)),
+                          ),
+                        ),
+                        Row(
+                          children: [
+                            for (var i = 0; i < _items.length; i++)
+                              Expanded(
+                                child: _Tab(
+                                  icon: _items[i].$1,
+                                  label: _items[i].$2,
+                                  active: i == currentIndex,
+                                  badge: i == 2 ? unreadChats : 0,
+                                  onTap: () {
+                                    if (i != currentIndex) HapticFeedback.selectionClick();
+                                    onSelect(i);
+                                  },
+                                ),
+                              ),
+                          ],
+                        ),
+                      ],
+                    );
+                  },
+                ),
               ),
             ),
-        ],
-      ),
-    );
-  }
-}
-
-class _NavItem extends StatelessWidget {
-  const _NavItem({
-    required this.icon,
-    required this.label,
-    required this.active,
-    required this.isAdd,
-    required this.badge,
-    required this.onTap,
-  });
-
-  final IconData icon;
-  final String label;
-  final bool active, isAdd;
-  final int badge;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    final fg = active ? cs.onPrimaryContainer : (isAdd ? cs.onSurface : cs.onSurfaceVariant);
-    final pill = Container(
-      width: isAdd ? 40 : 56,
-      height: 30,
-      decoration: BoxDecoration(
-        color: isAdd ? cs.primary : (active ? cs.primaryContainer : Colors.transparent),
-        borderRadius: BorderRadius.circular(isAdd ? 10 : 15),
-      ),
-      child: Icon(icon, size: isAdd ? 20 : 22, color: isAdd ? cs.onPrimary : fg, fill: active ? 1 : 0),
-    );
-    return Semantics(
-      button: true,
-      selected: active,
-      label: badge > 0 ? '$label, $badge ta yangi' : label,
-      excludeSemantics: true,
-      child: InkResponse(
-        onTap: onTap,
-        radius: 36,
-        child: SizedBox(
-          height: 56,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  pill,
-                  if (badge > 0)
-                    Positioned(
-                      top: -4,
-                      right: 2,
-                      child: Container(
-                        constraints: const BoxConstraints(minWidth: 18),
-                        height: 18,
-                        padding: const EdgeInsets.symmetric(horizontal: 5),
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(color: cs.error, borderRadius: BorderRadius.circular(9)),
-                        child: Text(
-                          '$badge',
-                          textScaler: TextScaler.noScaling,
-                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: cs.onError),
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-              const SizedBox(height: 4),
-              Text(
-                label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                textScaler: MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.15),
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: active || isAdd ? FontWeight.w600 : FontWeight.w500,
-                  color: fg,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// iOS tab bar: 50 pt, translucent blurred background, hairline top border,
-/// tinted (not pill-highlighted) selection, opacity press feedback.
-class _CupertinoNav extends StatelessWidget {
-  const _CupertinoNav({
-    required this.items,
-    required this.currentIndex,
-    required this.unreadChats,
-    required this.onTap,
-  });
-
-  final List<(IconData, String)> items;
-  final int currentIndex, unreadChats;
-  final ValueChanged<int> onTap;
-
-  static const _height = 50.0;
-
-  @override
-  Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    final bottom = MediaQuery.paddingOf(context).bottom;
-    return ClipRect(
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-        child: Container(
-          height: _height + bottom,
-          padding: EdgeInsets.only(bottom: bottom),
-          decoration: BoxDecoration(
-            color: cs.surfaceContainerLowest.withValues(alpha: 0.92),
-            border: Border(top: BorderSide(color: cs.outlineVariant, width: 0.5)),
-          ),
-          child: Row(
-            children: [
-              for (var i = 0; i < items.length; i++)
-                Expanded(
-                  child: _CupertinoItem(
-                    icon: i == 2 ? Symbols.add_circle_rounded : items[i].$1,
-                    label: items[i].$2,
-                    active: i == currentIndex,
-                    isAdd: i == 2,
-                    badge: i == 3 ? unreadChats : 0,
-                    onTap: () {
-                      if (i != currentIndex) HapticFeedback.selectionClick();
-                      onTap(i);
-                    },
+            const SizedBox(width: 10),
+            Semantics(
+              button: true,
+              label: 'Eʼlon berish',
+              excludeSemantics: true,
+              child: GestureDetector(
+                onTap: onAdd,
+                behavior: HitTestBehavior.opaque,
+                child: SizedBox.square(
+                  dimension: barHeight,
+                  child: GlassSurface(
+                    color: cs.primary.withValues(alpha: 0.88),
+                    child: Center(child: Icon(Symbols.add_rounded, size: 30, color: cs.onPrimary)),
                   ),
                 ),
-            ],
-          ),
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 }
 
-class _CupertinoItem extends StatelessWidget {
-  const _CupertinoItem({
-    required this.icon,
-    required this.label,
-    required this.active,
-    required this.isAdd,
-    required this.badge,
-    required this.onTap,
-  });
+class _Tab extends StatelessWidget {
+  const _Tab({required this.icon, required this.label, required this.active, required this.badge, required this.onTap});
 
   final IconData icon;
   final String label;
-  final bool active, isAdd;
+  final bool active;
   final int badge;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final color = active || isAdd ? cs.primary : cs.onSurfaceVariant;
+    final color = active ? cs.primary : cs.onSurface;
     return Semantics(
       button: true,
       selected: active,
       label: badge > 0 ? '$label, $badge ta yangi' : label,
       excludeSemantics: true,
-      child: CupertinoButton(
-        padding: EdgeInsets.zero,
-        minimumSize: const Size(TSize.tapTarget, _CupertinoNav._height),
-        // No dimming on press (app-wide rule: no tap overlays).
-        pressedOpacity: null,
-        onPressed: onTap,
+      child: GestureDetector(
+        onTap: onTap,
+        behavior: HitTestBehavior.opaque,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Fixed icon box keeps all labels on one baseline.
-            SizedBox(
-              height: 30,
-              child: Stack(
-                clipBehavior: Clip.none,
-                alignment: Alignment.center,
-                children: [
-                  Icon(icon, size: isAdd ? 30 : 26, color: color, fill: active || isAdd ? 1 : 0),
-                  if (badge > 0)
-                    Positioned(
-                      top: -3,
-                      right: -10,
-                      child: Container(
-                        constraints: const BoxConstraints(minWidth: 18),
-                        height: 18,
-                        padding: const EdgeInsets.symmetric(horizontal: 5),
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          color: CupertinoColors.systemRed,
-                          borderRadius: BorderRadius.circular(9),
-                        ),
-                        child: Text(
-                          '$badge',
-                          textScaler: TextScaler.noScaling,
-                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white),
-                        ),
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Icon(icon, size: 24, color: color, fill: 1),
+                if (badge > 0)
+                  Positioned(
+                    top: -4,
+                    left: 17,
+                    child: Container(
+                      constraints: const BoxConstraints(minWidth: 18),
+                      height: 18,
+                      padding: const EdgeInsets.symmetric(horizontal: 5),
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(color: cs.error, borderRadius: BorderRadius.circular(999)),
+                      child: Text(
+                        '$badge',
+                        textScaler: TextScaler.noScaling,
+                        style: TextStyle(fontSize: 11, height: 1, fontWeight: FontWeight.w600, color: cs.onError),
                       ),
                     ),
-                ],
-              ),
+                  ),
+              ],
             ),
-            const SizedBox(height: 2),
+            const SizedBox(height: 1),
             Text(
               label,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              textScaler: MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.1),
-              style: TextStyle(fontSize: 10, fontWeight: FontWeight.w500, letterSpacing: 0.1, color: color),
+              textScaler: MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.15),
+              style: Theme.of(context).textTheme.labelSmall!
+                  .copyWith(fontSize: 10, height: 1.3, letterSpacing: 0, color: color)
+                  .inter(active ? FontWeight.w600 : FontWeight.w500),
             ),
           ],
         ),

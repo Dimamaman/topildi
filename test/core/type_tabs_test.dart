@@ -49,6 +49,6 @@ void main() {
     await pump(tester);
     expect(find.text('Topilgan'), findsOneWidget);
     expect(find.text('Yoʻqolgan'), findsOneWidget);
-    expect(tester.getSize(find.byType(TTypeTabs)).height, greaterThanOrEqualTo(48));
+    expect(tester.getSize(find.byType(TTypeTabs)).height, greaterThanOrEqualTo(44));
   });
 }

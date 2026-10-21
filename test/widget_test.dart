@@ -9,7 +9,7 @@ void main() {
 
   testWidgets('Feed loads and shows found listings', (tester) async {
     await tester.pumpWidget(const TopildiApp(initialLocation: Routes.home));
-    expect(find.text('Lenta'), findsOneWidget);
+    expect(find.text('Hammasi'), findsOneWidget);
 
     await tester.pump(const Duration(seconds: 1));
     expect(find.text('Qora charm hamyon'), findsOneWidget);

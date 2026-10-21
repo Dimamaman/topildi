@@ -19,7 +19,7 @@ void main() {
     await tester.pumpWidget(const TopildiApp(initialLocation: Routes.home));
     await _settle(tester);
 
-    await tester.scrollUntilVisible(find.text('Bolalar ryukzagi, koʻk'), 200, scrollable: find.byType(Scrollable).last);
+    await tester.scrollUntilVisible(find.text('Bolalar ryukzagi, koʻk').hitTestable(), 100, scrollable: find.byWidgetPredicate((w) => w is Scrollable && w.axisDirection == AxisDirection.down).first);
     await tester.tap(find.text('Bolalar ryukzagi, koʻk'));
     await _settle(tester);
     await tester.tap(find.text('Bu meniki'));
