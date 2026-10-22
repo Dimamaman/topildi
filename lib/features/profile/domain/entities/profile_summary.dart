@@ -22,9 +22,15 @@ class ProfileSummary extends Equatable {
     required this.gotBack,
     required this.notificationsOn,
     this.avatarPath,
+    this.avatarTone = 0,
+    this.avatarEmoji,
   });
 
   final String? avatarPath;
+
+  /// Letter-avatar colour and optional emoji (see `Session`).
+  final int avatarTone;
+  final String? avatarEmoji;
 
   final String displayName;
   final DateTime memberSince;
@@ -37,5 +43,15 @@ class ProfileSummary extends Equatable {
   int get total => active.length + returned.length;
 
   @override
-  List<Object?> get props => [displayName, memberSince, active, returned, gotBack, notificationsOn, avatarPath];
+  List<Object?> get props => [
+    displayName,
+    memberSince,
+    active,
+    returned,
+    gotBack,
+    notificationsOn,
+    avatarPath,
+    avatarTone,
+    avatarEmoji,
+  ];
 }

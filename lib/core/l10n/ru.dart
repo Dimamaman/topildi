@@ -150,6 +150,22 @@ const ruStrings = <String, String>{
   'Familiyangiz': 'Ваша фамилия',
   'Boshqalar faqat bosh harfni koʻradi: {publicName}': 'Другие увидят только инициал: {publicName}',
 
+  'Salom,': 'Привет,',
+  'Familiya qoʻshish': 'Добавить фамилию',
+  'Familiya: {name}': 'Фамилия: {name}',
+  'Familiya · ixtiyoriy': 'Фамилия · необязательно',
+  'Olib tashlash': 'Убрать',
+  'Rasm tanlang — kamera, galereya yoki emoji.': 'Выберите фото — камера, галерея или эмодзи.',
+  'Eʼlonlaringizda {name} boʻlib koʻrinasiz.': 'В объявлениях вы будете {name}.',
+  'Suratga olish': 'Сделать фото',
+  'Galereyadan tanlash': 'Выбрать из галереи',
+  'Emoji tanlash': 'Выбрать эмодзи',
+  'Emoji tanlang': 'Выберите эмодзи',
+  'Avatar rangi: {name}': 'Цвет аватара: {name}',
+  'Yashil': 'Зелёный',
+  'Shaftoli': 'Персиковый',
+  'Sariq': 'Жёлтый',
+
   // Chats
   'Hali chat yoʻq': 'Чатов пока нет',
   'Soʻrovingiz qabul qilinsa yoki siz soʻrovni qabul qilsangiz, chat shu yerda paydo boʻladi.':

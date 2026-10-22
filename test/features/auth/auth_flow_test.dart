@@ -63,17 +63,20 @@ void main() {
     await tester.enterText(find.byType(TextField), '482713');
     await _settle(tester);
 
-    expect(find.text('Tanishib olaylik'), findsOneWidget);
-    await tester.enterText(find.byType(TextField).at(0), 'Malika');
-    await tester.enterText(find.byType(TextField).at(1), 'Karimova');
+    expect(find.text('Oxirgi qadam'), findsOneWidget);
+    expect(find.text('Salom,'), findsOneWidget);
+    await tester.enterText(find.byType(TextField), 'Malika');
     await tester.pump();
-    expect(find.text('Boshqalar faqat bosh harfni koʻradi: Malika K.'), findsOneWidget);
+    expect(find.text('M'), findsOneWidget); // avatar letter follows the name
+    // No surname step: others see the name alone.
+    expect(find.text('Familiya qoʻshish'), findsNothing);
+    expect(find.textContaining('Malika boʻlib', findRichText: true), findsOneWidget);
     await tester.tap(find.text('Tayyor'));
     await _settle(tester);
 
     expect(find.text('Hammasi'), findsOneWidget);
     final session = getIt<Session>();
     expect(session.signedIn, isTrue);
-    expect(session.displayName, 'Malika K.');
+    expect(session.displayName, 'Malika');
   });
 }

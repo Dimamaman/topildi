@@ -30,6 +30,7 @@ import '../../../../core/l10n/tr.dart';
 import '../../../../core/utils/date_format.dart';
 import '../../../../core/l10n/app_language.dart';
 import '../../../../core/l10n/language_cubit.dart';
+import '../../../../core/widgets/avatar_tone.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -146,7 +147,7 @@ class _Header extends StatelessWidget {
           const SizedBox(height: 8),
           Row(
             children: [
-              _Avatar(name: name, imagePath: p.avatarPath),
+              _Avatar(name: name, imagePath: p.avatarPath, tone: p.avatarTone, emoji: p.avatarEmoji),
               const SizedBox(width: 14),
               Expanded(
                 child: Column(
@@ -203,21 +204,22 @@ class _Header extends StatelessWidget {
 
 /// 76×76 circle inside a 3px white ring: photo, or the initial in lost colours.
 class _Avatar extends StatelessWidget {
-  const _Avatar({required this.name, this.imagePath});
+  const _Avatar({required this.name, this.imagePath, this.tone = 0, this.emoji});
 
   final String name;
-  final String? imagePath;
+  final String? imagePath, emoji;
+  final int tone;
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final tc = context.tc;
+    final (bg, fg) = avatarToneColors(context, tone);
     final initial = Text(
-      TAvatar.initialsOf(name),
+      emoji ?? TAvatar.initialsOf(name),
       textScaler: TextScaler.noScaling,
-      style: Theme.of(
-        context,
-      ).textTheme.headlineSmall!.copyWith(fontSize: 32, height: 1, color: tc.lost).inter(FontWeight.w600),
+      style: Theme.of(context).textTheme.headlineSmall!
+          .copyWith(fontSize: emoji != null ? 40 : 32, height: 1, color: fg)
+          .inter(FontWeight.w600),
     );
     final path = imagePath;
     // 76 + the 3px ring on each side.
@@ -227,7 +229,7 @@ class _Avatar extends StatelessWidget {
       alignment: Alignment.center,
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
-        color: tc.lostContainer,
+        color: bg,
         shape: BoxShape.circle,
         border: Border.all(color: cs.surfaceContainerLowest, width: 3),
       ),

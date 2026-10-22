@@ -42,6 +42,7 @@ Future<T?> showPullDownMenu<T>(
   required T current,
   String? label,
   Set<int> dividersAfter = const {},
+  Set<int> destructive = const {},
   PullDownDrag? drag,
 }) {
   final overlay = Navigator.of(context, rootNavigator: true).overlay!;
@@ -80,6 +81,7 @@ Future<T?> showPullDownMenu<T>(
         current: current,
         label: label,
         dividersAfter: dividersAfter,
+        destructive: destructive,
         drag: drag,
       ),
       onClosed: finish,
@@ -96,6 +98,7 @@ class _MenuSpec<T> {
     required this.current,
     required this.label,
     required this.dividersAfter,
+    required this.destructive,
     required this.drag,
   });
 
@@ -104,6 +107,9 @@ class _MenuSpec<T> {
   final T current;
   final String? label;
   final Set<int> dividersAfter;
+
+  /// Items drawn in the error colour (e.g. "Rasmni olib tashlash").
+  final Set<int> destructive;
   final PullDownDrag? drag;
 
   static const width = 236.0;
@@ -265,7 +271,7 @@ class _PullDownMenuState<T> extends State<_PullDownMenu<T>> with SingleTickerPro
                   child: Text(
                     label,
                     style: Theme.of(context).textTheme.bodyLarge!
-                        .copyWith(fontSize: 17, height: 22 / 17, color: cs.onSurface)
+                        .copyWith(fontSize: 17, height: 22 / 17, color: spec.destructive.contains(i) ? cs.error : cs.onSurface)
                         .inter(selected ? FontWeight.w600 : FontWeight.w400),
                   ),
                 ),

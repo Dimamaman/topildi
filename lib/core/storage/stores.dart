@@ -99,6 +99,8 @@ abstract final class StoreKeys {
   static const firstName = 'first_name';
   static const lastName = 'last_name';
   static const avatarPath = 'avatar_path';
+  static const avatarTone = 'avatar_tone';
+  static const avatarEmoji = 'avatar_emoji';
   static const themeMode = 'theme_mode';
   static const language = 'language';
   static const notificationsOn = 'notifications_on';

@@ -60,5 +60,6 @@ class AuthRepositoryImpl implements AuthRepository {
         await Future<void>.delayed(_latency);
         await _session.setName(input.firstName.trim(), input.lastName.trim());
         await _session.setAvatar(input.photoPath);
+        await _session.setAvatarStyle(tone: input.tone, emoji: input.photoPath == null ? input.emoji : null);
       });
 }

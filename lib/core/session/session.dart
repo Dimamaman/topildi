@@ -40,6 +40,17 @@ class Session {
     await _kv.setString(StoreKeys.lastName, last);
   }
 
+  /// Letter-avatar colour: 0 primary, 1 green, 2 peach, 3 yellow.
+  int get avatarTone => int.tryParse(_kv.getString(StoreKeys.avatarTone) ?? '') ?? 0;
+
+  /// Emoji avatar, if chosen instead of a photo.
+  String? get avatarEmoji => _kv.getString(StoreKeys.avatarEmoji);
+
+  Future<void> setAvatarStyle({required int tone, String? emoji}) async {
+    await _kv.setString(StoreKeys.avatarTone, '$tone');
+    emoji == null ? await _kv.remove(StoreKeys.avatarEmoji) : await _kv.setString(StoreKeys.avatarEmoji, emoji);
+  }
+
   Future<void> setAvatar(String? path) =>
       path == null ? _kv.remove(StoreKeys.avatarPath) : _kv.setString(StoreKeys.avatarPath, _dirs.nameOf(path));
 

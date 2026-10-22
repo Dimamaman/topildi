@@ -47,6 +47,8 @@ class ProfileRepositoryImpl implements ProfileRepository {
         gotBack: returned.where((m) => !m.listing.isFound).length,
         notificationsOn: _notificationsOn,
         avatarPath: _session.avatarPath,
+        avatarTone: _session.avatarTone,
+        avatarEmoji: _session.avatarEmoji,
       ));
     } catch (e) {
       return left(ServerFailure(e.toString()));
