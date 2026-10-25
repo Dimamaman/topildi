@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:fpdart/fpdart.dart';
@@ -152,12 +153,18 @@ class FirebaseAuthRepository implements AuthRepository {
     }
   }
 
-  static Failure _authFailure(FirebaseAuthException e) => switch (e.code) {
+  static Failure _authFailure(FirebaseAuthException e) {
+    // The generic message hides the cause; keep it in the log for setup problems.
+    debugPrint('FirebaseAuth error: ${e.code}: ${e.message}');
+    return _mapAuthFailure(e);
+  }
+
+  static Failure _mapAuthFailure(FirebaseAuthException e) => switch (e.code) {
     'invalid-verification-code' => ValidationFailure(tr('Kod notoʻgʻri. Qayta tekshiring')),
     'session-expired' || 'invalid-verification-id' => ValidationFailure(tr('Kod eskirdi. Yangisini oling')),
     'invalid-phone-number' => ValidationFailure(tr('Telefon raqami notoʻgʻri')),
     'too-many-requests' || 'quota-exceeded' => ValidationFailure(tr('Juda koʻp urinish. Birozdan soʻng qayta urinib koʻring')),
     'network-request-failed' => const NetworkFailure(),
-    _ => ServerFailure(e.message ?? e.code),
+    _ => ServerFailure('${e.code}: ${e.message ?? ''}'),
   };
 }

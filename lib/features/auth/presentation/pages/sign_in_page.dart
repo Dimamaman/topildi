@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -88,6 +89,8 @@ class _SignInViewState extends State<_SignInView> {
                 switch (f) {
                   NetworkFailure() => tr('Internet yoʻq. Qayta urinib koʻring'),
                   ValidationFailure(:final message?) => message,
+                  // Debug builds also show the cause (e.g. a Firebase Auth error code).
+                  _ when kDebugMode && f?.message != null => '${tr('Kirishda xatolik yuz berdi')}\n${f!.message}',
                   _ => tr('Kirishda xatolik yuz berdi'),
                 },
               );
