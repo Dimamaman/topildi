@@ -19,6 +19,7 @@ import '../../../notifications/presentation/cubit/notifications_cubit.dart';
 import '../../domain/entities/listing.dart';
 import '../category_ui.dart';
 import '../cubit/feed_cubit.dart';
+import '../widgets/feed_empty_state.dart';
 import '../widgets/filters_sheet.dart';
 import '../../../../core/theme/t_text.dart';
 import '../../../../core/l10n/tr.dart';
@@ -99,6 +100,15 @@ class _HomeViewState extends State<_HomeView> {
     );
     return switch (state.view) {
       ViewLoading() => [_grid(bottom, itemCount: 6, itemBuilder: (_, _) => const FeedGridCardSkeleton())],
+      // Only a category chip narrows the feed: say so, with that category's icon.
+      ViewEmpty() when _onlyCategory(state) != null => [
+        FeedEmptySliver(
+          lost: state.type == ListingType.lost,
+          icon: _onlyCategory(state)!.icon,
+          title: tr('Bu toifada eʼlon yoʻq'),
+          lead: tr('Boshqa toifani tanlang yoki birinchi boʻling — pastdagi '),
+        ),
+      ],
       ViewEmpty() when !state.filter.isDefault || state.search.isNotEmpty => [
         fill(
           EmptyState(
@@ -111,14 +121,10 @@ class _HomeViewState extends State<_HomeView> {
         ),
       ],
       ViewEmpty() => [
-        fill(
-          EmptyState(
-            icon: Symbols.inventory_2_rounded,
-            title: tr('Hozircha eʼlon yoʻq'),
-            body: tr('Bu hududda hali hech kim eʼlon bermagan. Birinchi boʻling!'),
-            cta: tr('Eʼlon berish'),
-            onCta: () => context.push(Routes.create),
-          ),
+        FeedEmptySliver(
+          lost: state.type == ListingType.lost,
+          title: state.type == ListingType.lost ? tr('Hozircha yoʻqolgan narsa yoʻq') : tr('Hozircha eʼlon yoʻq'),
+          lead: tr('Bu hududda hali hech kim eʼlon bermagan. Birinchi boʻling — pastdagi '),
         ),
       ],
       ViewError(:final isOffline) => [
@@ -147,6 +153,13 @@ class _HomeViewState extends State<_HomeView> {
         ),
       ],
     };
+  }
+
+  /// The single category chosen when that is the only narrowing; null otherwise.
+  static ItemCategory? _onlyCategory(FeedState state) {
+    final cats = state.filter.categories;
+    if (state.search.isNotEmpty || cats.length != 1) return null;
+    return state.filter.copyWith(categories: const {}).isDefault ? cats.first : null;
   }
 
   /// Two columns (three on wide screens); cells sized by [FeedGridCard.extent].

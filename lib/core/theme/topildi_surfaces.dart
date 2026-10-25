@@ -16,6 +16,7 @@ class TSurfaces {
     required this.park,
     required this.water,
     required this.separator,
+    required this.hint,
   });
 
   final List<Color> placeholders;
@@ -27,6 +28,9 @@ class TSurfaces {
 
   /// Hairline between rows of an inset settings group.
   final Color separator;
+
+  /// Soft decorative accent: dashed hint arrows, sparkles.
+  final Color hint;
 
   static const _light = TSurfaces._(
     placeholders: [Color(0xFFDCE4F2), Color(0xFFE1EBE5), Color(0xFFEDE3D6), Color(0xFFE4E1EE)],
@@ -40,6 +44,7 @@ class TSurfaces {
     park: Color(0xFFD4E7D9),
     water: Color(0xFFCDDDF3),
     separator: Color(0xFFC8CED9),
+    hint: Color(0xFF8DB0FF),
   );
 
   static const _dark = TSurfaces._(
@@ -54,6 +59,7 @@ class TSurfaces {
     park: Color(0xFF1A2F26),
     water: Color(0xFF172846),
     separator: Color(0xFF2A3550),
+    hint: Color(0xFF5F7FC4),
   );
 
   static TSurfaces of(BuildContext context) =>
