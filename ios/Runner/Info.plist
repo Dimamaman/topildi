@@ -22,6 +22,10 @@
 	<string>$(FLUTTER_BUILD_NAME)</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
+	<!-- Off so Firebase Auth gets its reCAPTCHA / Google return URLs; otherwise
+	     go_router receives them as routes and shows Page Not Found. -->
+	<key>FlutterDeepLinkingEnabled</key>
+	<false/>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
