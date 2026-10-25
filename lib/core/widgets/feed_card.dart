@@ -256,3 +256,186 @@ class FeedCardSkeleton extends StatelessWidget {
     );
   }
 }
+
+/// Compact listing card for the two-column Lenta grid: photo with the type
+/// tag, then title (up to two lines), "category · area" and the time.
+/// Grid cells are a fixed height, see [extent].
+class FeedGridCard extends StatelessWidget {
+  const FeedGridCard({
+    super.key,
+    required this.title,
+    required this.meta,
+    required this.time,
+    required this.icon,
+    required this.tag,
+    required this.semanticLabel,
+    this.tint = 0,
+    this.imagePath,
+    this.onTap,
+  });
+
+  static const radius = 22.0;
+
+  /// Photo height as a share of the card width.
+  static const photoRatio = 0.9;
+
+  static const _pad = EdgeInsets.fromLTRB(12, 10, 12, 12);
+  static const _titleLine = 20.0, _metaLine = 17.0, _timeLine = 16.0;
+
+  /// Cell height for [width]: photo plus the text block at the current text
+  /// size. The title always reserves two lines so a row's cards line up.
+  static double extent(double width, TextScaler scaler) =>
+      width * photoRatio +
+      _pad.vertical +
+      scaler.scale(_titleLine * 2) +
+      4 +
+      scaler.scale(_metaLine) +
+      2 +
+      scaler.scale(_timeLine) +
+      2; // Rounding slack for font metrics.
+
+  final String title, meta, time;
+  final IconData icon;
+
+  /// Tag over the photo, top-left (see [GlassTag.type]).
+  final Widget tag;
+
+  /// Whole-card label for screen readers (the tag is excluded).
+  final String semanticLabel;
+  final int tint;
+  final String? imagePath;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final text = Theme.of(context).textTheme;
+    return Semantics(
+      button: true,
+      label: semanticLabel,
+      excludeSemantics: true,
+      child: GestureDetector(
+        onTap: onTap,
+        behavior: HitTestBehavior.opaque,
+        child: Container(
+          clipBehavior: Clip.antiAlias,
+          decoration: BoxDecoration(color: cs.surfaceContainerLowest, borderRadius: BorderRadius.circular(radius)),
+          child: LayoutBuilder(
+            builder: (context, c) {
+              final photo = c.maxWidth * photoRatio;
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  SizedBox(
+                    height: photo,
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        PhotoPlaceholder(
+                          icon: icon,
+                          tint: tint,
+                          path: imagePath,
+                          width: c.maxWidth,
+                          height: photo,
+                          iconSize: 44,
+                          radius: 0,
+                        ),
+                        Positioned(
+                          top: 10,
+                          left: 10,
+                          right: 10,
+                          child: Align(alignment: Alignment.centerLeft, child: tag),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Padding(
+                    padding: _pad,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          title,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: text.titleMedium!
+                              .copyWith(fontSize: 15, height: _titleLine / 15, letterSpacing: -0.1)
+                              .inter(FontWeight.w700),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          meta,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: text.bodySmall!
+                              .copyWith(fontSize: 13, height: _metaLine / 13, color: cs.onSurfaceVariant)
+                              .inter(FontWeight.w400),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          time,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: text.bodySmall!
+                              .copyWith(fontSize: 12, height: _timeLine / 12, color: cs.onSurfaceVariant)
+                              .inter(FontWeight.w500),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Skeleton matching [FeedGridCard]'s layout.
+class FeedGridCardSkeleton extends StatelessWidget {
+  const FeedGridCardSkeleton({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final ts = context.ts;
+    Widget bar(double factor, double h, Color c) => FractionallySizedBox(
+      widthFactor: factor,
+      alignment: Alignment.centerLeft,
+      child: Container(
+        height: h,
+        decoration: BoxDecoration(color: c, borderRadius: BorderRadius.circular(TRadius.xs)),
+      ),
+    );
+    return Container(
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        color: cs.surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(FeedGridCard.radius),
+      ),
+      child: LayoutBuilder(
+        builder: (context, c) => Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Container(height: c.maxWidth * FeedGridCard.photoRatio, color: ts.skeleton),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  bar(0.85, 14, ts.skeleton),
+                  const SizedBox(height: 8),
+                  bar(0.6, 12, ts.skeletonSoft),
+                  const SizedBox(height: 6),
+                  bar(0.4, 11, ts.skeletonSoft),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

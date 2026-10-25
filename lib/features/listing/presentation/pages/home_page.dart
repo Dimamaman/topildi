@@ -98,16 +98,7 @@ class _HomeViewState extends State<_HomeView> {
       ),
     );
     return switch (state.view) {
-      ViewLoading() => [
-        SliverPadding(
-          padding: EdgeInsets.fromLTRB(_side, 6, _side, bottom + 12),
-          sliver: SliverList.separated(
-            itemCount: 3,
-            separatorBuilder: (_, _) => const SizedBox(height: 14),
-            itemBuilder: (_, _) => const FeedCardSkeleton(),
-          ),
-        ),
-      ],
+      ViewLoading() => [_grid(bottom, itemCount: 6, itemBuilder: (_, _) => const FeedGridCardSkeleton())],
       ViewEmpty() when !state.filter.isDefault || state.search.isNotEmpty => [
         fill(
           EmptyState(
@@ -134,31 +125,52 @@ class _HomeViewState extends State<_HomeView> {
         fill(isOffline ? OfflineState(onRetry: cubit.load) : ErrorState(onRetry: cubit.load)),
       ],
       ViewLoaded(:final data) => [
-        SliverPadding(
-          padding: EdgeInsets.fromLTRB(_side, 6, _side, bottom + 12),
-          sliver: SliverList.separated(
-            itemCount: data.items.length,
-            separatorBuilder: (_, _) => const SizedBox(height: 14),
-            itemBuilder: (context, i) {
-              final l = data.items[i];
-              final meta = '${l.category.label} · ${l.areaName.split(',').first}';
-              final time = TDate.relative(l.happenedAt);
-              return FeedCard(
-                title: l.title,
-                meta: meta,
-                leadingTag: GlassTag.type(context, isFound: l.isFound),
-                trailingTag: GlassTag.text(context, time),
-                semanticLabel: '${l.isFound ? tr('Topilgan') : tr('Yoʻqolgan')}. ${l.title}. $meta. $time',
-                icon: l.category.icon,
-                tint: l.tint,
-                imagePath: l.photoAt(0),
-                onTap: () => context.push(Routes.listing(l.id)),
-              );
-            },
-          ),
+        _grid(
+          bottom,
+          itemCount: data.items.length,
+          itemBuilder: (context, i) {
+            final l = data.items[i];
+            final meta = '${l.category.label} · ${l.areaName.split(',').first}';
+            final time = TDate.relative(l.happenedAt);
+            return FeedGridCard(
+              title: l.title,
+              meta: meta,
+              time: time,
+              tag: GlassTag.type(context, isFound: l.isFound),
+              semanticLabel: '${l.isFound ? tr('Topilgan') : tr('Yoʻqolgan')}. ${l.title}. $meta. $time',
+              icon: l.category.icon,
+              tint: l.tint,
+              imagePath: l.photoAt(0),
+              onTap: () => context.push(Routes.listing(l.id)),
+            );
+          },
         ),
       ],
     };
+  }
+
+  /// Two columns (three on wide screens); cells sized by [FeedGridCard.extent].
+  Widget _grid(double bottom, {required int itemCount, required NullableIndexedWidgetBuilder itemBuilder}) {
+    const gap = 12.0;
+    return SliverPadding(
+      padding: EdgeInsets.fromLTRB(_side, 6, _side, bottom + 12),
+      sliver: SliverLayoutBuilder(
+        builder: (context, c) {
+          final columns = c.crossAxisExtent >= 600 ? 3 : 2;
+          final width = (c.crossAxisExtent - gap * (columns - 1)) / columns;
+          return SliverGrid.builder(
+            itemCount: itemCount,
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: columns,
+              crossAxisSpacing: gap,
+              mainAxisSpacing: gap,
+              mainAxisExtent: FeedGridCard.extent(width, MediaQuery.textScalerOf(context)),
+            ),
+            itemBuilder: itemBuilder,
+          );
+        },
+      ),
+    );
   }
 }
 
@@ -203,9 +215,7 @@ class _TopBar extends SliverPersistentHeaderDelegate {
                 constraints: BoxConstraints(maxWidth: MediaQuery.sizeOf(context).width * 0.5),
                 child: _LocationCapsule(label: tr(filter.district ?? filter.city), onTap: () => _openFilters(context)),
               ),
-              Expanded(
-                child: GlassInlineTitle(tr('Lenta'), offset: offset),
-              ),
+              Expanded(child: GlassInlineTitle(tr('Lenta'), offset: offset)),
               GlassCircleButton(
                 icon: Symbols.tune_rounded,
                 semantic: filter.isDefault ? tr('Filtrlar') : tr('Filtrlar, faol'),
@@ -216,7 +226,9 @@ class _TopBar extends SliverPersistentHeaderDelegate {
               BlocBuilder<NotificationBadgeCubit, int>(
                 builder: (context, unread) => GlassCircleButton(
                   icon: Symbols.notifications_rounded,
-                  semantic: unread > 0 ? tr('Bildirishnomalar, {unread} ta yangi', {'unread': unread}) : tr('Bildirishnomalar'),
+                  semantic: unread > 0
+                      ? tr('Bildirishnomalar, {unread} ta yangi', {'unread': unread})
+                      : tr('Bildirishnomalar'),
                   dot: unread > 0 ? cs.error : null,
                   onTap: () => context.push(Routes.notifications),
                 ),
