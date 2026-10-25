@@ -1,4 +1,5 @@
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 
 import 'failure.dart';
 
@@ -7,6 +8,8 @@ import 'failure.dart';
 Failure failureOf(Object e) {
   if (e is Failure) return e;
   if (e is FirebaseException) {
+    // Pages show a generic message; keep the real cause in the log.
+    debugPrint('Firebase error: ${e.plugin}/${e.code}: ${e.message}');
     return switch (e.code) {
       'unavailable' || 'network-request-failed' || 'deadline-exceeded' => NetworkFailure(e.message),
       'permission-denied' || 'unauthorized' || 'unauthenticated' => ForbiddenFailure(e.message),

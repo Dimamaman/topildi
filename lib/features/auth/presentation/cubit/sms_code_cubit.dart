@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:equatable/equatable.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 
@@ -97,6 +98,8 @@ class SmsCodeCubit extends Cubit<SmsCodeState> {
         error: () => switch (f) {
           NetworkFailure() => tr('Internet yoʻq. Qayta urinib koʻring'),
           ValidationFailure(:final message) => message,
+          // Debug builds also show the cause (e.g. a Firestore rules refusal).
+          _ when kDebugMode && f.message != null => '${tr('Kodni tekshirib boʻlmadi')}\n${f.message}',
           _ => tr('Kodni tekshirib boʻlmadi'),
         },
       )),
