@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:injectable/injectable.dart';
 import 'package:topildi/app/app.dart';
 import 'package:topildi/app/routes.dart';
+import 'package:topildi/core/config/features.dart';
 import 'package:topildi/core/di/injection.dart';
 import 'package:topildi/core/error/failure.dart';
 import 'package:topildi/features/claim/domain/entities/claim.dart';
@@ -34,7 +35,8 @@ void main() {
 
     expect(find.text('Eʼlon'), findsOneWidget);
     expect(find.text('Bu meniki'), findsOneWidget);
-    expect(find.text('Xaritada'), findsOneWidget);
+    // The map row only shows while the map feature is on.
+    expect(find.text('Xaritada'), Features.map ? findsOneWidget : findsNothing);
     expect(find.text('Telefon raqamlar yashirin. Aloqa faqat ilova ichida.'), findsOneWidget);
     // The hidden detail never reaches this page.
     expect(find.textContaining('mushuk'), findsNothing);

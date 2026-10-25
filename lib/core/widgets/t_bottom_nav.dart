@@ -6,6 +6,7 @@ import 'package:material_symbols_icons/symbols.dart';
 
 import 'glass_surface.dart';
 import '../theme/t_text.dart';
+import '../config/features.dart';
 import '../l10n/tr.dart';
 
 /// Floating Liquid Glass tab bar (iOS 26 style, used on both platforms):
@@ -20,20 +21,31 @@ class TBottomNav extends StatelessWidget {
     required this.onSelect,
     required this.onAdd,
     this.unreadChats = 0,
+    this.showMap = Features.map,
   });
 
+  /// Shell branch of the current tab (0 Lenta, 1 Xarita, 2 Chatlar, 3 Profil).
   final int currentIndex;
+
+  /// Called with the shell branch of the tapped tab.
   final ValueChanged<int> onSelect;
   final VoidCallback onAdd;
   final int unreadChats;
 
   static const barHeight = 62.0;
 
-  static List<(IconData, String)> get _items => [
-    (Symbols.home_rounded, tr('Lenta')),
-    (Symbols.map_rounded, tr('Xarita')),
-    (Symbols.chat_bubble_rounded, tr('Chatlar')),
-    (Symbols.account_circle_rounded, tr('Profil')),
+  /// Show the Xarita tab. Hidden tabs keep their branch number, so the
+  /// shell's branches never shift.
+  final bool showMap;
+
+  static const _chatsBranch = 2;
+
+  /// (shell branch, icon, label) of each visible tab.
+  List<(int, IconData, String)> get _items => [
+    (0, Symbols.home_rounded, tr('Lenta')),
+    if (showMap) (1, Symbols.map_rounded, tr('Xarita')),
+    (_chatsBranch, Symbols.chat_bubble_rounded, tr('Chatlar')),
+    (3, Symbols.account_circle_rounded, tr('Profil')),
   ];
 
   /// Gap under the bar: 24 above the screen edge, never inside the
@@ -56,14 +68,16 @@ class TBottomNav extends StatelessWidget {
                 padding: const EdgeInsets.all(4),
                 child: LayoutBuilder(
                   builder: (context, c) {
-                    final w = c.maxWidth / _items.length;
+                    final items = _items;
+                    final w = c.maxWidth / items.length;
+                    final active = math.max(0, items.indexWhere((t) => t.$1 == currentIndex));
                     return Stack(
                       children: [
                         // Active-tab capsule slides between tabs.
                         AnimatedPositioned(
                           duration: const Duration(milliseconds: 250),
                           curve: Curves.easeOutCubic,
-                          left: w * currentIndex,
+                          left: w * active,
                           top: 0,
                           bottom: 0,
                           width: w,
@@ -73,16 +87,16 @@ class TBottomNav extends StatelessWidget {
                         ),
                         Row(
                           children: [
-                            for (var i = 0; i < _items.length; i++)
+                            for (final (branch, icon, label) in items)
                               Expanded(
                                 child: _Tab(
-                                  icon: _items[i].$1,
-                                  label: _items[i].$2,
-                                  active: i == currentIndex,
-                                  badge: i == 2 ? unreadChats : 0,
+                                  icon: icon,
+                                  label: label,
+                                  active: branch == currentIndex,
+                                  badge: branch == _chatsBranch ? unreadChats : 0,
                                   onTap: () {
-                                    if (i != currentIndex) HapticFeedback.selectionClick();
-                                    onSelect(i);
+                                    if (branch != currentIndex) HapticFeedback.selectionClick();
+                                    onSelect(branch);
                                   },
                                 ),
                               ),

@@ -116,6 +116,15 @@ Qolgan ishlar:
    - Storage'dagi rasmlar EXIF'siz.
 5. **Commit.**
 
+## Xarita — ⏸ keyingi versiyaga qoldirilgan
+
+Xarita bilan bog'liq hamma narsa vaqtincha **yashirilgan**, kod o'chirilmagan. Bitta flag boshqaradi: `Features.map` (`lib/core/config/features.dart`), standart holatda o'chiq.
+- Pastki menyudagi **Xarita** tabi ko'rinmaydi (route va `MapPage` joyida, shell branch raqamlari o'zgarmagan).
+- Eʼlon sahifasida **Xaritada** qatori ko'rinmaydi.
+- Eʼlon joylash (3-qadam): xarita o'rniga **Joylashuvim** (GPS) va **Tumanni tanlash** (Toshkent tumanlari, taxminiy markaz koordinatalari bilan).
+
+Qaytarish: `flutter run --dart-define=FEATURE_MAP=true` yoki `features.dart` da standart qiymatni `true` qilish.
+
 ## 4. 2-bosqich — ⏳ rejada
 
 Hozircha **mock** bo'lib qolganlar (real eʼlonlarda so'rovlar soni 0 ko'rinadi):

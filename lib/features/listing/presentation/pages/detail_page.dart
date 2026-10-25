@@ -10,6 +10,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../../../app/routes.dart';
+import '../../../../core/config/features.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/error/failure.dart';
 import '../../../../core/theme/t_text.dart';
@@ -149,7 +150,7 @@ class _DetailViewState extends State<_DetailView> {
                         _Heading(listing: data, showDescription: !state.isMine),
                         if (state.isMine && state.pendingClaims > 0)
                           _ClaimsCard(count: state.pendingClaims, onTap: () => _openClaims(context, data)),
-                        _Details(listing: data, showMap: !state.isMine),
+                        _Details(listing: data, showMap: Features.map && !state.isMine),
                         SizedBox(
                           // The panel grows with the text size; keep the last row clear of it.
                           height:

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import '../core/config/features.dart';
 import '../core/di/injection.dart';
 import '../core/view_state.dart';
 import '../features/chat/domain/entities/chat.dart';
@@ -11,7 +12,8 @@ import '../features/notifications/presentation/cubit/notifications_cubit.dart';
 import '../core/widgets/t_bottom_nav.dart';
 import 'routes.dart';
 
-/// Bottom-nav shell. Branch order: Lenta, Xarita, Chatlar, Profil.
+/// Bottom-nav shell. Branch order: Lenta, Xarita, Chatlar, Profil. The Xarita
+/// branch stays registered while its tab is hidden (see [Features.map]).
 class AppShell extends StatelessWidget {
   const AppShell({super.key, required this.shell});
 

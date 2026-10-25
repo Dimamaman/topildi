@@ -8,6 +8,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
 import '../../../../app/routes.dart';
+import '../../../../core/config/features.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/location/geo_point.dart';
 import '../../../../core/location/location_service.dart';
@@ -19,6 +20,7 @@ import '../../../../core/utils/date_format.dart';
 import '../../../../core/widgets/t_button.dart';
 import '../../../../core/widgets/t_chip.dart';
 import '../../../../core/widgets/t_top_bar.dart';
+import '../../../listing/domain/entities/regions.dart';
 import '../../domain/entities/create_draft.dart';
 import '../cubit/create_flow_cubit.dart';
 import '../widgets/create_header.dart';
@@ -67,7 +69,8 @@ class _CreateLocationPageState extends State<CreateLocationPage> {
         _resolve(_center);
       },
       (g) {
-        _map.move(LatLng(g.lat, g.lng), 16);
+        // The map is only on screen when the feature is on.
+        if (Features.map) _map.move(LatLng(g.lat, g.lng), 16);
         _resolve(g);
       },
     );
@@ -85,6 +88,47 @@ class _CreateLocationPageState extends State<CreateLocationPage> {
     if (!mounted || id != _request) return;
     setState(() => _resolving = false);
     _cubit.setArea(info?.name ?? tr('Belgilangan hudud'), cell, district: info?.district);
+  }
+
+  /// Without the map: place the listing at the chosen district's centre.
+  Future<void> _pickDistrict() async {
+    final picked = await showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      builder: (ctx) => SafeArea(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(ctx).height * 0.7),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(TSpace.screen, 0, TSpace.screen, TSpace.xs),
+                child: Text(tr('Tumanni tanlang'), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+              ),
+              Flexible(
+                child: ListView(
+                  shrinkWrap: true,
+                  children: [
+                    for (final d in Regions.tashkentDistricts)
+                      ListTile(
+                        title: Text(d),
+                        trailing: _cubit.state.draft.district == d ? const Icon(Symbols.check_rounded) : null,
+                        onTap: () => Navigator.pop(ctx, d),
+                      ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    if (picked == null || !mounted) return;
+    final (lat, lng) = Regions.tashkentDistrictCenters[picked]!;
+    _request++; // Drop any GPS lookup still in flight.
+    setState(() => _resolving = false);
+    _cubit.setArea(picked, GeoPoint(lat, lng), district: picked);
   }
 
   Future<void> _pickDate() async {
@@ -123,10 +167,34 @@ class _CreateLocationPageState extends State<CreateLocationPage> {
           final happened = d.happenedAt(DateTime.now());
           return ListView(
             children: [
-              SizedBox(
-                height: 330,
-                child: _AreaPicker(controller: _map, initial: _center, onMoved: _resolve, onLocate: _locate),
-              ),
+              if (Features.map)
+                SizedBox(
+                  height: 330,
+                  child: _AreaPicker(controller: _map, initial: _center, onMoved: _resolve, onLocate: _locate),
+                )
+              else
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(TSpace.screen, TSpace.md, TSpace.screen, 0),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: TButton.secondary(
+                          label: tr('Joylashuvim'),
+                          icon: Symbols.my_location_rounded,
+                          onPressed: _locate,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: TButton.secondary(
+                          label: tr('Tumanni tanlash'),
+                          icon: Symbols.list_rounded,
+                          onPressed: _pickDistrict,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: TSpace.screen, vertical: TSpace.md),
                 child: Column(
@@ -179,7 +247,11 @@ class _CreateLocationPageState extends State<CreateLocationPage> {
                         ),
                         const SizedBox(width: 10),
                         Expanded(
-                          child: _PickerField(label: tr('Taxminiy vaqt'), value: TDate.time(happened), onTap: _pickTime),
+                          child: _PickerField(
+                            label: tr('Taxminiy vaqt'),
+                            value: TDate.time(happened),
+                            onTap: _pickTime,
+                          ),
                         ),
                       ],
                     ),

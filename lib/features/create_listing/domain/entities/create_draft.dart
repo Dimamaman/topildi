@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 
+import '../../../../core/config/features.dart';
 import '../../../../core/location/geo_point.dart';
 import '../../../listing/domain/entities/listing.dart';
 import '../../../../core/l10n/tr.dart';
@@ -105,7 +106,9 @@ abstract final class DraftValidator {
   static String? hiddenDetail(CreateDraft d) =>
       d.isFound && d.hiddenDetail.trim().length < 5 ? tr('Yashirin belgini yozing: egasini shu orqali tekshirasiz') : null;
 
-  static String? area(CreateDraft d) => d.areaName == null || d.point == null ? tr('Xaritada joyni belgilang') : null;
+  static String? area(CreateDraft d) => d.areaName == null || d.point == null
+      ? (Features.map ? tr('Xaritada joyni belgilang') : tr('Joyni belgilang'))
+      : null;
 
   static bool detailsValid(CreateDraft d) => title(d) == null && category(d) == null && hiddenDetail(d) == null;
 

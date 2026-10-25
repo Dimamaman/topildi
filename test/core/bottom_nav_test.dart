@@ -1,16 +1,30 @@
+import 'dart:ui' show Tristate;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:topildi/core/theme/topildi_theme.dart';
 import 'package:topildi/core/widgets/glass_surface.dart';
 import 'package:topildi/core/widgets/t_bottom_nav.dart';
 
-Widget _host(TargetPlatform platform, {required void Function(int) onSelect, required VoidCallback onAdd}) => MaterialApp(
-      theme: topildiLight.copyWith(platform: platform),
-      home: Scaffold(
-        extendBody: true,
-        bottomNavigationBar: TBottomNav(currentIndex: 0, unreadChats: 2, onSelect: onSelect, onAdd: onAdd),
-      ),
-    );
+Widget _host(
+  TargetPlatform platform, {
+  required void Function(int) onSelect,
+  required VoidCallback onAdd,
+  bool showMap = true,
+  int currentIndex = 0,
+}) => MaterialApp(
+  theme: topildiLight.copyWith(platform: platform),
+  home: Scaffold(
+    extendBody: true,
+    bottomNavigationBar: TBottomNav(
+      currentIndex: currentIndex,
+      unreadChats: 2,
+      onSelect: onSelect,
+      onAdd: onAdd,
+      showMap: showMap,
+    ),
+  ),
+);
 
 void main() {
   for (final platform in [TargetPlatform.iOS, TargetPlatform.android]) {
@@ -34,6 +48,25 @@ void main() {
       expect(find.bySemanticsLabel('Chatlar, 2 ta yangi'), findsOneWidget);
     });
   }
+
+  testWidgets('map hidden: three tabs that still report their shell branch', (tester) async {
+    var selected = -1;
+    await tester.pumpWidget(
+      _host(TargetPlatform.iOS, onSelect: (i) => selected = i, onAdd: () {}, showMap: false, currentIndex: 3),
+    );
+
+    expect(find.text('Xarita'), findsNothing);
+    for (final label in ['Lenta', 'Chatlar', 'Profil']) {
+      expect(find.text(label), findsOneWidget);
+    }
+    expect(tester.getSemantics(find.bySemanticsLabel('Profil')).flagsCollection.isSelected, Tristate.isTrue);
+    expect(find.bySemanticsLabel('Chatlar, 2 ta yangi'), findsOneWidget);
+
+    await tester.tap(find.text('Chatlar'));
+    expect(selected, 2);
+    await tester.tap(find.text('Lenta'));
+    expect(selected, 0);
+  });
 
   testWidgets('bar is 62 tall and floats 24 above the edge, clear of the home indicator', (tester) async {
     await tester.pumpWidget(

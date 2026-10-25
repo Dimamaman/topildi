@@ -65,6 +65,10 @@ const ruStrings = <String, String>{
   'Joylashuvga ruxsat yoʻq. Uni sozlamalardan yoqing.': 'Нет доступа к геолокации. Разрешите его в настройках.',
   'Joylashuvni aniqlab boʻlmadi.': 'Не удалось определить местоположение.',
   'Mening joylashuvim': 'Моё местоположение',
+  'Joylashuvim': 'Моё место',
+  'Tumanni tanlash': 'Выбрать район',
+  'Tumanni tanlang': 'Выберите район',
+  'Joyni belgilang': 'Укажите место',
   'Joylashuv: {label}': 'Местоположение: {label}',
 
   // Types, statuses, categories
