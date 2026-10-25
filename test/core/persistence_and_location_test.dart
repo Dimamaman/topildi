@@ -32,7 +32,7 @@ void main() {
   group('Session persistence', () {
     late MemoryKeyValueStore kv;
     late MemorySecureStore secure;
-    Session make() => Session(kv, secure, const AppDirs('/docs/photos'));
+    Session make() => LocalSession(kv, secure, const AppDirs('/docs/photos'));
 
     setUp(() {
       kv = MemoryKeyValueStore();

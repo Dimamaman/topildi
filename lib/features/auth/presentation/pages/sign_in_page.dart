@@ -77,12 +77,19 @@ class _SignInViewState extends State<_SignInView> {
               context.push(Routes.signInCode, extra: state.phone);
             case SignInNext.profile:
               context.go(Routes.profileSetup);
+            case SignInNext.home:
+              context.go(Routes.home);
             case SignInNext.none:
+              final f = state.failure;
+              // A cancelled Google sheet comes back without a message: stay quiet.
+              if (f is ValidationFailure && f.message == null) return;
               TFeedback.error(
                 context,
-                state.failure is NetworkFailure
-                    ? tr('Internet yoʻq. Qayta urinib koʻring')
-                    : tr('Kirishda xatolik yuz berdi'),
+                switch (f) {
+                  NetworkFailure() => tr('Internet yoʻq. Qayta urinib koʻring'),
+                  ValidationFailure(:final message?) => message,
+                  _ => tr('Kirishda xatolik yuz berdi'),
+                },
               );
           }
         },

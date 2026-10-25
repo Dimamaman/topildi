@@ -10,10 +10,15 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 
+import 'package:cloud_firestore/cloud_firestore.dart' as _i974;
+import 'package:firebase_auth/firebase_auth.dart' as _i59;
+import 'package:firebase_storage/firebase_storage.dart' as _i457;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart' as _i558;
 import 'package:get_it/get_it.dart' as _i174;
+import 'package:google_sign_in/google_sign_in.dart' as _i116;
 import 'package:injectable/injectable.dart' as _i526;
 import 'package:shared_preferences/shared_preferences.dart' as _i460;
+import 'package:topildi/core/di/firebase_module.dart' as _i917;
 import 'package:topildi/core/l10n/language_cubit.dart' as _i122;
 import 'package:topildi/core/location/location_service.dart' as _i305;
 import 'package:topildi/core/map/map_tiles.dart' as _i297;
@@ -25,6 +30,8 @@ import 'package:topildi/core/storage/stores.dart' as _i1037;
 import 'package:topildi/core/theme/theme_cubit.dart' as _i271;
 import 'package:topildi/features/auth/data/repositories/auth_repository_impl.dart'
     as _i597;
+import 'package:topildi/features/auth/data/repositories/firebase_auth_repository.dart'
+    as _i1033;
 import 'package:topildi/features/auth/domain/repositories/auth_repository.dart'
     as _i679;
 import 'package:topildi/features/auth/domain/usecases/request_sms_code.dart'
@@ -94,8 +101,12 @@ import 'package:topildi/features/create_listing/domain/usecases/post_listing.dar
     as _i113;
 import 'package:topildi/features/create_listing/presentation/cubit/create_flow_cubit.dart'
     as _i64;
+import 'package:topildi/features/listing/data/datasources/firestore_listing_datasource.dart'
+    as _i422;
 import 'package:topildi/features/listing/data/datasources/listing_mock_datasource.dart'
     as _i904;
+import 'package:topildi/features/listing/data/datasources/listing_remote_datasource.dart'
+    as _i395;
 import 'package:topildi/features/listing/data/repositories/listing_repository_impl.dart'
     as _i786;
 import 'package:topildi/features/listing/domain/repositories/listing_repository.dart'
@@ -149,14 +160,12 @@ extension GetItInjectableX on _i174.GetIt {
     final gh = _i526.GetItHelper(this, environment, environmentFilter);
     final appDirsModule = _$AppDirsModule();
     final storageModule = _$StorageModule();
+    final firebaseModule = _$FirebaseModule();
     gh.lazySingleton<_i584.ChatMockDataSource>(
       () => _i584.ChatMockDataSource(),
     );
     gh.lazySingleton<_i283.ClaimMockDataSource>(
       () => _i283.ClaimMockDataSource(),
-    );
-    gh.lazySingleton<_i904.ListingMockDataSource>(
-      () => _i904.ListingMockDataSource(),
     );
     gh.lazySingleton<_i669.NotificationMockDataSource>(
       () => _i669.NotificationMockDataSource(),
@@ -185,6 +194,10 @@ extension GetItInjectableX on _i174.GetIt {
       () => _i1037.MemorySecureStore(),
       registerFor: {_test},
     );
+    gh.lazySingleton<_i395.ListingRemoteDataSource>(
+      () => _i904.ListingMockDataSource(),
+      registerFor: {_test},
+    );
     gh.lazySingleton<_i263.NetworkInfo>(
       () => _i263.AlwaysOnlineNetworkInfo(),
       registerFor: {_test},
@@ -211,6 +224,22 @@ extension GetItInjectableX on _i174.GetIt {
       () => storageModule.secureStorage,
       registerFor: {_prod},
     );
+    gh.lazySingleton<_i59.FirebaseAuth>(
+      () => firebaseModule.auth,
+      registerFor: {_prod},
+    );
+    gh.lazySingleton<_i974.FirebaseFirestore>(
+      () => firebaseModule.firestore,
+      registerFor: {_prod},
+    );
+    gh.lazySingleton<_i457.FirebaseStorage>(
+      () => firebaseModule.storage,
+      registerFor: {_prod},
+    );
+    gh.lazySingleton<_i116.GoogleSignIn>(
+      () => firebaseModule.googleSignIn,
+      registerFor: {_prod},
+    );
     gh.lazySingleton<_i305.LocationService>(
       () => _i305.DeviceLocationService(),
       registerFor: {_prod},
@@ -231,6 +260,22 @@ extension GetItInjectableX on _i174.GetIt {
       () => _i1037.DeviceSecureStore(gh<_i558.FlutterSecureStorage>()),
       registerFor: {_prod},
     );
+    gh.lazySingleton<_i554.Session>(
+      () => _i554.LocalSession(
+        gh<_i1037.KeyValueStore>(),
+        gh<_i1037.SecureStore>(),
+        gh<_i706.AppDirs>(),
+      ),
+      registerFor: {_test},
+    );
+    gh.lazySingleton<_i395.ListingRemoteDataSource>(
+      () => _i422.FirestoreListingDataSource(
+        gh<_i974.FirebaseFirestore>(),
+        gh<_i457.FirebaseStorage>(),
+        gh<_i59.FirebaseAuth>(),
+      ),
+      registerFor: {_prod},
+    );
     gh.lazySingleton<_i1040.NotificationRepository>(
       () => _i985.NotificationRepositoryImpl(
         gh<_i669.NotificationMockDataSource>(),
@@ -240,6 +285,13 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i1037.KeyValueStore>(
       () => _i1037.PrefsKeyValueStore(gh<_i460.SharedPreferences>()),
       registerFor: {_prod},
+    );
+    gh.lazySingleton<_i679.AuthRepository>(
+      () => _i597.AuthRepositoryImpl(
+        gh<_i554.Session>(),
+        gh<_i263.NetworkInfo>(),
+      ),
+      registerFor: {_test},
     );
     gh.lazySingleton<_i122.LanguageCubit>(
       () => _i122.LanguageCubit(gh<_i1037.KeyValueStore>()),
@@ -267,21 +319,59 @@ extension GetItInjectableX on _i174.GetIt {
       ),
     );
     gh.lazySingleton<_i554.Session>(
-      () => _i554.Session(
+      () => _i554.FirebaseSession(
         gh<_i1037.KeyValueStore>(),
         gh<_i1037.SecureStore>(),
-        gh<_i706.AppDirs>(),
+        gh<_i59.FirebaseAuth>(),
+        gh<_i116.GoogleSignIn>(),
+      ),
+      registerFor: {_prod},
+    );
+    gh.lazySingleton<_i762.CreateListingRepository>(
+      () => _i434.CreateListingRepositoryImpl(
+        gh<_i395.ListingRemoteDataSource>(),
+        gh<_i263.NetworkInfo>(),
+        gh<_i554.Session>(),
+      ),
+    );
+    gh.lazySingleton<_i856.ListingRepository>(
+      () => _i786.ListingRepositoryImpl(
+        gh<_i395.ListingRemoteDataSource>(),
+        gh<_i263.NetworkInfo>(),
+        gh<_i554.Session>(),
       ),
     );
     gh.factory<_i567.NotificationBadgeCubit>(
       () => _i567.NotificationBadgeCubit(gh<_i582.WatchUnreadNotifications>()),
     );
-    gh.lazySingleton<_i856.ListingRepository>(
-      () => _i786.ListingRepositoryImpl(
-        gh<_i904.ListingMockDataSource>(),
+    gh.lazySingleton<_i749.ProfileRepository>(
+      () => _i708.ProfileRepositoryImpl(
+        gh<_i395.ListingRemoteDataSource>(),
+        gh<_i283.ClaimMockDataSource>(),
+        gh<_i554.Session>(),
+        gh<_i263.NetworkInfo>(),
+        gh<_i1037.KeyValueStore>(),
+      ),
+    );
+    gh.lazySingleton<_i28.ClaimRepository>(
+      () => _i763.ClaimRepositoryImpl(
+        gh<_i283.ClaimMockDataSource>(),
+        gh<_i395.ListingRemoteDataSource>(),
+        gh<_i584.ChatMockDataSource>(),
         gh<_i263.NetworkInfo>(),
         gh<_i554.Session>(),
       ),
+    );
+    gh.lazySingleton<_i679.AuthRepository>(
+      () => _i1033.FirebaseAuthRepository(
+        gh<_i59.FirebaseAuth>(),
+        gh<_i974.FirebaseFirestore>(),
+        gh<_i457.FirebaseStorage>(),
+        gh<_i116.GoogleSignIn>(),
+        gh<_i554.Session>(),
+        gh<_i263.NetworkInfo>(),
+      ),
+      registerFor: {_prod},
     );
     gh.factory<_i445.GetListingDetail>(
       () => _i445.GetListingDetail(gh<_i856.ListingRepository>()),
@@ -303,15 +393,6 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.factory<_i534.FiltersCubit>(
       () => _i534.FiltersCubit(gh<_i1022.GetListings>()),
-    );
-    gh.lazySingleton<_i28.ClaimRepository>(
-      () => _i763.ClaimRepositoryImpl(
-        gh<_i283.ClaimMockDataSource>(),
-        gh<_i904.ListingMockDataSource>(),
-        gh<_i584.ChatMockDataSource>(),
-        gh<_i263.NetworkInfo>(),
-        gh<_i554.Session>(),
-      ),
     );
     gh.factory<_i546.AcceptClaim>(
       () => _i546.AcceptClaim(gh<_i28.ClaimRepository>()),
@@ -339,19 +420,6 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i592.WatchListings>(),
       ),
     );
-    gh.lazySingleton<_i762.CreateListingRepository>(
-      () => _i434.CreateListingRepositoryImpl(
-        gh<_i904.ListingMockDataSource>(),
-        gh<_i263.NetworkInfo>(),
-        gh<_i554.Session>(),
-      ),
-    );
-    gh.lazySingleton<_i679.AuthRepository>(
-      () => _i597.AuthRepositoryImpl(
-        gh<_i554.Session>(),
-        gh<_i263.NetworkInfo>(),
-      ),
-    );
     gh.factory<_i190.RequestSmsCode>(
       () => _i190.RequestSmsCode(gh<_i679.AuthRepository>()),
     );
@@ -370,18 +438,9 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i956.ChatRepository>(
       () => _i279.ChatRepositoryImpl(
         gh<_i584.ChatMockDataSource>(),
-        gh<_i904.ListingMockDataSource>(),
+        gh<_i395.ListingRemoteDataSource>(),
         gh<_i263.NetworkInfo>(),
         gh<_i554.Session>(),
-      ),
-    );
-    gh.lazySingleton<_i749.ProfileRepository>(
-      () => _i708.ProfileRepositoryImpl(
-        gh<_i904.ListingMockDataSource>(),
-        gh<_i283.ClaimMockDataSource>(),
-        gh<_i554.Session>(),
-        gh<_i263.NetworkInfo>(),
-        gh<_i1037.KeyValueStore>(),
       ),
     );
     gh.factory<_i468.GetChatThread>(
@@ -483,3 +542,5 @@ extension GetItInjectableX on _i174.GetIt {
 class _$AppDirsModule extends _i706.AppDirsModule {}
 
 class _$StorageModule extends _i1037.StorageModule {}
+
+class _$FirebaseModule extends _i917.FirebaseModule {}

@@ -166,6 +166,11 @@ const ruStrings = <String, String>{
   'Shaftoli': 'Персиковый',
   'Sariq': 'Жёлтый',
 
+  'Kod eskirdi. Yangisini oling': 'Код устарел. Запросите новый',
+  'Kod notoʻgʻri. Qayta tekshiring': 'Неверный код. Проверьте ещё раз',
+  'Telefon raqami notoʻgʻri': 'Неверный номер телефона',
+  'Juda koʻp urinish. Birozdan soʻng qayta urinib koʻring': 'Слишком много попыток. Попробуйте чуть позже',
+
   // Chats
   'Hali chat yoʻq': 'Чатов пока нет',
   'Soʻrovingiz qabul qilinsa yoki siz soʻrovni qabul qilsangiz, chat shu yerda paydo boʻladi.':

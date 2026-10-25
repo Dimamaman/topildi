@@ -9,7 +9,8 @@ import '../../domain/entities/phone_number.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../../../../core/l10n/tr.dart';
 
-/// Mock auth: any 6-digit code except 000000 is accepted.
+/// Mock auth for widget tests: any 6-digit code except 000000 is accepted.
+@test
 @LazySingleton(as: AuthRepository)
 class AuthRepositoryImpl implements AuthRepository {
   AuthRepositoryImpl(this._session, this._network);

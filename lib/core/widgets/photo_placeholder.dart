@@ -35,18 +35,29 @@ class PhotoPlaceholder extends StatelessWidget {
       alignment: Alignment.center,
       child: Icon(icon, size: iconSize, color: ts.placeholderIcon, weight: 300),
     );
-    final p = path;
-    if (p == null || !p.startsWith('/')) return fallback;
+    final provider = photoProvider(path);
+    if (provider == null) return fallback;
+    final cacheWidth = width == null || width!.isInfinite ? null : (width! * MediaQuery.devicePixelRatioOf(context)).round();
     return ClipRRect(
       borderRadius: BorderRadius.circular(radius),
-      child: Image.file(
-        File(p),
+      child: Image(
+        image: cacheWidth == null ? provider : ResizeImage(provider, width: cacheWidth, policy: ResizeImagePolicy.fit),
         width: width,
         height: height,
         fit: BoxFit.cover,
-        cacheWidth: width == null || width!.isInfinite ? null : (width! * MediaQuery.devicePixelRatioOf(context)).round(),
+        // Network photos: the tinted placeholder until the bytes arrive.
+        frameBuilder: (_, child, frame, sync) => sync || frame != null ? child : fallback,
         errorBuilder: (_, _, _) => fallback,
       ),
     );
   }
+}
+
+/// Image for a stored photo: a local file path (fresh picks, tests) or a
+/// download URL (Firebase Storage). Null when there is nothing to show.
+ImageProvider? photoProvider(String? path) {
+  if (path == null) return null;
+  if (path.startsWith('/')) return FileImage(File(path));
+  if (path.startsWith('http')) return NetworkImage(path);
+  return null;
 }

@@ -6,7 +6,7 @@ import '../../../../core/network/network_info.dart';
 import '../../../../core/session/session.dart';
 import '../../../../core/usecase/usecase.dart';
 import '../../../chat/data/datasources/chat_mock_datasource.dart';
-import '../../../listing/data/datasources/listing_mock_datasource.dart';
+import '../../../listing/data/datasources/listing_remote_datasource.dart';
 import '../../../listing/data/models/listing_model.dart';
 import '../../../listing/domain/entities/listing.dart';
 import '../../domain/entities/claim.dart';
@@ -19,7 +19,7 @@ class ClaimRepositoryImpl implements ClaimRepository {
   const ClaimRepositoryImpl(this._claims, this._listings, this._chats, this._network, this._session);
 
   final ClaimMockDataSource _claims;
-  final ListingMockDataSource _listings;
+  final ListingRemoteDataSource _listings;
   final ChatMockDataSource _chats;
   final NetworkInfo _network;
   final Session _session;

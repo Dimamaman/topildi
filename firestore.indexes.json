@@ -1,0 +1,22 @@
+{
+  "indexes": [
+    {"collectionGroup": "topildi_listings", "queryScope": "COLLECTION", "fields": [
+      {"fieldPath": "type", "order": "ASCENDING"}, {"fieldPath": "status", "order": "ASCENDING"},
+      {"fieldPath": "city", "order": "ASCENDING"}, {"fieldPath": "happenedAt", "order": "DESCENDING"}]},
+    {"collectionGroup": "topildi_listings", "queryScope": "COLLECTION", "fields": [
+      {"fieldPath": "type", "order": "ASCENDING"}, {"fieldPath": "status", "order": "ASCENDING"},
+      {"fieldPath": "city", "order": "ASCENDING"}, {"fieldPath": "district", "order": "ASCENDING"},
+      {"fieldPath": "happenedAt", "order": "DESCENDING"}]},
+    {"collectionGroup": "topildi_listings", "queryScope": "COLLECTION", "fields": [
+      {"fieldPath": "type", "order": "ASCENDING"}, {"fieldPath": "status", "order": "ASCENDING"},
+      {"fieldPath": "city", "order": "ASCENDING"}, {"fieldPath": "category", "order": "ASCENDING"},
+      {"fieldPath": "happenedAt", "order": "DESCENDING"}]},
+    {"collectionGroup": "topildi_listings", "queryScope": "COLLECTION", "fields": [
+      {"fieldPath": "type", "order": "ASCENDING"}, {"fieldPath": "status", "order": "ASCENDING"},
+      {"fieldPath": "city", "order": "ASCENDING"}, {"fieldPath": "district", "order": "ASCENDING"},
+      {"fieldPath": "category", "order": "ASCENDING"}, {"fieldPath": "happenedAt", "order": "DESCENDING"}]},
+    {"collectionGroup": "topildi_listings", "queryScope": "COLLECTION", "fields": [
+      {"fieldPath": "authorId", "order": "ASCENDING"}, {"fieldPath": "happenedAt", "order": "DESCENDING"}]}
+  ],
+  "fieldOverrides": []
+}

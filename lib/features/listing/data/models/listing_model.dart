@@ -38,8 +38,8 @@ class ListingModel {
   final List<String> photos;
   final ListingStatus status;
 
-  ListingModel copyWith({ListingStatus? status}) => ListingModel(
-        id: id,
+  ListingModel copyWith({String? id, List<String>? photos, ListingStatus? status}) => ListingModel(
+        id: id ?? this.id,
         type: type,
         category: category,
         title: title,
@@ -48,8 +48,8 @@ class ListingModel {
         happenedAt: happenedAt,
         author: author,
         hiddenDetail: hiddenDetail,
-        photoCount: photoCount,
-        photos: photos,
+        photoCount: photos == null ? photoCount : (photos.isEmpty ? 1 : photos.length),
+        photos: photos ?? this.photos,
         tint: tint,
         status: status ?? this.status,
         city: city,

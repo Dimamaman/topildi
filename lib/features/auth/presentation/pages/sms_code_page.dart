@@ -122,7 +122,7 @@ class _SmsCodeViewState extends State<_SmsCodeView> with SingleTickerProviderSta
       setState(() => _tone = _Tone.success);
       HapticFeedback.mediumImpact();
       await Future<void>.delayed(const Duration(milliseconds: 600));
-      if (context.mounted) context.go(Routes.profileSetup);
+      if (context.mounted) context.go(state.needsProfile ? Routes.profileSetup : Routes.home);
       return;
     }
     // A wrong code (not a network problem): red, shake, then clear.

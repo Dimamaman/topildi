@@ -17,12 +17,16 @@ class SmsCodeState extends Equatable {
     this.verifying = false,
     this.error,
     this.verified = false,
+    this.needsProfile = true,
     this.offline = false,
   });
 
   final String code;
   final int seconds;
   final bool verifying, verified;
+
+  /// After [verified]: new users fill in the profile, returning ones go home.
+  final bool needsProfile;
   final String? error;
 
   /// The last check failed for lack of network (shown as a banner, not as a wrong code).
@@ -34,6 +38,7 @@ class SmsCodeState extends Equatable {
     bool? verifying,
     String? Function()? error,
     bool? verified,
+    bool? needsProfile,
     bool? offline,
   }) => SmsCodeState(
         code: code ?? this.code,
@@ -41,11 +46,12 @@ class SmsCodeState extends Equatable {
         verifying: verifying ?? this.verifying,
         error: error != null ? error() : this.error,
         verified: verified ?? this.verified,
+        needsProfile: needsProfile ?? this.needsProfile,
         offline: offline ?? this.offline,
       );
 
   @override
-  List<Object?> get props => [code, seconds, verifying, error, verified, offline];
+  List<Object?> get props => [code, seconds, verifying, error, verified, needsProfile, offline];
 }
 
 @injectable
@@ -94,7 +100,7 @@ class SmsCodeCubit extends Cubit<SmsCodeState> {
           _ => tr('Kodni tekshirib boʻlmadi'),
         },
       )),
-      (_) => emit(state.copyWith(verifying: false, verified: true)),
+      (r) => emit(state.copyWith(verifying: false, verified: true, needsProfile: r.needsProfile)),
     );
   }
 

@@ -22,10 +22,28 @@
 	<string>$(FLUTTER_BUILD_NAME)</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.868249619271-tenno3alle0lgv3ms0jh8a3ra0kg6pf1</string>
+				<string>app-1-868249619271-ios-b6c46633b9c888fd6f1a62</string>
+			</array>
+		</dict>
+	</array>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>Topilgan buyumni suratga olish uchun kamera kerak.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Yaqin atrofdagi eʼlonlarni koʻrsatish va taxminiy hududni belgilash uchun joylashuvingiz kerak. Aniq joyingiz boshqalarga koʻrsatilmaydi.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Eʼlon yoki dalil uchun rasm tanlash uchun galereyaga ruxsat kerak.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
@@ -49,6 +67,10 @@
 	</dict>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
@@ -66,11 +88,5 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
-	<key>NSCameraUsageDescription</key>
-	<string>Topilgan buyumni suratga olish uchun kamera kerak.</string>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Eʼlon yoki dalil uchun rasm tanlash uchun galereyaga ruxsat kerak.</string>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Yaqin atrofdagi eʼlonlarni koʻrsatish va taxminiy hududni belgilash uchun joylashuvingiz kerak. Aniq joyingiz boshqalarga koʻrsatilmaydi.</string>
 </dict>
 </plist>

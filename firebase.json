@@ -1,0 +1,29 @@
+{
+  "flutter": {
+    "platforms": {
+      "ios": {
+        "default": {
+          "projectId": "foodai-73d66",
+          "appId": "1:868249619271:ios:b6c46633b9c888fd6f1a62",
+          "uploadDebugSymbols": false,
+          "fileOutput": "ios/Runner/GoogleService-Info.plist"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "foodai-73d66",
+          "configurations": {
+            "ios": "1:868249619271:ios:b6c46633b9c888fd6f1a62"
+          }
+        }
+      }
+    }
+  },
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "storage": {
+    "rules": "storage.rules"
+  }
+}

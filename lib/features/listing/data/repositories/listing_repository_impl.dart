@@ -7,14 +7,15 @@ import '../../../../core/session/session.dart';
 import '../../../../core/usecase/usecase.dart';
 import '../../domain/entities/listing.dart';
 import '../../domain/repositories/listing_repository.dart';
-import '../datasources/listing_mock_datasource.dart';
+import '../../../../core/error/firebase_failure.dart';
+import '../datasources/listing_remote_datasource.dart';
 import '../models/listing_model.dart';
 
 @LazySingleton(as: ListingRepository)
 class ListingRepositoryImpl implements ListingRepository {
   const ListingRepositoryImpl(this._source, this._network, this._session);
 
-  final ListingMockDataSource _source;
+  final ListingRemoteDataSource _source;
   final NetworkInfo _network;
   final Session _session;
 
@@ -22,25 +23,14 @@ class ListingRepositoryImpl implements ListingRepository {
   FutureEither<ListingPage> getListings(ListingQuery query) async {
     if (!await _network.isConnected) return left(const NetworkFailure());
     try {
-      final all = await _source.fetchAll();
       final needle = query.search.trim().toLowerCase();
-      final f = query.filter;
-      final now = DateTime.now();
-      final from = f.start(now);
-      final to = f.end(now);
-      final items = all
-          .where((m) => m.type == query.type && m.status == ListingStatus.active)
-          .where((m) => f.categories.isEmpty || f.categories.contains(m.category))
-          .where((m) => m.city == f.city && (f.district == null || m.district == f.district))
-          .where((m) => !m.happenedAt.isBefore(from) && m.happenedAt.isBefore(to))
+      final items = (await _source.fetch(query))
           .where((m) => needle.isEmpty || m.title.toLowerCase().contains(needle) || m.areaName.toLowerCase().contains(needle))
           .map((m) => m.toEntity())
-          .toList()
-        // Newest first.
-        ..sort((a, b) => b.happenedAt.compareTo(a.happenedAt));
+          .toList();
       return right(ListingPage(items: items, total: items.length));
     } catch (e) {
-      return left(ServerFailure(e.toString()));
+      return left(failureOf(e));
     }
   }
 
@@ -55,7 +45,7 @@ class ListingRepositoryImpl implements ListingRepository {
       if (model == null) return left(const NotFoundFailure());
       return right(model.toEntity());
     } catch (e) {
-      return left(ServerFailure(e.toString()));
+      return left(failureOf(e));
     }
   }
 
@@ -64,9 +54,8 @@ class ListingRepositoryImpl implements ListingRepository {
 
   @override
   FutureEither<Listing> markReturned(String id) => _own(id, (m) async {
-        final updated = m.copyWith(status: ListingStatus.returned);
-        await _source.update(updated);
-        return updated.toEntity();
+        await _source.setStatus(m.id, ListingStatus.returned);
+        return m.copyWith(status: ListingStatus.returned).toEntity();
       });
 
   /// Runs [action] on the listing only when the signed-in user wrote it.
@@ -78,7 +67,7 @@ class ListingRepositoryImpl implements ListingRepository {
       if (model.author.id != _session.userId) return left(const ForbiddenFailure());
       return right(await action(model));
     } catch (e) {
-      return left(ServerFailure(e.toString()));
+      return left(failureOf(e));
     }
   }
 }

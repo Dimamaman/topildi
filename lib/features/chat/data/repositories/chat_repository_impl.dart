@@ -5,7 +5,7 @@ import '../../../../core/error/failure.dart';
 import '../../../../core/network/network_info.dart';
 import '../../../../core/session/session.dart';
 import '../../../../core/usecase/usecase.dart';
-import '../../../listing/data/datasources/listing_mock_datasource.dart';
+import '../../../listing/data/datasources/listing_remote_datasource.dart';
 import '../../../listing/domain/entities/listing.dart';
 import '../../domain/entities/chat.dart';
 import '../../domain/repositories/chat_repository.dart';
@@ -16,7 +16,7 @@ class ChatRepositoryImpl implements ChatRepository {
   const ChatRepositoryImpl(this._chats, this._listings, this._network, this._session);
 
   final ChatMockDataSource _chats;
-  final ListingMockDataSource _listings;
+  final ListingRemoteDataSource _listings;
   final NetworkInfo _network;
   final Session _session;
 
@@ -56,8 +56,7 @@ class ChatRepositoryImpl implements ChatRepository {
         final t = await _thread(chatId);
         if (!t.iAmFinder) throw const ForbiddenFailure();
         await _chats.markReturned(chatId);
-        final listing = await _listings.fetchById(t.listingId);
-        if (listing != null) await _listings.update(listing.copyWith(status: ListingStatus.returned));
+        await _listings.setStatus(t.listingId, ListingStatus.returned);
         return _summary(await _thread(chatId));
       });
 

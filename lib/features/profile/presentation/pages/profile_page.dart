@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:flutter/cupertino.dart';
@@ -233,8 +232,8 @@ class _Avatar extends StatelessWidget {
         shape: BoxShape.circle,
         border: Border.all(color: cs.surfaceContainerLowest, width: 3),
       ),
-      child: path != null && path.startsWith('/')
-          ? Image.file(File(path), width: 76, height: 76, fit: BoxFit.cover, errorBuilder: (_, _, _) => initial)
+      child: photoProvider(path) != null
+          ? Image(image: photoProvider(path)!, width: 76, height: 76, fit: BoxFit.cover, errorBuilder: (_, _, _) => initial)
           : initial,
     );
   }

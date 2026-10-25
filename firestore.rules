@@ -1,0 +1,63 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ---- FoodZeen (same Firebase project) — kept unchanged ----
+    match /users/{userId}/recipes/{recipeId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // ---- Topildi ----
+    function signedIn() { return request.auth != null; }
+    function isMe(uid) { return signedIn() && request.auth.uid == uid; }
+
+    // Public profile. No phone number is ever stored here.
+    match /topildi_users/{uid} {
+      allow read: if signedIn();
+      allow create, update: if isMe(uid)
+        && request.resource.data.keys().hasOnly(
+             ['firstName', 'avatarUrl', 'avatarEmoji', 'avatarTone', 'returnedCount', 'createdAt', 'updatedAt'])
+        && (!('firstName' in request.resource.data)
+            || (request.resource.data.firstName is string && request.resource.data.firstName.size() <= 30));
+      allow delete: if isMe(uid);
+    }
+
+    match /topildi_listings/{id} {
+      function validListing(d) {
+        return d.keys().hasOnly(['type', 'category', 'title', 'description', 'areaName', 'city', 'district',
+                                 'lat', 'lng', 'happenedAt', 'authorId', 'authorName', 'authorReturnedCount',
+                                 'photoUrls', 'tint', 'status', 'createdAt', 'updatedAt'])
+          && d.type in ['found', 'lost']
+          && d.category in ['documents', 'phones', 'keys', 'wallets', 'bags', 'electronics', 'clothes', 'kids', 'other']
+          && d.title is string && d.title.size() >= 3 && d.title.size() <= 60
+          && d.description is string && d.description.size() <= 500
+          && d.areaName is string && d.areaName.size() <= 200
+          && d.lat is number && d.lng is number
+          && d.happenedAt is timestamp
+          && d.photoUrls is list && d.photoUrls.size() <= 6;
+      }
+
+      allow read: if signedIn();
+      allow create: if signedIn()
+        && request.resource.data.authorId == request.auth.uid
+        && request.resource.data.status == 'active'
+        && validListing(request.resource.data);
+      // The author may only change the status (active -> returned).
+      allow update: if isMe(resource.data.authorId)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt'])
+        && request.resource.data.status in ['active', 'returned'];
+      allow delete: if isMe(resource.data.authorId);
+
+      // Hidden detail: the author only.
+      match /private/secret {
+        allow read, delete: if isMe(resource.data.authorId);
+        allow create: if isMe(request.resource.data.authorId)
+          && request.resource.data.keys().hasOnly(['hiddenDetail', 'authorId'])
+          && request.resource.data.hiddenDetail is string
+          && request.resource.data.hiddenDetail.size() <= 200;
+      }
+    }
+  }
+}

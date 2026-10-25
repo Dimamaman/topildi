@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:flutter/cupertino.dart';
@@ -18,6 +17,7 @@ import '../../../../core/widgets/avatar_tone.dart';
 import '../../../../core/widgets/glass_surface.dart';
 import '../../../../core/widgets/pull_down_menu.dart';
 import '../cubit/profile_setup_cubit.dart';
+import '../../../../core/widgets/photo_placeholder.dart';
 
 const _anim = Duration(milliseconds: 200);
 
@@ -455,9 +455,9 @@ class _Avatar extends StatelessWidget {
     final path = state.photoPath;
     final Widget content;
     final Key key;
-    if (path != null && path.startsWith('/')) {
+    if (photoProvider(path) != null) {
       key = ValueKey('photo:$path');
-      content = Image.file(File(path), fit: BoxFit.cover, width: double.infinity, height: double.infinity);
+      content = Image(image: photoProvider(path)!, fit: BoxFit.cover, width: double.infinity, height: double.infinity);
     } else if (state.emoji != null) {
       key = ValueKey('emoji:${state.emoji}');
       content = Center(

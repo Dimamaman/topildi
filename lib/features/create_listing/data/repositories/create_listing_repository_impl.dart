@@ -2,10 +2,11 @@ import 'package:fpdart/fpdart.dart';
 import 'package:injectable/injectable.dart';
 
 import '../../../../core/error/failure.dart';
+import '../../../../core/error/firebase_failure.dart';
 import '../../../../core/network/network_info.dart';
 import '../../../../core/session/session.dart';
 import '../../../../core/usecase/usecase.dart';
-import '../../../listing/data/datasources/listing_mock_datasource.dart';
+import '../../../listing/data/datasources/listing_remote_datasource.dart';
 import '../../../listing/data/models/listing_model.dart';
 import '../../../listing/domain/entities/listing.dart';
 import '../../domain/entities/create_draft.dart';
@@ -15,7 +16,7 @@ import '../../domain/repositories/create_listing_repository.dart';
 class CreateListingRepositoryImpl implements CreateListingRepository {
   const CreateListingRepositoryImpl(this._source, this._network, this._session);
 
-  final ListingMockDataSource _source;
+  final ListingRemoteDataSource _source;
   final NetworkInfo _network;
   final Session _session;
 
@@ -24,6 +25,7 @@ class CreateListingRepositoryImpl implements CreateListingRepository {
     if (!await _network.isConnected) return left(const NetworkFailure());
     try {
       final model = ListingModel(
+        // The data source assigns the real id.
         id: 'l${DateTime.now().microsecondsSinceEpoch}',
         type: draft.type,
         category: draft.category!,
@@ -39,11 +41,13 @@ class CreateListingRepositoryImpl implements CreateListingRepository {
         hiddenDetail: draft.hiddenDetail.trim(),
         photoCount: draft.photos.isEmpty ? 1 : draft.photos.length,
         photos: draft.photos,
+        // Placeholder colour when there is no photo.
+        tint: DateTime.now().millisecond % 4,
       );
       final saved = await _source.insert(model);
       return right(saved.id);
     } catch (e) {
-      return left(ServerFailure(e.toString()));
+      return left(failureOf(e));
     }
   }
 }

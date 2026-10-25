@@ -7,7 +7,7 @@ import '../../../../core/session/session.dart';
 import '../../../../core/storage/stores.dart';
 import '../../../../core/usecase/usecase.dart';
 import '../../../claim/data/datasources/claim_mock_datasource.dart';
-import '../../../listing/data/datasources/listing_mock_datasource.dart';
+import '../../../listing/data/datasources/listing_remote_datasource.dart';
 import '../../../listing/domain/entities/listing.dart';
 import '../../domain/entities/profile_summary.dart';
 import '../../domain/repositories/profile_repository.dart';
@@ -16,7 +16,7 @@ import '../../domain/repositories/profile_repository.dart';
 class ProfileRepositoryImpl implements ProfileRepository {
   ProfileRepositoryImpl(this._listings, this._claims, this._session, this._network, this._kv);
 
-  final ListingMockDataSource _listings;
+  final ListingRemoteDataSource _listings;
   final ClaimMockDataSource _claims;
   final Session _session;
   final NetworkInfo _network;
@@ -28,8 +28,7 @@ class ProfileRepositoryImpl implements ProfileRepository {
   FutureEither<ProfileSummary> getMine() async {
     if (!await _network.isConnected) return left(const NetworkFailure());
     try {
-      final mine = (await _listings.fetchAll()).where((m) => m.author.id == _session.userId).toList()
-        ..sort((a, b) => b.happenedAt.compareTo(a.happenedAt));
+      final mine = await _listings.fetchByAuthor(_session.userId);
       final active = <MyListing>[];
       final returned = <MyListing>[];
       for (final m in mine) {
@@ -41,7 +40,7 @@ class ProfileRepositoryImpl implements ProfileRepository {
       }
       return right(ProfileSummary(
         displayName: _session.displayName,
-        memberSince: DateTime(2026, 9),
+        memberSince: _session.memberSince,
         active: active,
         returned: returned.where((m) => m.listing.isFound).toList(),
         gotBack: returned.where((m) => !m.listing.isFound).length,

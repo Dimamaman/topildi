@@ -4,17 +4,19 @@ import 'package:injectable/injectable.dart';
 
 import '../../domain/entities/listing.dart';
 import '../models/listing_model.dart';
+import 'listing_remote_datasource.dart';
 
 /// In-memory stand-in for the listings API. Shared by features that create
 /// or update listings, so it is a singleton.
-@lazySingleton
-class ListingMockDataSource {
+@test
+@LazySingleton(as: ListingRemoteDataSource)
+class ListingMockDataSource implements ListingRemoteDataSource {
   ListingMockDataSource() : _items = _seed(DateTime.now());
 
   final List<ListingModel> _items;
   final _changes = StreamController<void>.broadcast();
 
-  /// Fires after a listing is added or updated.
+  @override
   Stream<void> get changes => _changes.stream;
   static const _latency = Duration(milliseconds: 600);
 
@@ -575,11 +577,30 @@ class ListingMockDataSource {
     ];
   }
 
-  Future<List<ListingModel>> fetchAll() async {
+  @override
+  Future<List<ListingModel>> fetch(ListingQuery query) async {
     await Future<void>.delayed(_latency);
-    return List.unmodifiable(_items);
+    final f = query.filter;
+    final now = DateTime.now();
+    final from = f.start(now);
+    final to = f.end(now);
+    return _items
+        .where((m) => m.type == query.type && m.status == ListingStatus.active)
+        .where((m) => f.categories.isEmpty || f.categories.contains(m.category))
+        .where((m) => m.city == f.city && (f.district == null || m.district == f.district))
+        .where((m) => !m.happenedAt.isBefore(from) && m.happenedAt.isBefore(to))
+        .toList()
+      ..sort((a, b) => b.happenedAt.compareTo(a.happenedAt));
   }
 
+  @override
+  Future<List<ListingModel>> fetchByAuthor(String authorId) async {
+    await Future<void>.delayed(_latency);
+    return _items.where((m) => m.author.id == authorId).toList()
+      ..sort((a, b) => b.happenedAt.compareTo(a.happenedAt));
+  }
+
+  @override
   Future<ListingModel?> fetchById(String id) async {
     await Future<void>.delayed(_latency ~/ 2);
     for (final item in _items) {
@@ -588,6 +609,7 @@ class ListingMockDataSource {
     return null;
   }
 
+  @override
   Future<ListingModel> insert(ListingModel model) async {
     await Future<void>.delayed(_latency);
     _items.insert(0, model);
@@ -595,16 +617,18 @@ class ListingMockDataSource {
     return model;
   }
 
+  @override
   Future<void> remove(String id) async {
     await Future<void>.delayed(_latency ~/ 2);
     _items.removeWhere((e) => e.id == id);
     _changes.add(null);
   }
 
-  Future<void> update(ListingModel model) async {
-    final i = _items.indexWhere((e) => e.id == model.id);
+  @override
+  Future<void> setStatus(String id, ListingStatus status) async {
+    final i = _items.indexWhere((e) => e.id == id);
     if (i >= 0) {
-      _items[i] = model;
+      _items[i] = _items[i].copyWith(status: status);
       _changes.add(null);
     }
   }

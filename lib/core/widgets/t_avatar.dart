@@ -1,9 +1,9 @@
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
 import '../theme/topildi_theme.dart';
+import 'photo_placeholder.dart';
 
 enum AvatarTone { primary, lost, neutral }
 
@@ -47,9 +47,9 @@ class TAvatar extends StatelessWidget {
       alignment: Alignment.center,
       decoration: BoxDecoration(color: bg, shape: BoxShape.circle),
       clipBehavior: Clip.antiAlias,
-      child: imagePath != null && imagePath!.startsWith('/')
-          ? Image.file(
-              File(imagePath!),
+      child: photoProvider(imagePath) != null
+          ? Image(
+              image: photoProvider(imagePath)!,
               width: size,
               height: size,
               fit: BoxFit.cover,

@@ -9,7 +9,8 @@ import '../../domain/usecases/request_sms_code.dart';
 import '../../domain/usecases/sign_in_with_google.dart';
 import '../../../../core/l10n/tr.dart';
 
-enum SignInNext { none, code, profile }
+/// After a successful step: SMS code screen, profile setup (new user) or the feed.
+enum SignInNext { none, code, profile, home }
 
 class SignInState extends Equatable {
   const SignInState({this.input = '', this.showError = false, this.loading = false, this.next = SignInNext.none, this.failure});
@@ -68,7 +69,7 @@ class SignInCubit extends Cubit<SignInState> {
     if (isClosed) return;
     r.match(
       (f) => emit(state.copyWith(loading: false, failure: f)),
-      (_) => emit(state.copyWith(loading: false, next: SignInNext.profile)),
+      (r) => emit(state.copyWith(loading: false, next: r.needsProfile ? SignInNext.profile : SignInNext.home)),
     );
   }
 }
