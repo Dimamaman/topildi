@@ -37,7 +37,7 @@ abstract final class FirePaths {
   static const users = 'topildi_users';
 
   /// Under a user: `notifications/{id}` (written by Cloud Functions) and
-  /// `devices/{fid}` (push targets). Both readable by the owner only.
+  /// `devices/{fcmToken}` (push targets). Both readable by the owner only.
   static const notifications = 'notifications';
   static const devices = 'devices';
   static const listings = 'topildi_listings';

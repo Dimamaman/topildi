@@ -44,11 +44,11 @@ export async function deliver(eventId: string, d: Delivery): Promise<void> {
   }
 
   const stale: string[] = [];
-  for (const [lang, fids] of byLang) {
-    const res = await getMessaging().sendEachForMulticast(multicast(fids, pushText(d.push, lang), d));
+  for (const [lang, tokens] of byLang) {
+    const res = await getMessaging().sendEachForMulticast(multicast(tokens, pushText(d.push, lang), d));
     res.responses.forEach((r, i) => {
       const code = r.error?.code;
-      if (code && staleTokenErrors.has(code)) stale.push(fids[i]);
+      if (code && staleTokenErrors.has(code)) stale.push(tokens[i]);
       else if (code) logger.warn("push failed", { code, kind: d.push.kind });
     });
   }
