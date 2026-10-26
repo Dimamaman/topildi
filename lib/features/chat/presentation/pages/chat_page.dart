@@ -49,7 +49,7 @@ class _ChatView extends StatelessWidget {
         } else if (state.failure != null) {
           TFeedback.error(
             context,
-            tr('Amalni bajarib boʻlmadi. Qayta urinib koʻring'),
+            tr('Amalni bajarib boʻlmadi. Qayta urinib koʻring.'),
           );
         }
       },
@@ -68,7 +68,12 @@ class _ChatView extends StatelessWidget {
             ViewLoaded(:final data) => Column(
               children: [
                 _Header(thread: data.thread, returning: state.returning),
-                Expanded(child: _Messages(thread: data.thread, messages: data.messages)),
+                Expanded(
+                  child: _Messages(
+                    thread: data.thread,
+                    messages: data.messages,
+                  ),
+                ),
                 if (!data.thread.returned)
                   const _Composer()
                 else
@@ -185,7 +190,10 @@ class _Header extends StatelessWidget {
                             destructive: true,
                           );
                           if (ok && context.mounted) {
-                            TFeedback.success(context, tr('Shikoyat yuborildi'));
+                            TFeedback.success(
+                              context,
+                              tr('Shikoyat yuborildi'),
+                            );
                           }
                         }
                       },
