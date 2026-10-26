@@ -1,33 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
-import '../../../../app/routes.dart';
 import '../../../../core/theme/topildi_surfaces.dart';
 import '../../../../core/theme/topildi_theme.dart';
 import '../../../../core/widgets/pull_down_menu.dart';
-import '../../../../core/widgets/t_button.dart';
 import '../../../../core/widgets/t_input.dart';
-import '../../../../core/widgets/t_top_bar.dart';
 import '../../../listing/domain/entities/listing.dart';
 import '../../../listing/presentation/category_ui.dart';
 import '../../domain/entities/create_draft.dart';
 import '../cubit/create_flow_cubit.dart';
-import '../widgets/create_header.dart';
 import '../../../../core/l10n/tr.dart';
 
 /// Step 2: title, category, description and the hidden detail.
-class CreateDetailsPage extends StatefulWidget {
-  const CreateDetailsPage({super.key, this.editing = false});
-
-  final bool editing;
+class CreateDetailsStep extends StatefulWidget {
+  const CreateDetailsStep({super.key});
 
   @override
-  State<CreateDetailsPage> createState() => _CreateDetailsPageState();
+  State<CreateDetailsStep> createState() => _CreateDetailsStepState();
 }
 
-class _CreateDetailsPageState extends State<CreateDetailsPage> {
+class _CreateDetailsStepState extends State<CreateDetailsStep> {
   late final CreateFlowCubit _cubit = context.read<CreateFlowCubit>();
   late final _title = TextEditingController(text: _cubit.state.draft.title);
   late final _description = TextEditingController(text: _cubit.state.draft.description);
@@ -39,12 +32,6 @@ class _CreateDetailsPageState extends State<CreateDetailsPage> {
     _description.dispose();
     _hidden.dispose();
     super.dispose();
-  }
-
-  void _next() {
-    FocusScope.of(context).unfocus();
-    if (!_cubit.submitDetails()) return;
-    widget.editing ? context.pop() : context.push(Routes.createLocation);
   }
 
   Future<void> _pickCategory(BuildContext anchor) async {
@@ -65,100 +52,93 @@ class _CreateDetailsPageState extends State<CreateDetailsPage> {
     final cs = Theme.of(context).colorScheme;
     final text = Theme.of(context).textTheme;
 
-    return Scaffold(
-      appBar: CreateHeader(title: tr('Yangi eʼlon'), step: 2),
-      body: BlocBuilder<CreateFlowCubit, CreateFlowState>(
-        builder: (context, state) {
-          final d = state.draft;
-          final show = state.showDetailErrors;
-          final categoryError = show ? DraftValidator.category(d) : null;
-          return ListView(
-            padding: const EdgeInsets.symmetric(horizontal: TSpace.screen, vertical: 18),
-            children: [
-              TInput(
-                label: tr('Sarlavha'),
-                controller: _title,
-                hint: tr('Masalan: qora hamyon'),
-                maxLength: 60,
-                textInputAction: TextInputAction.next,
-                onChanged: _cubit.setTitle,
-                error: show ? DraftValidator.title(d) : null,
-              ),
-              const SizedBox(height: TSpace.md),
-              Text(tr('Kategoriya'), style: text.labelLarge!.copyWith(color: categoryError != null ? cs.error : null)),
-              const SizedBox(height: 6),
-              Builder(
-                builder: (anchor) => Material(
-                  color: cs.surfaceContainerLowest,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(TRadius.md),
-                    side: BorderSide(color: categoryError != null ? cs.error : cs.outline, width: categoryError != null ? 2 : 1),
-                  ),
-                  clipBehavior: Clip.antiAlias,
-                  child: InkWell(
-                    onTap: () => _pickCategory(anchor),
-                    child: SizedBox(
-                      height: TSize.input,
-                      child: Padding(
-                        padding: const EdgeInsets.only(left: 14, right: 12),
-                        child: Row(
-                          children: [
-                            Icon(d.category?.icon ?? Symbols.category_rounded, size: 20, color: cs.onSurfaceVariant),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Text(
-                                d.category?.label ?? tr('Tanlang'),
-                                style: text.bodyLarge!.copyWith(color: d.category == null ? cs.onSurfaceVariant : null),
-                              ),
+    return BlocBuilder<CreateFlowCubit, CreateFlowState>(
+      builder: (context, state) {
+        final d = state.draft;
+        final show = state.showDetailErrors;
+        final categoryError = show ? DraftValidator.category(d) : null;
+        return ListView(
+          padding: const EdgeInsets.symmetric(horizontal: TSpace.screen, vertical: 18),
+          children: [
+            TInput(
+              label: tr('Sarlavha'),
+              controller: _title,
+              hint: tr('Masalan: qora hamyon'),
+              maxLength: 60,
+              textInputAction: TextInputAction.next,
+              onChanged: _cubit.setTitle,
+              error: show ? DraftValidator.title(d) : null,
+            ),
+            const SizedBox(height: TSpace.md),
+            Text(tr('Kategoriya'), style: text.labelLarge!.copyWith(color: categoryError != null ? cs.error : null)),
+            const SizedBox(height: 6),
+            Builder(
+              builder: (anchor) => Material(
+                color: cs.surfaceContainerLowest,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(TRadius.md),
+                  side: BorderSide(color: categoryError != null ? cs.error : cs.outline, width: categoryError != null ? 2 : 1),
+                ),
+                clipBehavior: Clip.antiAlias,
+                child: InkWell(
+                  onTap: () => _pickCategory(anchor),
+                  child: SizedBox(
+                    height: TSize.input,
+                    child: Padding(
+                      padding: const EdgeInsets.only(left: 14, right: 12),
+                      child: Row(
+                        children: [
+                          Icon(d.category?.icon ?? Symbols.category_rounded, size: 20, color: cs.onSurfaceVariant),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              d.category?.label ?? tr('Tanlang'),
+                              style: text.bodyLarge!.copyWith(color: d.category == null ? cs.onSurfaceVariant : null),
                             ),
-                            Icon(Symbols.expand_more_rounded, color: cs.onSurfaceVariant),
-                          ],
-                        ),
+                          ),
+                          Icon(Symbols.expand_more_rounded, color: cs.onSurfaceVariant),
+                        ],
                       ),
                     ),
                   ),
                 ),
               ),
-              if (categoryError != null) ...[
-                const SizedBox(height: 6),
-                Text(categoryError, style: TextStyle(fontSize: 13, color: cs.error)),
-              ],
-              const SizedBox(height: TSpace.md),
-              TInput(
-                label: tr('Tavsif'),
-                controller: _description,
-                hint: tr('Qayerda, qanday holatda topdingiz yoki yoʻqotdingiz?'),
-                maxLines: 4,
-                minLines: 3,
-                maxLength: CreateDraft.maxDescription,
-                keyboardType: TextInputType.multiline,
-                onChanged: _cubit.setDescription,
-              ),
-              Align(
-                alignment: Alignment.centerRight,
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 4),
-                  child: Text(
-                    '${d.description.length} / ${CreateDraft.maxDescription}',
-                    style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant),
-                  ),
+            ),
+            if (categoryError != null) ...[
+              const SizedBox(height: 6),
+              Text(categoryError, style: TextStyle(fontSize: 13, color: cs.error)),
+            ],
+            const SizedBox(height: TSpace.md),
+            TInput(
+              label: tr('Tavsif'),
+              controller: _description,
+              hint: tr('Qayerda, qanday holatda topdingiz yoki yoʻqotdingiz?'),
+              maxLines: 4,
+              minLines: 3,
+              maxLength: CreateDraft.maxDescription,
+              keyboardType: TextInputType.multiline,
+              onChanged: _cubit.setDescription,
+            ),
+            Align(
+              alignment: Alignment.centerRight,
+              child: Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Text(
+                  '${d.description.length} / ${CreateDraft.maxDescription}',
+                  style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant),
                 ),
               ),
-              const SizedBox(height: TSpace.sm),
-              _HiddenDetailBlock(
-                controller: _hidden,
-                isFound: d.isFound,
-                onChanged: _cubit.setHiddenDetail,
-                error: show ? DraftValidator.hiddenDetail(d) : null,
-              ),
-            ],
-          );
-        },
-      ),
-      bottomNavigationBar: TBottomBar(
-        horizontal: TSpace.screen,
-        children: [TButton.primary(label: widget.editing ? tr('Saqlash') : tr('Keyingi'), onPressed: _next)],
-      ),
+            ),
+            const SizedBox(height: TSpace.sm),
+            _HiddenDetailBlock(
+              controller: _hidden,
+              isFound: d.isFound,
+              onChanged: _cubit.setHiddenDetail,
+              error: show ? DraftValidator.hiddenDetail(d) : null,
+            ),
+          ],
+        );
+      },
     );
   }
 }

@@ -72,4 +72,48 @@ void main() {
     expect(find.text('Bu meniki'), findsNothing);
     expect(find.byType(Scaffold), findsWidgets);
   });
+
+  testWidgets('Steps slide in one screen; back returns a step, edit opens one step', (tester) async {
+    await tester.pumpWidget(const TopildiApp(initialLocation: Routes.create));
+    await tester.pumpAndSettle();
+    expect(find.text('1 / 3'), findsOneWidget);
+
+    await tester.tap(find.text('Keyingi'));
+    await tester.pumpAndSettle();
+    expect(find.text('2 / 3'), findsOneWidget);
+    await tester.enterText(find.byType(TextField).at(0), 'Kumush uzuk');
+
+    // Back goes to step 1 within the same screen, not out of the flow.
+    await tester.tap(find.byTooltip('Orqaga'));
+    await tester.pumpAndSettle();
+    expect(find.text('1 / 3'), findsOneWidget);
+    expect(find.text('Nima boʻldi?'), findsOneWidget);
+
+    // Step 2 kept what was typed.
+    await tester.tap(find.text('Keyingi'));
+    await tester.pumpAndSettle();
+    expect(find.text('Kumush uzuk'), findsOneWidget);
+
+    await tester.tap(find.text('Tanlang'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Hujjatlar').last);
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).last, 'Ichki tomonida sana yozilgan');
+    await tester.tap(find.text('Keyingi'));
+    await tester.pumpAndSettle();
+    expect(find.text('3 / 3'), findsOneWidget);
+    await tester.tap(find.text('Koʻrib chiqish'));
+    await tester.pumpAndSettle();
+
+    // "Oʻzgartirish" on the title row: only step 2, saved straight back to Review.
+    await tester.tap(find.text('Oʻzgartirish').at(1));
+    await tester.pumpAndSettle();
+    expect(find.text('2 / 3'), findsOneWidget);
+    await tester.enterText(find.byType(TextField).at(0), 'Oltin uzuk');
+    await tester.tap(find.text('Saqlash'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Oltin uzuk'), findsWidgets);
+    expect(find.textContaining('Kumush uzuk'), findsNothing);
+    expect(find.text('Eʼlon qilish'), findsOneWidget);
+  });
 }

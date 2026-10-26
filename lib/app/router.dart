@@ -12,9 +12,7 @@ import '../features/onboarding/presentation/pages/splash_page.dart';
 import '../features/profile/presentation/pages/my_listings_page.dart';
 import '../features/profile/presentation/pages/profile_page.dart';
 import '../features/create_listing/presentation/cubit/create_flow_cubit.dart';
-import '../features/create_listing/presentation/pages/create_details_page.dart';
-import '../features/create_listing/presentation/pages/create_location_page.dart';
-import '../features/create_listing/presentation/pages/create_type_page.dart';
+import '../features/create_listing/presentation/pages/create_flow_page.dart';
 import '../features/create_listing/presentation/pages/posted_page.dart';
 import '../features/create_listing/presentation/pages/review_page.dart';
 
@@ -92,17 +90,19 @@ GoRouter createRouter({String initialLocation = Routes.splash}) => GoRouter(
     ShellRoute(
       builder: (_, _, child) => BlocProvider(create: (_) => getIt<CreateFlowCubit>(), child: child),
       routes: [
+        // One screen for the three steps; the step routes open a single
+        // step for editing from Review (`?edit=1`).
         GoRoute(
           path: Routes.create,
-          builder: (_, s) => CreateTypePage(editing: _editing(s)),
+          builder: (_, s) => CreateFlowPage(editing: _editing(s)),
         ),
         GoRoute(
           path: Routes.createDetails,
-          builder: (_, s) => CreateDetailsPage(editing: _editing(s)),
+          builder: (_, s) => CreateFlowPage(initialStep: 1, editing: _editing(s)),
         ),
         GoRoute(
           path: Routes.createLocation,
-          builder: (_, s) => CreateLocationPage(editing: _editing(s)),
+          builder: (_, s) => CreateFlowPage(initialStep: 2, editing: _editing(s)),
         ),
         GoRoute(path: Routes.createReview, builder: (_, _) => const ReviewPage()),
         GoRoute(path: Routes.createPosted, builder: (_, _) => const PostedPage()),

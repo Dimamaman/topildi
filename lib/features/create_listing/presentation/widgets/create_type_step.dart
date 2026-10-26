@@ -1,26 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
-import '../../../../app/routes.dart';
 import '../../../../core/theme/topildi_surfaces.dart';
 import '../../../../core/theme/topildi_theme.dart';
 import '../../../../core/widgets/photo_placeholder.dart';
 import '../../../../core/widgets/photo_source_sheet.dart';
-import '../../../../core/widgets/t_button.dart';
-import '../../../../core/widgets/t_top_bar.dart';
 import '../../../listing/domain/entities/listing.dart';
 import '../../domain/entities/create_draft.dart';
 import '../cubit/create_flow_cubit.dart';
-import '../widgets/create_header.dart';
 import '../../../../core/l10n/tr.dart';
 
 /// Step 1: found/lost + photos.
-class CreateTypePage extends StatelessWidget {
-  const CreateTypePage({super.key, this.editing = false});
-
-  final bool editing;
+class CreateTypeStep extends StatelessWidget {
+  const CreateTypeStep({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -29,106 +22,94 @@ class CreateTypePage extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     final tc = context.tc;
 
-    return Scaffold(
-      appBar: CreateHeader(title: tr('Yangi eʼlon'), step: 1, isFirst: !editing),
-      body: BlocBuilder<CreateFlowCubit, CreateFlowState>(
-        builder: (context, state) {
-          final d = state.draft;
-          return ListView(
-            padding: const EdgeInsets.all(TSpace.screen),
-            children: [
-              Text(tr('Nima boʻldi?'), style: text.titleLarge!.copyWith(fontSize: 22, fontWeight: FontWeight.w700)),
-              const SizedBox(height: TSpace.sm),
-              Row(
+    return BlocBuilder<CreateFlowCubit, CreateFlowState>(
+      builder: (context, state) {
+        final d = state.draft;
+        return ListView(
+          padding: const EdgeInsets.all(TSpace.screen),
+          children: [
+            Text(tr('Nima boʻldi?'), style: text.titleLarge!.copyWith(fontSize: 22, fontWeight: FontWeight.w700)),
+            const SizedBox(height: TSpace.sm),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: _TypeOption(
+                    selected: d.isFound,
+                    icon: Symbols.volunteer_activism_rounded,
+                    title: tr('Topdim'),
+                    subtitle: tr('Egasini topishga yordam beraman'),
+                    color: tc.found,
+                    container: tc.foundContainer,
+                    onTap: () => cubit.setType(ListingType.found),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: _TypeOption(
+                    selected: !d.isFound,
+                    icon: Symbols.search_rounded,
+                    title: tr('Yoʻqotdim'),
+                    subtitle: tr('Buyumimni qidiryapman'),
+                    color: tc.lost,
+                    container: tc.lostContainer,
+                    onTap: () => cubit.setType(ListingType.lost),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: TSpace.xl),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              textBaseline: TextBaseline.alphabetic,
+              children: [
+                Expanded(child: Text(tr('Rasmlar'), style: text.titleMedium!.copyWith(fontSize: 17, fontWeight: FontWeight.w700))),
+                Text('${d.photos.length} / ${CreateDraft.maxPhotos}',
+                    style: TextStyle(fontSize: 13, color: cs.onSurfaceVariant)),
+              ],
+            ),
+            const SizedBox(height: TSpace.sm),
+            GridView.count(
+              crossAxisCount: 3,
+              mainAxisSpacing: 8,
+              crossAxisSpacing: 8,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              children: [
+                for (var i = 0; i < d.photos.length; i++)
+                  _PhotoTile(path: d.photos[i], tint: i, isMain: i == 0, onRemove: () => cubit.removePhoto(i)),
+                if (d.photos.length < CreateDraft.maxPhotos)
+                  Builder(
+                    builder: (anchor) => _AddPhotoTile(
+                      onTap: () async {
+                        final path = await pickPhoto(context, anchor: anchor);
+                        if (path != null) cubit.addPhoto(path);
+                      },
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: TSpace.sm),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              decoration: BoxDecoration(color: tc.warningContainer, borderRadius: BorderRadius.circular(TRadius.md)),
+              child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: _TypeOption(
-                      selected: d.isFound,
-                      icon: Symbols.volunteer_activism_rounded,
-                      title: tr('Topdim'),
-                      subtitle: tr('Egasini topishga yordam beraman'),
-                      color: tc.found,
-                      container: tc.foundContainer,
-                      onTap: () => cubit.setType(ListingType.found),
-                    ),
-                  ),
+                  Icon(Symbols.visibility_off_rounded, size: 20, color: tc.warning),
                   const SizedBox(width: 10),
                   Expanded(
-                    child: _TypeOption(
-                      selected: !d.isFound,
-                      icon: Symbols.search_rounded,
-                      title: tr('Yoʻqotdim'),
-                      subtitle: tr('Buyumimni qidiryapman'),
-                      color: tc.lost,
-                      container: tc.lostContainer,
-                      onTap: () => cubit.setType(ListingType.lost),
+                    child: Text(
+                      tr('Rasmda karta raqami, hujjat maʼlumotlari yoki ichidagi narsalar koʻrinmasin. Ular egasini tekshirish uchun kerak.'),
+                      style: TextStyle(fontSize: 13, height: 19 / 13, color: tc.warning),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: TSpace.xl),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.baseline,
-                textBaseline: TextBaseline.alphabetic,
-                children: [
-                  Expanded(child: Text(tr('Rasmlar'), style: text.titleMedium!.copyWith(fontSize: 17, fontWeight: FontWeight.w700))),
-                  Text('${d.photos.length} / ${CreateDraft.maxPhotos}',
-                      style: TextStyle(fontSize: 13, color: cs.onSurfaceVariant)),
-                ],
-              ),
-              const SizedBox(height: TSpace.sm),
-              GridView.count(
-                crossAxisCount: 3,
-                mainAxisSpacing: 8,
-                crossAxisSpacing: 8,
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                children: [
-                  for (var i = 0; i < d.photos.length; i++)
-                    _PhotoTile(path: d.photos[i], tint: i, isMain: i == 0, onRemove: () => cubit.removePhoto(i)),
-                  if (d.photos.length < CreateDraft.maxPhotos)
-                    Builder(
-                      builder: (anchor) => _AddPhotoTile(
-                        onTap: () async {
-                          final path = await pickPhoto(context, anchor: anchor);
-                          if (path != null) cubit.addPhoto(path);
-                        },
-                      ),
-                    ),
-                ],
-              ),
-              const SizedBox(height: TSpace.sm),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                decoration: BoxDecoration(color: tc.warningContainer, borderRadius: BorderRadius.circular(TRadius.md)),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Icon(Symbols.visibility_off_rounded, size: 20, color: tc.warning),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        tr('Rasmda karta raqami, hujjat maʼlumotlari yoki ichidagi narsalar koʻrinmasin. Ular egasini tekshirish uchun kerak.'),
-                        style: TextStyle(fontSize: 13, height: 19 / 13, color: tc.warning),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          );
-        },
-      ),
-      bottomNavigationBar: TBottomBar(
-        horizontal: TSpace.screen,
-        children: [
-          TButton.primary(
-            label: editing ? tr('Saqlash') : tr('Keyingi'),
-            onPressed: () => editing ? context.pop() : context.push(Routes.createDetails),
-          ),
-        ],
-      ),
+            ),
+          ],
+        );
+      },
     );
   }
 }

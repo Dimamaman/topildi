@@ -3,11 +3,9 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_map/flutter_map.dart';
-import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
-import '../../../../app/routes.dart';
 import '../../../../core/config/features.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/location/geo_point.dart';
@@ -20,24 +18,20 @@ import '../../../../core/utils/date_format.dart';
 import '../../../../core/widgets/pull_down_menu.dart';
 import '../../../../core/widgets/t_button.dart';
 import '../../../../core/widgets/t_chip.dart';
-import '../../../../core/widgets/t_top_bar.dart';
 import '../../../listing/domain/entities/regions.dart';
 import '../../domain/entities/create_draft.dart';
 import '../cubit/create_flow_cubit.dart';
-import '../widgets/create_header.dart';
 import '../../../../core/l10n/tr.dart';
 
 /// Step 3: approximate area (~300 m) and when it happened.
-class CreateLocationPage extends StatefulWidget {
-  const CreateLocationPage({super.key, this.editing = false});
-
-  final bool editing;
+class CreateLocationStep extends StatefulWidget {
+  const CreateLocationStep({super.key});
 
   @override
-  State<CreateLocationPage> createState() => _CreateLocationPageState();
+  State<CreateLocationStep> createState() => _CreateLocationStepState();
 }
 
-class _CreateLocationPageState extends State<CreateLocationPage> {
+class _CreateLocationStepState extends State<CreateLocationStep> {
   late final CreateFlowCubit _cubit = context.read<CreateFlowCubit>();
   final _map = MapController();
   final _location = getIt<LocationService>();
@@ -127,123 +121,111 @@ class _CreateLocationPageState extends State<CreateLocationPage> {
     if (picked != null) _cubit.setTime(picked.hour, picked.minute);
   }
 
-  void _next() {
-    if (!_cubit.submitLocation()) return;
-    widget.editing ? context.pop() : context.push(Routes.createReview);
-  }
-
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    return Scaffold(
-      appBar: CreateHeader(title: tr('Qayerda va qachon?'), step: 3),
-      body: BlocBuilder<CreateFlowCubit, CreateFlowState>(
-        builder: (context, state) {
-          final d = state.draft;
-          final happened = d.happenedAt(DateTime.now());
-          return ListView(
-            children: [
-              if (Features.map)
-                SizedBox(
-                  height: 330,
-                  child: _AreaPicker(controller: _map, initial: _center, onMoved: _resolve, onLocate: _locate),
-                )
-              else
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(TSpace.screen, TSpace.md, TSpace.screen, 0),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: TButton.secondary(
-                          label: tr('Joylashuvim'),
-                          icon: Symbols.my_location_rounded,
-                          onPressed: _locate,
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Builder(
-                          builder: (anchor) => TButton.secondary(
-                            label: tr('Tumanni tanlash'),
-                            icon: Symbols.list_rounded,
-                            onPressed: () => _pickDistrict(anchor),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+    return BlocBuilder<CreateFlowCubit, CreateFlowState>(
+      builder: (context, state) {
+        final d = state.draft;
+        final happened = d.happenedAt(DateTime.now());
+        return ListView(
+          children: [
+            if (Features.map)
+              SizedBox(
+                height: 330,
+                child: _AreaPicker(controller: _map, initial: _center, onMoved: _resolve, onLocate: _locate),
+              )
+            else
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: TSpace.screen, vertical: TSpace.md),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                padding: const EdgeInsets.fromLTRB(TSpace.screen, TSpace.md, TSpace.screen, 0),
+                child: Row(
                   children: [
-                    Row(
-                      children: [
-                        Icon(Symbols.location_on_rounded, size: 20, color: cs.primary),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            _resolving ? tr('Hudud aniqlanmoqda…') : (d.areaName ?? tr('Joy belgilanmagan')),
-                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                          ),
-                        ),
-                      ],
+                    Expanded(
+                      child: TButton.secondary(
+                        label: tr('Joylashuvim'),
+                        icon: Symbols.my_location_rounded,
+                        onPressed: _locate,
+                      ),
                     ),
-                    const SizedBox(height: 6),
-                    Text(
-                      tr('Boshqalarga aniq nuqta emas, taxminan 300 m lik hudud koʻrsatiladi.'),
-                      style: TextStyle(fontSize: 13, height: 19 / 13, color: cs.onSurfaceVariant),
-                    ),
-                    const SizedBox(height: 18),
-                    Text(
-                      d.isFound ? tr('Qachon topdingiz?') : tr('Qachon yoʻqotdingiz?'),
-                      style: Theme.of(context).textTheme.labelLarge,
-                    ),
-                    const SizedBox(height: 4),
-                    Wrap(
-                      spacing: TSpace.xs,
-                      children: [
-                        TChip(
-                          label: tr('Bugun'),
-                          selected: d.day == DraftDay.today,
-                          onTap: () => _cubit.setDay(DraftDay.today),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Builder(
+                        builder: (anchor) => TButton.secondary(
+                          label: tr('Tumanni tanlash'),
+                          icon: Symbols.list_rounded,
+                          onPressed: () => _pickDistrict(anchor),
                         ),
-                        TChip(
-                          label: tr('Kecha'),
-                          selected: d.day == DraftDay.yesterday,
-                          onTap: () => _cubit.setDay(DraftDay.yesterday),
-                        ),
-                        TChip(label: tr('Boshqa sana'), selected: d.day == DraftDay.other, onTap: _pickDate),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _PickerField(label: tr('Sana'), value: TDate.dayMonth(happened), onTap: _pickDate),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: _PickerField(
-                            label: tr('Taxminiy vaqt'),
-                            value: TDate.time(happened),
-                            onTap: _pickTime,
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
                   ],
                 ),
               ),
-            ],
-          );
-        },
-      ),
-      bottomNavigationBar: TBottomBar(
-        horizontal: TSpace.screen,
-        children: [TButton.primary(label: widget.editing ? tr('Saqlash') : tr('Koʻrib chiqish'), onPressed: _next)],
-      ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: TSpace.screen, vertical: TSpace.md),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Symbols.location_on_rounded, size: 20, color: cs.primary),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          _resolving ? tr('Hudud aniqlanmoqda…') : (d.areaName ?? tr('Joy belgilanmagan')),
+                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    tr('Boshqalarga aniq nuqta emas, taxminan 300 m lik hudud koʻrsatiladi.'),
+                    style: TextStyle(fontSize: 13, height: 19 / 13, color: cs.onSurfaceVariant),
+                  ),
+                  const SizedBox(height: 18),
+                  Text(
+                    d.isFound ? tr('Qachon topdingiz?') : tr('Qachon yoʻqotdingiz?'),
+                    style: Theme.of(context).textTheme.labelLarge,
+                  ),
+                  const SizedBox(height: 4),
+                  Wrap(
+                    spacing: TSpace.xs,
+                    children: [
+                      TChip(
+                        label: tr('Bugun'),
+                        selected: d.day == DraftDay.today,
+                        onTap: () => _cubit.setDay(DraftDay.today),
+                      ),
+                      TChip(
+                        label: tr('Kecha'),
+                        selected: d.day == DraftDay.yesterday,
+                        onTap: () => _cubit.setDay(DraftDay.yesterday),
+                      ),
+                      TChip(label: tr('Boshqa sana'), selected: d.day == DraftDay.other, onTap: _pickDate),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _PickerField(label: tr('Sana'), value: TDate.dayMonth(happened), onTap: _pickDate),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: _PickerField(
+                          label: tr('Taxminiy vaqt'),
+                          value: TDate.time(happened),
+                          onTap: _pickTime,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }
