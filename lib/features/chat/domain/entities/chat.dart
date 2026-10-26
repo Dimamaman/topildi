@@ -16,6 +16,7 @@ class ChatThread extends Equatable {
     required this.lastAt,
     this.unread = 0,
     this.returned = false,
+    this.otherReadAt,
   });
 
   final String id, listingId, listingTitle;
@@ -30,7 +31,14 @@ class ChatThread extends Equatable {
   final int unread;
   final bool returned;
 
-  ChatThread copyWith({String? lastMessage, DateTime? lastAt, int? unread, bool? returned}) => ChatThread(
+  /// When the other member last opened the chat; my messages sent before
+  /// this are shown as read.
+  final DateTime? otherReadAt;
+
+  bool seen(ChatMessage m) => m.fromMe && otherReadAt != null && !m.sentAt.isAfter(otherReadAt!);
+
+  ChatThread copyWith({String? lastMessage, DateTime? lastAt, int? unread, bool? returned, DateTime? otherReadAt}) =>
+      ChatThread(
         id: id,
         listingId: listingId,
         listingTitle: listingTitle,
@@ -42,11 +50,12 @@ class ChatThread extends Equatable {
         lastAt: lastAt ?? this.lastAt,
         unread: unread ?? this.unread,
         returned: returned ?? this.returned,
+        otherReadAt: otherReadAt ?? this.otherReadAt,
       );
 
   @override
   List<Object?> get props =>
-      [id, listingId, listingTitle, listingCategory, listingTint, other, iAmFinder, lastMessage, lastAt, unread, returned];
+      [id, listingId, listingTitle, listingCategory, listingTint, other, iAmFinder, lastMessage, lastAt, unread, returned, otherReadAt];
 }
 
 enum MessageKind { text, matched, safety, returned }

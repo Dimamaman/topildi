@@ -1,11 +1,17 @@
 import 'package:injectable/injectable.dart';
 
+import '../../../chat/data/datasources/chat_mock_datasource.dart';
+import '../../../chat/data/datasources/chat_remote_datasource.dart';
+import '../../../listing/data/models/listing_model.dart';
 import '../../../listing/domain/entities/listing.dart';
 import '../../domain/entities/claim.dart';
+import 'claim_remote_datasource.dart';
 
-@lazySingleton
-class ClaimMockDataSource {
-  ClaimMockDataSource() {
+/// In-memory claims for widget tests.
+@test
+@LazySingleton(as: ClaimRemoteDataSource)
+class ClaimMockDataSource implements ClaimRemoteDataSource {
+  ClaimMockDataSource(ChatRemoteDataSource chats) : _chats = chats as ChatMockDataSource {
     final now = DateTime.now();
     // Claims on the signed-in user's wallet listing (l1).
     _claims.addAll([
@@ -59,38 +65,70 @@ class ClaimMockDataSource {
   static const _latency = Duration(milliseconds: 500);
 
   final List<Claim> _claims = [];
+  final ChatMockDataSource _chats;
 
+  @override
   Future<List<Claim>> forListing(String listingId) async {
     await Future<void>.delayed(_latency);
     return _claims.where((c) => c.listingId == listingId).toList()..sort((a, b) => b.createdAt.compareTo(a.createdAt));
   }
 
-  int pendingFor(String listingId) =>
-      _claims.where((c) => c.listingId == listingId && c.status == ClaimStatus.pending).length;
-
-  int attemptsBy(String userId, String listingId) =>
-      _claims.where((c) => c.listingId == listingId && c.claimant.id == userId).length;
-
-  bool hasPendingBy(String userId, String listingId) => _claims.any(
-      (c) => c.listingId == listingId && c.claimant.id == userId && c.status == ClaimStatus.pending);
-
-  Future<Claim> add(Claim claim) async {
-    await Future<void>.delayed(_latency);
-    _claims.add(claim);
-    return claim;
+  @override
+  Future<Map<String, int>> pendingCountsForAuthor(String authorId) async {
+    final counts = <String, int>{};
+    for (final c in _claims.where((c) => c.status == ClaimStatus.pending)) {
+      counts[c.listingId] = (counts[c.listingId] ?? 0) + 1;
+    }
+    return counts;
   }
 
-  Claim? byId(String id) {
+  @override
+  Future<List<Claim>> byClaimant(String claimantId, String listingId) async =>
+      _claims.where((c) => c.listingId == listingId && c.claimant.id == claimantId).toList();
+
+  @override
+  Future<Claim?> byId(String id) async {
     for (final c in _claims) {
       if (c.id == id) return c;
     }
     return null;
   }
 
-  Future<Claim> setStatus(String id, ClaimStatus status) async {
+  @override
+  Future<Claim> add({required ListingModel listing, required PublicUser claimant, required SubmitClaimParams params}) async {
+    await Future<void>.delayed(_latency);
+    final claim = Claim(
+      id: 'cl${DateTime.now().microsecondsSinceEpoch}',
+      listingId: listing.id,
+      claimant: claimant,
+      answer: params.answer.trim(),
+      hasProofPhoto: params.hasProofPhoto,
+      proofPath: params.proofPath,
+      createdAt: DateTime.now(),
+    );
+    _claims.add(claim);
+    return claim;
+  }
+
+  Future<Claim> _setStatus(String id, ClaimStatus status) async {
     await Future<void>.delayed(_latency ~/ 2);
     final i = _claims.indexWhere((c) => c.id == id);
     _claims[i] = _claims[i].copyWith(status: status);
     return _claims[i];
+  }
+
+  @override
+  Future<Claim> reject(String id) => _setStatus(id, ClaimStatus.rejected);
+
+  @override
+  Future<String> accept(Claim claim, ListingModel listing) async {
+    await _setStatus(claim.id, ClaimStatus.accepted);
+    return _chats.openChat(
+      listingId: listing.id,
+      listingTitle: listing.title,
+      category: listing.category,
+      tint: listing.tint,
+      claimant: claim.claimant,
+    );
   }
 }

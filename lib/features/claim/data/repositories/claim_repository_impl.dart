@@ -2,25 +2,24 @@ import 'package:fpdart/fpdart.dart';
 import 'package:injectable/injectable.dart';
 
 import '../../../../core/error/failure.dart';
+import '../../../../core/error/firebase_failure.dart';
+import '../../../../core/l10n/tr.dart';
 import '../../../../core/network/network_info.dart';
 import '../../../../core/session/session.dart';
 import '../../../../core/usecase/usecase.dart';
-import '../../../chat/data/datasources/chat_mock_datasource.dart';
 import '../../../listing/data/datasources/listing_remote_datasource.dart';
 import '../../../listing/data/models/listing_model.dart';
 import '../../../listing/domain/entities/listing.dart';
 import '../../domain/entities/claim.dart';
 import '../../domain/repositories/claim_repository.dart';
-import '../datasources/claim_mock_datasource.dart';
-import '../../../../core/l10n/tr.dart';
+import '../datasources/claim_remote_datasource.dart';
 
 @LazySingleton(as: ClaimRepository)
 class ClaimRepositoryImpl implements ClaimRepository {
-  const ClaimRepositoryImpl(this._claims, this._listings, this._chats, this._network, this._session);
+  const ClaimRepositoryImpl(this._claims, this._listings, this._network, this._session);
 
-  final ClaimMockDataSource _claims;
+  final ClaimRemoteDataSource _claims;
   final ListingRemoteDataSource _listings;
-  final ChatMockDataSource _chats;
   final NetworkInfo _network;
   final Session _session;
 
@@ -28,25 +27,23 @@ class ClaimRepositoryImpl implements ClaimRepository {
     if (!await _network.isConnected) return left(const NetworkFailure());
     try {
       return right(await run());
-    } on Failure catch (f) {
-      return left(f);
     } catch (e) {
-      return left(ServerFailure(e.toString()));
+      return left(failureOf(e));
     }
   }
 
   Future<ListingModel> _listing(String id) async => await _listings.fetchById(id) ?? (throw const NotFoundFailure());
 
-  int _attemptsLeft(String listingId) =>
-      ClaimTarget.maxAttempts - _claims.attemptsBy(_session.userId, listingId);
+  Future<Claim> _claim(String id) async => await _claims.byId(id) ?? (throw const NotFoundFailure());
 
   @override
   FutureEither<ClaimTarget> getTarget(String listingId) => _guard(() async {
         final model = await _listing(listingId);
+        final mine = await _claims.byClaimant(_session.userId, listingId);
         return ClaimTarget(
           listing: model.toEntity(),
-          attemptsLeft: _attemptsLeft(listingId),
-          hasPending: _claims.hasPendingBy(_session.userId, listingId),
+          attemptsLeft: ClaimTarget.maxAttempts - mine.length,
+          hasPending: mine.any((c) => c.status == ClaimStatus.pending),
         );
       });
 
@@ -54,16 +51,13 @@ class ClaimRepositoryImpl implements ClaimRepository {
   FutureEither<Claim> submit(SubmitClaimParams params) => _guard(() async {
         final model = await _listing(params.listingId);
         if (model.author.id == _session.userId) throw const ForbiddenFailure();
-        if (_attemptsLeft(params.listingId) <= 0) throw ValidationFailure(tr('Urinishlar tugadi'));
-        return _claims.add(Claim(
-          id: 'cl${DateTime.now().microsecondsSinceEpoch}',
-          listingId: params.listingId,
+        final mine = await _claims.byClaimant(_session.userId, params.listingId);
+        if (mine.length >= ClaimTarget.maxAttempts) throw ValidationFailure(tr('Urinishlar tugadi'));
+        return _claims.add(
+          listing: model,
           claimant: PublicUser(id: _session.userId, displayName: _session.displayName),
-          answer: params.answer.trim(),
-          hasProofPhoto: params.hasProofPhoto,
-          proofPath: params.proofPath,
-          createdAt: DateTime.now(),
-        ));
+          params: params,
+        );
       });
 
   @override
@@ -80,24 +74,17 @@ class ClaimRepositoryImpl implements ClaimRepository {
 
   @override
   FutureEither<String> accept(String claimId) => _guard(() async {
-        final claim = _claims.byId(claimId) ?? (throw const NotFoundFailure());
+        final claim = await _claim(claimId);
         final model = await _listing(claim.listingId);
         if (model.author.id != _session.userId) throw const ForbiddenFailure();
-        await _claims.setStatus(claimId, ClaimStatus.accepted);
-        return _chats.openChat(
-          listingId: model.id,
-          listingTitle: model.title,
-          category: model.category,
-          tint: model.tint,
-          claimant: claim.claimant,
-        );
+        return _claims.accept(claim, model);
       });
 
   @override
   FutureEither<Claim> reject(String claimId) => _guard(() async {
-        final claim = _claims.byId(claimId) ?? (throw const NotFoundFailure());
+        final claim = await _claim(claimId);
         final model = await _listing(claim.listingId);
         if (model.author.id != _session.userId) throw const ForbiddenFailure();
-        return _claims.setStatus(claimId, ClaimStatus.rejected);
+        return _claims.reject(claimId);
       });
 }

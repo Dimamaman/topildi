@@ -1,5 +1,6 @@
 import 'package:injectable/injectable.dart';
 
+import '../entities/chat.dart';
 import '../repositories/chat_repository.dart';
 
 @injectable
@@ -8,5 +9,5 @@ class WatchChats {
 
   final ChatRepository _repository;
 
-  Stream<void> call() => _repository.changes;
+  StreamEither<List<ChatThread>> call() => _repository.watchChats();
 }

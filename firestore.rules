@@ -39,15 +39,26 @@ service cloud.firestore {
           && d.photoUrls is list && d.photoUrls.size() <= 6;
       }
 
+      // The finder closes the listing from the chat of an accepted claim;
+      // for a "lost" listing that is not the author.
+      function returnedViaChat() {
+        let chat = get(/databases/$(database)/documents/topildi_chats/$(request.resource.data.returnedViaChat)).data;
+        return signedIn()
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt', 'returnedViaChat'])
+          && resource.data.status == 'active' && request.resource.data.status == 'returned'
+          && chat.finderId == request.auth.uid && chat.listingId == id;
+      }
+
       allow read: if signedIn();
       allow create: if signedIn()
         && request.resource.data.authorId == request.auth.uid
         && request.resource.data.status == 'active'
         && validListing(request.resource.data);
       // The author may only change the status (active -> returned).
-      allow update: if isMe(resource.data.authorId)
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt'])
-        && request.resource.data.status in ['active', 'returned'];
+      allow update: if (isMe(resource.data.authorId)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt'])
+          && request.resource.data.status in ['active', 'returned'])
+        || returnedViaChat();
       allow delete: if isMe(resource.data.authorId);
 
       // Hidden detail: the author only.
@@ -57,6 +68,88 @@ service cloud.firestore {
           && request.resource.data.keys().hasOnly(['hiddenDetail', 'authorId'])
           && request.resource.data.hiddenDetail is string
           && request.resource.data.hiddenDetail.size() <= 200;
+      }
+    }
+
+    // "Bu meniki": id {listingId}_{claimantUid}_{attempt}. At most three
+    // attempts, and a new one only after the previous was rejected.
+    match /topildi_claims/{claimId} {
+      function listingOf(id) { return get(/databases/$(database)/documents/topildi_listings/$(id)).data; }
+      function claimPath(listingId, n) {
+        return /databases/$(database)/documents/topildi_claims/$(listingId + '_' + request.auth.uid + '_' + string(n));
+      }
+      function validClaim(d) {
+        return d.keys().hasOnly(['listingId', 'listingAuthorId', 'claimantId', 'claimantName', 'claimantReturnedCount',
+                                 'answer', 'attempt', 'proofUrl', 'status', 'createdAt'])
+          && d.answer is string && d.answer.size() >= 10 && d.answer.size() <= 500
+          && d.claimantName is string && d.claimantName.size() <= 40
+          && (!('proofUrl' in d) || d.proofUrl is string)
+          && d.attempt in [1, 2, 3]
+          && d.createdAt == request.time;
+      }
+
+      allow read: if isMe(resource.data.claimantId) || isMe(resource.data.listingAuthorId);
+      allow create: if signedIn()
+        && validClaim(request.resource.data)
+        && request.resource.data.claimantId == request.auth.uid
+        && request.resource.data.status == 'pending'
+        && claimId == request.resource.data.listingId + '_' + request.auth.uid + '_' + string(request.resource.data.attempt)
+        && listingOf(request.resource.data.listingId).authorId == request.resource.data.listingAuthorId
+        && listingOf(request.resource.data.listingId).status == 'active'
+        && request.resource.data.listingAuthorId != request.auth.uid
+        && (request.resource.data.attempt == 1
+            || get(claimPath(request.resource.data.listingId, request.resource.data.attempt - 1)).data.status == 'rejected');
+      // The listing's author answers once: pending -> accepted | rejected.
+      allow update: if isMe(resource.data.listingAuthorId)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'decidedAt'])
+        && resource.data.status == 'pending'
+        && request.resource.data.status in ['accepted', 'rejected'];
+    }
+
+    // A chat has the id of the claim that opened it and exists only next to
+    // that claim once accepted. Two members; no phone numbers.
+    match /topildi_chats/{chatId} {
+      function claim() { return getAfter(/databases/$(database)/documents/topildi_claims/$(chatId)).data; }
+      function isMember() { return signedIn() && request.auth.uid in resource.data.members; }
+      function changed() { return request.resource.data.diff(resource.data).affectedKeys(); }
+      // Only my own read time; unread counts of both (mine reset, theirs +1).
+      function activity() {
+        return changed().hasOnly(['lastMessage', 'lastAt', 'lastSenderId', 'unread', 'readAt'])
+          && request.resource.data.readAt.diff(resource.data.readAt).affectedKeys().hasOnly([request.auth.uid])
+          && (!('lastSenderId' in changed()) || request.resource.data.lastSenderId == request.auth.uid);
+      }
+      function finderReturns() {
+        return isMe(resource.data.finderId)
+          && changed().hasOnly(['returned', 'returnedAt', 'lastMessage', 'lastAt', 'lastSenderId', 'unread'])
+          && resource.data.returned == false && request.resource.data.returned == true
+          && request.resource.data.lastSenderId == request.auth.uid;
+      }
+
+      allow read: if isMember();
+      allow create: if signedIn()
+        && claim().status == 'accepted'
+        && claim().listingAuthorId == request.auth.uid
+        && request.resource.data.keys().hasOnly(['listingId', 'listingTitle', 'listingCategory', 'listingTint', 'members',
+             'finderId', 'names', 'returnedCounts', 'lastMessage', 'lastAt', 'lastSenderId', 'unread', 'readAt',
+             'returned', 'createdAt'])
+        && request.resource.data.listingId == claim().listingId
+        && request.resource.data.members == [claim().listingAuthorId, claim().claimantId]
+        && request.resource.data.finderId in request.resource.data.members
+        && request.resource.data.returned == false;
+      allow update: if isMember() && (activity() || finderReturns());
+
+      match /messages/{messageId} {
+        function chat() { return get(/databases/$(database)/documents/topildi_chats/$(chatId)).data; }
+
+        allow read: if signedIn() && request.auth.uid in chat().members;
+        allow create: if signedIn() && request.auth.uid in chat().members
+          && request.resource.data.keys().hasOnly(['senderId', 'text', 'kind', 'createdAt'])
+          && request.resource.data.senderId == request.auth.uid
+          && request.resource.data.text is string
+          && request.resource.data.text.size() >= 1 && request.resource.data.text.size() <= 1000
+          && request.resource.data.createdAt == request.time
+          && ((request.resource.data.kind == 'text' && chat().returned == false)
+              || (request.resource.data.kind == 'returned' && chat().finderId == request.auth.uid));
       }
     }
   }

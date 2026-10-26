@@ -31,8 +31,13 @@ abstract class FirebaseModule {
 abstract final class FirePaths {
   static const users = 'topildi_users';
   static const listings = 'topildi_listings';
+  static const claims = 'topildi_claims';
+
+  /// A chat's id is the id of the claim that opened it.
+  static const chats = 'topildi_chats';
 
   static String listingPhoto(String listingId, int i) => 'topildi/listings/$listingId/$i.jpg';
   static String listingPhotos(String listingId) => 'topildi/listings/$listingId';
   static String avatar(String uid) => 'topildi/users/$uid/avatar.jpg';
+  static String claimProof(String claimId) => 'topildi/claims/$claimId/proof.jpg';
 }

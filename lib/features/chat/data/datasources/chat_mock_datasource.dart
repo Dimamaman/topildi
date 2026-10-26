@@ -2,31 +2,37 @@ import 'dart:async';
 
 import 'package:injectable/injectable.dart';
 
+import '../../../../core/error/failure.dart';
+
+import '../../../listing/data/datasources/listing_remote_datasource.dart';
 import '../../../listing/domain/entities/listing.dart';
 import '../../domain/entities/chat.dart';
+import 'chat_remote_datasource.dart';
 
-/// In-memory chats. Singleton so the claim feature can open chats here.
-@lazySingleton
-class ChatMockDataSource {
-  ChatMockDataSource() {
+/// In-memory chats for widget tests. Singleton so the claim mock can open
+/// chats here.
+@test
+@LazySingleton(as: ChatRemoteDataSource)
+class ChatMockDataSource implements ChatRemoteDataSource {
+  ChatMockDataSource(this._listings) {
     _seed(DateTime.now());
   }
 
-  static const _latency = Duration(milliseconds: 400);
-  static const safetyTip = 'Gavjum joyda uchrashing. Telefon raqam yoki karta maʼlumotini yozmang.';
-  static const matchedText = 'Javob yashirin belgiga mos keldi. Chat ochildi.';
+  final ListingRemoteDataSource _listings;
 
-  final _changes = StreamController<void>.broadcast();
+  static const _latency = Duration(milliseconds: 400);
+  static const safetyTip = ChatNotes.safety;
+  static const matchedText = ChatNotes.matched;
 
   /// Fires whenever a thread is opened, updated or gets a message.
-  Stream<void> get changes => _changes.stream;
+  final _changes = StreamController<void>.broadcast();
 
   final Map<String, ChatThread> _threads = {};
   final Map<String, List<ChatMessage>> _messages = {};
   final Map<String, String> _ownerNotes = {};
 
   /// Items the signed-in user has returned so far (drives the badge copy).
-  int myReturnedCount = 4;
+  int _myReturnedCount = 4;
 
   void _seed(DateTime now) {
     DateTime ago(Duration d) => now.subtract(d);
@@ -78,6 +84,7 @@ class ChatMockDataSource {
       lastMessage: 'Qachon va qayerda uchrashsak boʻladi?',
       lastAt: ago(const Duration(minutes: 35)),
       unread: 2,
+      otherReadAt: ago(const Duration(minutes: 40)),
     );
     _messages['c_ozoda'] = [
       ChatMessage(id: 'c_ozoda_m', text: matchedText, sentAt: ago(const Duration(minutes: 125)), kind: MessageKind.matched),
@@ -140,7 +147,7 @@ class ChatMockDataSource {
       ChatMessage(id: 'c_shahlo_s', text: safetyTip, sentAt: ago(const Duration(minutes: 4410)), kind: MessageKind.safety),
       ChatMessage(id: 'c_shahlo_1', text: 'Assalomu alaykum! Buyum hali sizdami?', sentAt: ago(const Duration(minutes: 4380)), fromMe: true),
       ChatMessage(id: 'c_shahlo_2', text: 'Ha, menda. Qachon olib keta olasiz?', sentAt: ago(const Duration(minutes: 4350)), fromMe: false),
-      ChatMessage(id: 'c_shahlo_r', text: 'Buyum egasiga qaytarildi', sentAt: ago(const Duration(minutes: 4325)), kind: MessageKind.returned),
+      ChatMessage(id: 'c_shahlo_r', text: ChatNotes.returned, sentAt: ago(const Duration(minutes: 4325)), kind: MessageKind.returned),
       ChatMessage(id: 'c_shahlo_3', text: 'Qizim juda xursand boʻldi, rahmat!', sentAt: ago(const Duration(minutes: 4320)), fromMe: false),
     ];
     _ownerNotes['c_shahlo'] = 'Qizim juda xursand boʻldi, rahmat!';
@@ -161,7 +168,7 @@ class ChatMockDataSource {
       ChatMessage(id: 'c_timur_s', text: safetyTip, sentAt: ago(const Duration(minutes: 20250)), kind: MessageKind.safety),
       ChatMessage(id: 'c_timur_1', text: 'Assalomu alaykum! Buyum hali sizdami?', sentAt: ago(const Duration(minutes: 20220)), fromMe: false),
       ChatMessage(id: 'c_timur_2', text: 'Ha, menda. Qachon olib keta olasiz?', sentAt: ago(const Duration(minutes: 20190)), fromMe: true),
-      ChatMessage(id: 'c_timur_r', text: 'Buyum egasiga qaytarildi', sentAt: ago(const Duration(minutes: 20165)), kind: MessageKind.returned),
+      ChatMessage(id: 'c_timur_r', text: ChatNotes.returned, sentAt: ago(const Duration(minutes: 20165)), kind: MessageKind.returned),
       ChatMessage(id: 'c_timur_3', text: 'Hamyonni oldim, katta rahmat sizga', sentAt: ago(const Duration(minutes: 20160)), fromMe: false),
     ];
     _ownerNotes['c_timur'] = 'Hamyonni oldim, katta rahmat sizga';
@@ -185,22 +192,38 @@ class ChatMockDataSource {
     ];
   }
 
-  Future<List<ChatThread>> fetchThreads() async {
+  List<ChatThread> get _sorted => _threads.values.toList()..sort((a, b) => b.lastAt.compareTo(a.lastAt));
+
+  /// The current value, then a new one after every change.
+  Stream<T> _watch<T>(T Function() read) async* {
     await Future<void>.delayed(_latency);
-    return _threads.values.toList()..sort((a, b) => b.lastAt.compareTo(a.lastAt));
+    yield read();
+    await for (final _ in _changes.stream) {
+      yield read();
+    }
   }
 
+  @override
+  Stream<List<ChatThread>> watchThreads() => _watch(() => _sorted);
+
+  @override
   Future<ChatThread?> fetchThread(String id) async => _threads[id];
 
-  Future<List<ChatMessage>> fetchMessages(String id) async {
-    await Future<void>.delayed(_latency);
+  @override
+  Stream<ChatThread> watchThread(String id) => _watch(() => _threads[id] ?? (throw const NotFoundFailure()));
+
+  @override
+  Stream<List<ChatMessage>> watchMessages(String id) => _watch(() => List.unmodifiable(_messages[id] ?? const []));
+
+  @override
+  Future<void> markRead(String id) async {
     if (_threads[id] case final t? when t.unread > 0) {
       _threads[id] = t.copyWith(unread: 0);
       _changes.add(null);
     }
-    return List.unmodifiable(_messages[id] ?? const []);
   }
 
+  @override
   Future<ChatMessage> addMessage(String id, String text) async {
     await Future<void>.delayed(const Duration(milliseconds: 150));
     final now = DateTime.now();
@@ -244,20 +267,25 @@ class ChatMockDataSource {
     return id;
   }
 
-  Future<ChatThread> markReturned(String id) async {
+  @override
+  Future<void> markReturned(String id) async {
     await Future<void>.delayed(_latency);
     final t = _threads[id]!;
     if (!t.returned) {
-      if (t.iAmFinder) myReturnedCount++;
+      if (t.iAmFinder) _myReturnedCount++;
+      await _listings.setStatus(t.listingId, ListingStatus.returned);
       final now = DateTime.now();
-      _threads[id] = t.copyWith(returned: true, lastMessage: 'Buyum egasiga qaytarildi', lastAt: now);
+      _threads[id] = t.copyWith(returned: true, lastMessage: ChatNotes.returned, lastAt: now);
       (_messages[id] ??= []).add(
-        ChatMessage(id: '${id}_r', text: 'Buyum egasiga qaytarildi', sentAt: now, kind: MessageKind.returned),
+        ChatMessage(id: '${id}_r', text: ChatNotes.returned, sentAt: now, kind: MessageKind.returned),
       );
       _changes.add(null);
     }
-    return _threads[id]!;
   }
 
-  String? ownerNote(String id) => _ownerNotes[id];
+  @override
+  Future<String?> ownerNote(String id) async => _ownerNotes[id];
+
+  @override
+  Future<int> myReturnedCount() async => _myReturnedCount;
 }

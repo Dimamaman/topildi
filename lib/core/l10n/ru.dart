@@ -198,6 +198,12 @@ const ruStrings = <String, String>{
   'Joylashuv yuborish': 'Отправить место',
   'Taxminiy uchrashuv joyi: metro kirish joyi': 'Примерное место встречи: вход в метро',
   'Xabar yozing…': 'Напишите сообщение…',
+  'Oʻqildi': 'Прочитано',
+  'Yuborildi': 'Отправлено',
+  'Javob yashirin belgiga mos keldi. Chat ochildi.': 'Ответ совпал со скрытой приметой. Чат открыт.',
+  'Gavjum joyda uchrashing. Telefon raqam yoki karta maʼlumotini yozmang.':
+      'Встречайтесь в людном месте. Не пишите номер телефона и данные карты.',
+  'Buyum egasiga qaytarildi': 'Вещь возвращена владельцу',
   'Yuborish': 'Отправить',
   'Buyum egasiga qaytarildi. Chat yopilgan.': 'Вещь возвращена владельцу. Чат закрыт.',
 

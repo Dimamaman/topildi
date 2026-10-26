@@ -50,21 +50,25 @@ import 'package:topildi/features/auth/presentation/cubit/sms_code_cubit.dart'
     as _i684;
 import 'package:topildi/features/chat/data/datasources/chat_mock_datasource.dart'
     as _i584;
+import 'package:topildi/features/chat/data/datasources/chat_remote_datasource.dart'
+    as _i97;
+import 'package:topildi/features/chat/data/datasources/firestore_chat_datasource.dart'
+    as _i48;
 import 'package:topildi/features/chat/data/repositories/chat_repository_impl.dart'
     as _i279;
 import 'package:topildi/features/chat/domain/repositories/chat_repository.dart'
     as _i956;
 import 'package:topildi/features/chat/domain/usecases/get_chat_thread.dart'
     as _i468;
-import 'package:topildi/features/chat/domain/usecases/get_chats.dart' as _i141;
-import 'package:topildi/features/chat/domain/usecases/get_messages.dart'
-    as _i191;
 import 'package:topildi/features/chat/domain/usecases/get_return_summary.dart'
     as _i581;
+import 'package:topildi/features/chat/domain/usecases/mark_chat_read.dart'
+    as _i354;
 import 'package:topildi/features/chat/domain/usecases/mark_returned.dart'
     as _i905;
 import 'package:topildi/features/chat/domain/usecases/send_message.dart'
     as _i496;
+import 'package:topildi/features/chat/domain/usecases/watch_chat.dart' as _i894;
 import 'package:topildi/features/chat/domain/usecases/watch_chats.dart'
     as _i956;
 import 'package:topildi/features/chat/presentation/cubit/chat_cubit.dart'
@@ -75,6 +79,10 @@ import 'package:topildi/features/chat/presentation/cubit/success_cubit.dart'
     as _i80;
 import 'package:topildi/features/claim/data/datasources/claim_mock_datasource.dart'
     as _i283;
+import 'package:topildi/features/claim/data/datasources/claim_remote_datasource.dart'
+    as _i1026;
+import 'package:topildi/features/claim/data/datasources/firestore_claim_datasource.dart'
+    as _i927;
 import 'package:topildi/features/claim/data/repositories/claim_repository_impl.dart'
     as _i763;
 import 'package:topildi/features/claim/domain/repositories/claim_repository.dart'
@@ -161,12 +169,6 @@ extension GetItInjectableX on _i174.GetIt {
     final appDirsModule = _$AppDirsModule();
     final storageModule = _$StorageModule();
     final firebaseModule = _$FirebaseModule();
-    gh.lazySingleton<_i584.ChatMockDataSource>(
-      () => _i584.ChatMockDataSource(),
-    );
-    gh.lazySingleton<_i283.ClaimMockDataSource>(
-      () => _i283.ClaimMockDataSource(),
-    );
     gh.lazySingleton<_i669.NotificationMockDataSource>(
       () => _i669.NotificationMockDataSource(),
     );
@@ -240,6 +242,17 @@ extension GetItInjectableX on _i174.GetIt {
       () => firebaseModule.googleSignIn,
       registerFor: {_prod},
     );
+    gh.lazySingleton<_i97.ChatRemoteDataSource>(
+      () => _i584.ChatMockDataSource(gh<_i395.ListingRemoteDataSource>()),
+      registerFor: {_test},
+    );
+    gh.lazySingleton<_i97.ChatRemoteDataSource>(
+      () => _i48.FirestoreChatDataSource(
+        gh<_i974.FirebaseFirestore>(),
+        gh<_i59.FirebaseAuth>(),
+      ),
+      registerFor: {_prod},
+    );
     gh.lazySingleton<_i305.LocationService>(
       () => _i305.DeviceLocationService(),
       registerFor: {_prod},
@@ -268,6 +281,14 @@ extension GetItInjectableX on _i174.GetIt {
       ),
       registerFor: {_test},
     );
+    gh.lazySingleton<_i1026.ClaimRemoteDataSource>(
+      () => _i927.FirestoreClaimDataSource(
+        gh<_i974.FirebaseFirestore>(),
+        gh<_i457.FirebaseStorage>(),
+        gh<_i59.FirebaseAuth>(),
+      ),
+      registerFor: {_prod},
+    );
     gh.lazySingleton<_i395.ListingRemoteDataSource>(
       () => _i422.FirestoreListingDataSource(
         gh<_i974.FirebaseFirestore>(),
@@ -275,6 +296,10 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i59.FirebaseAuth>(),
       ),
       registerFor: {_prod},
+    );
+    gh.lazySingleton<_i1026.ClaimRemoteDataSource>(
+      () => _i283.ClaimMockDataSource(gh<_i97.ChatRemoteDataSource>()),
+      registerFor: {_test},
     );
     gh.lazySingleton<_i1040.NotificationRepository>(
       () => _i985.NotificationRepositoryImpl(
@@ -347,19 +372,10 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i749.ProfileRepository>(
       () => _i708.ProfileRepositoryImpl(
         gh<_i395.ListingRemoteDataSource>(),
-        gh<_i283.ClaimMockDataSource>(),
+        gh<_i1026.ClaimRemoteDataSource>(),
         gh<_i554.Session>(),
         gh<_i263.NetworkInfo>(),
         gh<_i1037.KeyValueStore>(),
-      ),
-    );
-    gh.lazySingleton<_i28.ClaimRepository>(
-      () => _i763.ClaimRepositoryImpl(
-        gh<_i283.ClaimMockDataSource>(),
-        gh<_i395.ListingRemoteDataSource>(),
-        gh<_i584.ChatMockDataSource>(),
-        gh<_i263.NetworkInfo>(),
-        gh<_i554.Session>(),
       ),
     );
     gh.lazySingleton<_i679.AuthRepository>(
@@ -394,21 +410,6 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i534.FiltersCubit>(
       () => _i534.FiltersCubit(gh<_i1022.GetListings>()),
     );
-    gh.factory<_i546.AcceptClaim>(
-      () => _i546.AcceptClaim(gh<_i28.ClaimRepository>()),
-    );
-    gh.factory<_i445.GetClaimReview>(
-      () => _i445.GetClaimReview(gh<_i28.ClaimRepository>()),
-    );
-    gh.factory<_i164.GetClaimTarget>(
-      () => _i164.GetClaimTarget(gh<_i28.ClaimRepository>()),
-    );
-    gh.factory<_i695.RejectClaim>(
-      () => _i695.RejectClaim(gh<_i28.ClaimRepository>()),
-    );
-    gh.factory<_i774.SubmitClaim>(
-      () => _i774.SubmitClaim(gh<_i28.ClaimRepository>()),
-    );
     gh.factory<_i516.FeedCubit>(
       () =>
           _i516.FeedCubit(gh<_i1022.GetListings>(), gh<_i592.WatchListings>()),
@@ -418,6 +419,21 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i619.GetMapListings>(),
         gh<_i305.LocationService>(),
         gh<_i592.WatchListings>(),
+      ),
+    );
+    gh.lazySingleton<_i956.ChatRepository>(
+      () => _i279.ChatRepositoryImpl(
+        gh<_i97.ChatRemoteDataSource>(),
+        gh<_i263.NetworkInfo>(),
+        gh<_i554.Session>(),
+      ),
+    );
+    gh.lazySingleton<_i28.ClaimRepository>(
+      () => _i763.ClaimRepositoryImpl(
+        gh<_i1026.ClaimRemoteDataSource>(),
+        gh<_i395.ListingRemoteDataSource>(),
+        gh<_i263.NetworkInfo>(),
+        gh<_i554.Session>(),
       ),
     );
     gh.factory<_i190.RequestSmsCode>(
@@ -435,31 +451,23 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i113.PostListing>(
       () => _i113.PostListing(gh<_i762.CreateListingRepository>()),
     );
-    gh.lazySingleton<_i956.ChatRepository>(
-      () => _i279.ChatRepositoryImpl(
-        gh<_i584.ChatMockDataSource>(),
-        gh<_i395.ListingRemoteDataSource>(),
-        gh<_i263.NetworkInfo>(),
-        gh<_i554.Session>(),
-      ),
-    );
     gh.factory<_i468.GetChatThread>(
       () => _i468.GetChatThread(gh<_i956.ChatRepository>()),
     );
-    gh.factory<_i141.GetChats>(
-      () => _i141.GetChats(gh<_i956.ChatRepository>()),
-    );
-    gh.factory<_i191.GetMessages>(
-      () => _i191.GetMessages(gh<_i956.ChatRepository>()),
-    );
     gh.factory<_i581.GetReturnSummary>(
       () => _i581.GetReturnSummary(gh<_i956.ChatRepository>()),
+    );
+    gh.factory<_i354.MarkChatRead>(
+      () => _i354.MarkChatRead(gh<_i956.ChatRepository>()),
     );
     gh.factory<_i905.MarkReturned>(
       () => _i905.MarkReturned(gh<_i956.ChatRepository>()),
     );
     gh.factory<_i496.SendMessage>(
       () => _i496.SendMessage(gh<_i956.ChatRepository>()),
+    );
+    gh.factory<_i894.WatchChat>(
+      () => _i894.WatchChat(gh<_i956.ChatRepository>()),
     );
     gh.factory<_i956.WatchChats>(
       () => _i956.WatchChats(gh<_i956.ChatRepository>()),
@@ -482,19 +490,52 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i126.SignOut>(
       () => _i126.SignOut(gh<_i749.ProfileRepository>()),
     );
+    gh.factory<_i64.CreateFlowCubit>(
+      () => _i64.CreateFlowCubit(gh<_i113.PostListing>()),
+    );
     gh.factory<_i389.ChatListCubit>(
-      () => _i389.ChatListCubit(gh<_i141.GetChats>(), gh<_i956.WatchChats>()),
+      () => _i389.ChatListCubit(gh<_i956.WatchChats>()),
+    );
+    gh.factory<_i546.AcceptClaim>(
+      () => _i546.AcceptClaim(gh<_i28.ClaimRepository>()),
+    );
+    gh.factory<_i445.GetClaimReview>(
+      () => _i445.GetClaimReview(gh<_i28.ClaimRepository>()),
+    );
+    gh.factory<_i164.GetClaimTarget>(
+      () => _i164.GetClaimTarget(gh<_i28.ClaimRepository>()),
+    );
+    gh.factory<_i695.RejectClaim>(
+      () => _i695.RejectClaim(gh<_i28.ClaimRepository>()),
+    );
+    gh.factory<_i774.SubmitClaim>(
+      () => _i774.SubmitClaim(gh<_i28.ClaimRepository>()),
+    );
+    gh.factory<_i570.ProfileSetupCubit>(
+      () =>
+          _i570.ProfileSetupCubit(gh<_i189.SaveProfile>(), gh<_i554.Session>()),
+    );
+    gh.factory<_i533.ProfileCubit>(
+      () => _i533.ProfileCubit(
+        gh<_i126.GetMyProfile>(),
+        gh<_i126.SetNotifications>(),
+        gh<_i126.SignOut>(),
+        gh<_i592.WatchListings>(),
+      ),
     );
     gh.factory<_i358.ChatCubit>(
       () => _i358.ChatCubit(
-        gh<_i468.GetChatThread>(),
-        gh<_i191.GetMessages>(),
+        gh<_i894.WatchChat>(),
+        gh<_i354.MarkChatRead>(),
         gh<_i496.SendMessage>(),
         gh<_i905.MarkReturned>(),
       ),
     );
-    gh.factory<_i64.CreateFlowCubit>(
-      () => _i64.CreateFlowCubit(gh<_i113.PostListing>()),
+    gh.factory<_i684.SmsCodeCubit>(
+      () => _i684.SmsCodeCubit(
+        gh<_i531.VerifySmsCode>(),
+        gh<_i190.RequestSmsCode>(),
+      ),
     );
     gh.factory<_i64.DetailCubit>(
       () => _i64.DetailCubit(
@@ -515,24 +556,6 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i445.GetClaimReview>(),
         gh<_i546.AcceptClaim>(),
         gh<_i695.RejectClaim>(),
-      ),
-    );
-    gh.factory<_i570.ProfileSetupCubit>(
-      () =>
-          _i570.ProfileSetupCubit(gh<_i189.SaveProfile>(), gh<_i554.Session>()),
-    );
-    gh.factory<_i533.ProfileCubit>(
-      () => _i533.ProfileCubit(
-        gh<_i126.GetMyProfile>(),
-        gh<_i126.SetNotifications>(),
-        gh<_i126.SignOut>(),
-        gh<_i592.WatchListings>(),
-      ),
-    );
-    gh.factory<_i684.SmsCodeCubit>(
-      () => _i684.SmsCodeCubit(
-        gh<_i531.VerifySmsCode>(),
-        gh<_i190.RequestSmsCode>(),
       ),
     );
     return this;

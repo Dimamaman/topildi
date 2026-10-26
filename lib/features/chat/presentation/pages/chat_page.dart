@@ -68,7 +68,7 @@ class _ChatView extends StatelessWidget {
             ViewLoaded(:final data) => Column(
               children: [
                 _Header(thread: data.thread, returning: state.returning),
-                Expanded(child: _Messages(messages: data.messages)),
+                Expanded(child: _Messages(thread: data.thread, messages: data.messages)),
                 if (!data.thread.returned)
                   const _Composer()
                 else
@@ -293,8 +293,9 @@ class _Header extends StatelessWidget {
 }
 
 class _Messages extends StatelessWidget {
-  const _Messages({required this.messages});
+  const _Messages({required this.thread, required this.messages});
 
+  final ChatThread thread;
   final List<ChatMessage> messages;
 
   @override
@@ -309,7 +310,7 @@ class _Messages extends StatelessWidget {
       itemBuilder: (context, i) {
         final m = items[i];
         return switch (m.kind) {
-          MessageKind.text => _Bubble(message: m),
+          MessageKind.text => _Bubble(message: m, seen: thread.seen(m)),
           _ => _SystemNote(message: m),
         };
       },
@@ -346,7 +347,7 @@ class _SystemNote extends StatelessWidget {
               ],
               Flexible(
                 child: Text(
-                  message.text,
+                  tr(message.text),
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: safety ? 12 : 13,
@@ -365,9 +366,12 @@ class _SystemNote extends StatelessWidget {
 }
 
 class _Bubble extends StatelessWidget {
-  const _Bubble({required this.message});
+  const _Bubble({required this.message, required this.seen});
 
   final ChatMessage message;
+
+  /// My message, and the other member has opened the chat since.
+  final bool seen;
 
   @override
   Widget build(BuildContext context) {
@@ -403,11 +407,27 @@ class _Bubble extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 4),
-              Text(
-                TDate.time(message.sentAt),
-                style: TextStyle(
-                  fontSize: 11,
-                  color: fg.withValues(alpha: 0.75),
+              Semantics(
+                label: me ? (seen ? tr('Oʻqildi') : tr('Yuborildi')) : null,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      TDate.time(message.sentAt),
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: fg.withValues(alpha: 0.75),
+                      ),
+                    ),
+                    if (me) ...[
+                      const SizedBox(width: 3),
+                      Icon(
+                        seen ? Symbols.done_all_rounded : Symbols.check_rounded,
+                        size: 14,
+                        color: fg.withValues(alpha: 0.75),
+                      ),
+                    ],
+                  ],
                 ),
               ),
             ],

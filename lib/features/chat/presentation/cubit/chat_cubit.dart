@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
@@ -5,10 +7,10 @@ import 'package:injectable/injectable.dart';
 import '../../../../core/error/failure.dart';
 import '../../../../core/view_state.dart';
 import '../../domain/entities/chat.dart';
-import '../../domain/usecases/get_chat_thread.dart';
-import '../../domain/usecases/get_messages.dart';
+import '../../domain/usecases/mark_chat_read.dart';
 import '../../domain/usecases/mark_returned.dart';
 import '../../domain/usecases/send_message.dart';
+import '../../domain/usecases/watch_chat.dart';
 
 class ChatData extends Equatable {
   const ChatData({required this.thread, required this.messages});
@@ -47,27 +49,77 @@ class ChatState extends Equatable {
 
 @injectable
 class ChatCubit extends Cubit<ChatState> {
-  ChatCubit(this._getThread, this._getMessages, this._send, this._markReturned) : super(const ChatState());
+  ChatCubit(this._watch, this._markRead, this._send, this._markReturned) : super(const ChatState());
 
-  final GetChatThread _getThread;
-  final GetMessages _getMessages;
+  final WatchChat _watch;
+  final MarkChatRead _markRead;
   final SendMessage _send;
   final MarkReturned _markReturned;
   late String _chatId;
+  final _subs = <StreamSubscription<void>>[];
+  ChatThread? _thread;
+  List<ChatMessage>? _messages;
+
+  /// Last incoming message already reported as read.
+  String? _readUpTo;
 
   ChatData? get _data => switch (state.view) {
         ViewLoaded(:final data) => data,
         _ => null,
       };
 
+  @override
+  Future<void> close() async {
+    await _cancel();
+    return super.close();
+  }
+
+  Future<void> _cancel() async {
+    for (final s in _subs) {
+      await s.cancel();
+    }
+    _subs.clear();
+  }
+
+  /// Subscribes to the chat; also the retry after an error.
   Future<void> load(String chatId) async {
     _chatId = chatId;
+    await _cancel();
+    _thread = null;
+    _messages = null;
+    _readUpTo = null;
     emit(state.copyWith(view: const ViewLoading()));
-    final thread = await _getThread(chatId);
-    final messages = await _getMessages(chatId);
+    _subs
+      ..add(_watch.thread(chatId).listen((r) => r.match(_fail, (t) {
+            _thread = t;
+            _publish();
+          })))
+      ..add(_watch.messages(chatId).listen((r) => r.match(_fail, (m) {
+            _messages = m;
+            _publish();
+            _reportRead(m);
+          })));
+  }
+
+  void _fail(Failure f) {
     if (isClosed) return;
-    final combined = thread.flatMap((t) => messages.map((m) => ChatData(thread: t, messages: m)));
-    emit(state.copyWith(view: combined.fold<ViewState<ChatData>>((f) => ViewError(f), ViewLoaded.new)));
+    _cancel();
+    emit(state.copyWith(view: ViewError(f)));
+  }
+
+  void _publish() {
+    final t = _thread, m = _messages;
+    if (isClosed || t == null || m == null) return;
+    emit(state.copyWith(view: ViewLoaded(ChatData(thread: t, messages: m))));
+  }
+
+  /// Marks the chat read when it opens and whenever a new message arrives.
+  void _reportRead(List<ChatMessage> messages) {
+    final incoming = messages.where((m) => !m.fromMe && !m.isSystem);
+    final last = incoming.isEmpty ? '' : incoming.last.id;
+    if (last == _readUpTo) return;
+    _readUpTo = last;
+    _markRead(_chatId);
   }
 
   /// Returns false when the message was not sent.
@@ -82,7 +134,12 @@ class ChatCubit extends Cubit<ChatState> {
         return false;
       },
       (m) {
-        emit(state.copyWith(view: ViewLoaded(data.copyWith(messages: [...data.messages, m]))));
+        // Usually the live stream has it already.
+        final current = _messages ?? data.messages;
+        if (!current.any((e) => e.id == m.id)) {
+          _messages = [...current, m];
+          _publish();
+        }
         return true;
       },
     );
@@ -93,24 +150,9 @@ class ChatCubit extends Cubit<ChatState> {
     emit(state.copyWith(returning: true));
     final result = await _markReturned(_chatId);
     if (isClosed) return;
-    await result.match(
-      (f) async => emit(state.copyWith(returning: false, failure: f)),
-      (summary) async {
-        final thread = await _getThread(_chatId);
-        final messages = await _getMessages(_chatId);
-        if (isClosed) return;
-        final data = _data;
-        emit(state.copyWith(
-          returning: false,
-          returnedSummary: summary,
-          view: data == null
-              ? null
-              : ViewLoaded(data.copyWith(
-                  thread: thread.getOrElse((_) => data.thread),
-                  messages: messages.getOrElse((_) => data.messages),
-                )),
-        ));
-      },
+    result.match(
+      (f) => emit(state.copyWith(returning: false, failure: f)),
+      (summary) => emit(state.copyWith(returning: false, returnedSummary: summary)),
     );
   }
 }

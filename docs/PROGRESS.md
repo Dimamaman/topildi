@@ -154,15 +154,30 @@ Xarita bilan bog'liq hamma narsa vaqtincha **yashirilgan**, kod o'chirilmagan. B
 
 Qaytarish: `flutter run --dart-define=FEATURE_MAP=true` yoki `features.dart` da standart qiymatni `true` qilish.
 
-## 4. 2-bosqich — ⏳ rejada
+## 4. 2-bosqich — so'rovlar va chat 🟡 kod tayyor, deploy qilinmagan
 
-Hozircha **mock** bo'lib qolganlar (real eʼlonlarda so'rovlar soni 0 ko'rinadi):
-- so'rovlar ("Bu meniki");
-- chat;
-- bildirishnomalar.
+**Qilingan (kod, 2026-10-26):** so'rovlar ("Bu meniki") va chat Firestore'ga o'tkazildi. Cloud Functions yo'q — chatni ilova yaratadi, xavfsizlikni rules taʼminlaydi.
 
-Reja:
-- `claims` va `chats` kolleksiyalari;
-- so'rov qabul qilinganda chat ochadigan Cloud Function;
-- FCM push bildirishnomalar;
+| Qism | Fayllar |
+|---|---|
+| So'rovlar | `claim_remote_datasource.dart` (interfeys), `firestore_claim_datasource.dart` (`@prod`), `claim_mock_datasource.dart` (`@test`), `claim_firestore.dart` |
+| Chat | `chat_remote_datasource.dart` (interfeys + `ChatNotes`), `firestore_chat_datasource.dart` (`@prod`), `chat_mock_datasource.dart` (`@test`), `chat_firestore.dart` |
+| Real vaqt | `ChatListCubit` va `ChatCubit` stream'ga obuna (`WatchChats`, `WatchChat`, `MarkChatRead`) |
+| O'qildi belgisi | `ChatThread.otherReadAt` / `seen()`; chat pufakchasida ✓ / ✓✓ |
+| Rules | `firestore.rules` (claims, chats, messages, listing'ni chat orqali yopish), `storage.rules` (proof rasm), `firestore.indexes.json` (chats: `members` + `lastAt`). Dry-run: ikkalasi kompilyatsiya bo'ladi |
+
+**Firestore modeli:**
+- `topildi_claims/{listingId}_{uid}_{n}` — n = 1..3 urinish; yangi urinish faqat oldingisi rad etilgandan keyin. Javob va proof rasmni faqat so'rovchi va eʼlon muallifi o'qiydi.
+- `topildi_chats/{claimId}` — muallif so'rovni qabul qilganda bitta batch'da yaratiladi. `members`, `finderId` (found → muallif, lost → so'rovchi), `unread.{uid}`, `readAt.{uid}`.
+- `topildi_chats/{id}/messages/{mid}` — `text` yoki `returned`. "Mos keldi" va xavfsizlik eslatmasi saqlanmaydi, chat `createdAt` dan chiziladi.
+- "Qaytarildi": finder chat'ni yopadi, eʼlonni `returned` qiladi (`returnedViaChat` orqali, lost eʼlonda ham) va o'z `returnedCount` ini +1 qiladi.
+
+**Qolgan ishlar:**
+1. Deploy (ruxsat bilan): `firebase deploy --only firestore,storage --project foodai-73d66`; chats indeksi "Enabled" bo'lishini kutish.
+2. Konsolga ikkinchi test raqam qo'shish; simulatorda ikki akkaunt bilan: eʼlon → "Bu meniki" (proof rasm bilan) → qabul → chat, real vaqtda xabar, badge, ✓✓ → "Qaytarildi" → Success. Lost eʼlon uchun ham.
+3. Konsolda: claim/chat hujjatlarida telefon yo'q; proof rasm EXIF'siz.
+
+**Keyinroq:**
+- FCM push (APNs `.p8` + Cloud Function).
+- Bildirishnomalar sahifasi hali mock.
 - Android'ni sozlash (`google-services.json`, Gradle plagini, SHA-1/SHA-256).

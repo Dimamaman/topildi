@@ -16,7 +16,9 @@
       {"fieldPath": "city", "order": "ASCENDING"}, {"fieldPath": "district", "order": "ASCENDING"},
       {"fieldPath": "category", "order": "ASCENDING"}, {"fieldPath": "happenedAt", "order": "DESCENDING"}]},
     {"collectionGroup": "topildi_listings", "queryScope": "COLLECTION", "fields": [
-      {"fieldPath": "authorId", "order": "ASCENDING"}, {"fieldPath": "happenedAt", "order": "DESCENDING"}]}
+      {"fieldPath": "authorId", "order": "ASCENDING"}, {"fieldPath": "happenedAt", "order": "DESCENDING"}]},
+    {"collectionGroup": "topildi_chats", "queryScope": "COLLECTION", "fields": [
+      {"fieldPath": "members", "arrayConfig": "CONTAINS"}, {"fieldPath": "lastAt", "order": "DESCENDING"}]}
   ],
   "fieldOverrides": []
 }
