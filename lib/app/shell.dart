@@ -24,11 +24,13 @@ class AppShell extends StatelessWidget {
   Widget build(BuildContext context) {
     // Chat list lives at shell level so the nav badge and the Chats tab share
     // it; pending claims feed the Profil tab badge.
+    // Not lazy: the first reader may be a pinned sliver header, which builds
+    // during layout, and creating a cubit there marks the shell dirty mid-layout.
     return MultiBlocProvider(
       providers: [
-        BlocProvider(create: (_) => getIt<ChatListCubit>()..load()),
-        BlocProvider(create: (_) => getIt<NotificationBadgeCubit>()),
-        BlocProvider(create: (_) => getIt<PendingClaimsCubit>()),
+        BlocProvider(lazy: false, create: (_) => getIt<ChatListCubit>()..load()),
+        BlocProvider(lazy: false, create: (_) => getIt<NotificationBadgeCubit>()),
+        BlocProvider(lazy: false, create: (_) => getIt<PendingClaimsCubit>()),
       ],
       child: Scaffold(
         // The glass tab bar floats over the content; pages get its height
