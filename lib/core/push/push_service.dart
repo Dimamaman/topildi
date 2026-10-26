@@ -1,3 +1,7 @@
+// The FID API (register / onRegistered) that replaces FCM tokens fails with
+// "invalid-request" on the current Firebase iOS SDK, so tokens it is.
+// ignore_for_file: deprecated_member_use
+
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -11,9 +15,9 @@ import '../l10n/app_language.dart';
 import '../l10n/language_cubit.dart';
 import '../storage/stores.dart';
 
-/// Push notifications (sent by `functions/`). This device's Firebase
-/// Installation ID is stored in `topildi_users/{uid}/devices/{fid}` with the
-/// interface language, so each push arrives in the language the app is in.
+/// Push notifications (sent by `functions/`). This device's FCM token is
+/// stored in `topildi_users/{uid}/devices/{token}` with the interface
+/// language, so each push arrives in the language the app is in.
 ///
 /// [FirebasePushService] in the app, [NoopPushService] in widget tests.
 abstract interface class PushService {
@@ -44,25 +48,35 @@ class FirebasePushService implements PushService {
   final LanguageCubit _language;
 
   final _subs = <StreamSubscription<Object?>>[];
-  String? _fid;
+  String? _token;
   bool _initialHandled = false;
 
   bool get _wanted => _kv.getBool(StoreKeys.notificationsOn) ?? true;
 
-  DocumentReference<Map<String, dynamic>>? _device(String fid) {
+  DocumentReference<Map<String, dynamic>>? _device(String token) {
     final uid = _auth.currentUser?.uid;
     if (uid == null) return null;
-    return _db.collection(FirePaths.users).doc(uid).collection(FirePaths.devices).doc(fid);
+    return _db.collection(FirePaths.users).doc(uid).collection(FirePaths.devices).doc(token);
   }
 
-  Future<void> _save(String fid) async {
-    _fid = fid;
-    await _device(fid)?.set({
-      'fid': fid,
+  Future<void> _save(String token) async {
+    _token = token;
+    await _device(token)?.set({
+      'token': token,
       'platform': defaultTargetPlatform == TargetPlatform.android ? 'android' : 'ios',
       'lang': AppLanguage.current.code,
       'updatedAt': FieldValue.serverTimestamp(),
     });
+  }
+
+  /// iOS hands out an FCM token only once APNs has given the device one.
+  Future<bool> _apnsReady() async {
+    if (defaultTargetPlatform != TargetPlatform.iOS) return true;
+    for (var i = 0; i < 20; i++) {
+      if (await _messaging.getAPNSToken() != null) return true;
+      await Future<void>.delayed(const Duration(milliseconds: 500));
+    }
+    return false;
   }
 
   @override
@@ -72,12 +86,15 @@ class FirebasePushService implements PushService {
       final settings = await _messaging.requestPermission();
       if (settings.authorizationStatus == AuthorizationStatus.denied) return;
       await _messaging.setForegroundNotificationPresentationOptions(alert: true, badge: true, sound: true);
+      if (!await _apnsReady()) return _log('no APNs token');
+      final token = await _messaging.getToken();
+      if (token == null) return _log('no FCM token');
+      await _save(token);
+      // Only once registered: a failed start is retried on the next one.
       _subs
-        // Fires once registration completes, and again if the FID changes.
-        ..add(_messaging.onRegistered.listen((fid) => _save(fid).catchError(_log)))
+        ..add(_messaging.onTokenRefresh.listen((t) => _save(t).catchError(_log)))
         // The push language follows the interface language.
-        ..add(_language.stream.listen((_) => _fid == null ? null : _save(_fid!).catchError(_log)));
-      await _messaging.register();
+        ..add(_language.stream.listen((_) => _token == null ? null : _save(_token!).catchError(_log)));
     } catch (e) {
       _log(e);
     }
@@ -90,12 +107,12 @@ class FirebasePushService implements PushService {
     }
     _subs.clear();
     try {
-      if (_fid case final fid?) await _device(fid)?.delete();
-      await _messaging.unregister();
+      if (_token case final token?) await _device(token)?.delete();
+      await _messaging.deleteToken();
     } catch (e) {
       _log(e);
     }
-    _fid = null;
+    _token = null;
   }
 
   static String? _route(RemoteMessage? m) {
