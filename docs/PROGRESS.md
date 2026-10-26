@@ -1,6 +1,6 @@
 # Topildi — loyiha holati
 
-> Oxirgi yangilanish: 2026-10-25
+> Oxirgi yangilanish: 2026-10-26
 
 Topildi — yo'qolgan va topilgan buyumlar uchun Flutter ilova.
 - **Arxitektura**: Clean Architecture — `flutter_bloc`, `get_it` + `injectable` (`@prod` / `@test`), `fpdart`.
@@ -8,13 +8,42 @@ Topildi — yo'qolgan va topilgan buyumlar uchun Flutter ilova.
 
 ## Hozirgi etap
 
-**Firebase bilan real maʼlumotlarga o'tish — 1-bosqich (Auth + Lenta + Eʼlon).** Kod yozib bo'lingan, testlar o'tadi, iOS simulator uchun build tayyor.
+**Firebase bilan real maʼlumotlarga o'tish — 1-bosqich (Auth + Lenta + Eʼlon).**
 
-Qolgan ishlar:
-1. Firestore/Storage qoidalari (rules) va indekslarni `foodai-73d66` ga deploy qilish. Buyruq tayyor, faqat ruxsat kutilmoqda.
-2. Firebase konsolida Phone va Google provayderlarini yoqish.
-3. Simulatorda boshidan oxirigacha (end-to-end) tekshirish.
-4. Commit qilish.
+**Branchlar:**
+- `firebase-phase1` — Firebase 1-bosqich (Mac'dagi sessiyada yozilgan).
+- `claude/fervent-mendel-ka2vga` — `firebase-phase1` + quyidagi tuzatishlar; PR [#3](https://github.com/Dimamaman/topildi/pull/3) → `firebase-phase1`. Hali merge qilinmagan.
+- `main` — dizayn ishlari (PR #1, #2 merge qilingan); Firebase hali `main` da yo'q.
+
+**PR #3 dagilar:**
+- iOS: reCAPTCHA'dan keyingi "Page Not Found" tuzatildi — `SceneDelegate.swift` URL'ni `Auth.auth().canHandle` ga uzatadi, `Info.plist` da `FlutterDeepLinkingEnabled = false`.
+- Firebase xatolari logga chiqadi (`FirebaseAuth error: ...`, `Firebase error: plugin/code: ...`); debug build'da ekranda ham ko'rinadi.
+- Xarita `Features.map` flagi bilan yashirilgan (pastda alohida bo'lim).
+- Lenta 2 ustunli grid (`FeedGridCard`); "Mening eʼlonlarim" eski `FeedCard` da.
+- Lenta bo'sh holati: glass ikonka + "+" ga strelka (`feed_empty_state.dart`).
+
+**Firebase konsolida qilingan (2026-10-25/26):**
+- Phone provider yoqilgan; test raqam `+998 90 660 13 14` → `123456`.
+- SMS region policy'da O'zbekiston ruxsat etilgan.
+- `firestore:rules` deploy qilingan (FoodZeen qoidalari bilan solishtirilgan — bir xil).
+- `firestore:indexes` deploy qilingan (5 ta indeks; build bo'lishini kutish kerak edi).
+- Simulatorda: raqam → reCAPTCHA → SMS kod → kirish **ishladi**.
+
+**Qolgan ishlar:**
+1. Indekslar "Enabled" bo'lgach Lentani tekshirish.
+2. Storage qoidalarini deploy qilish — avval konsoldagi Storage Rules'ni repo'dagi `storage.rules` (FoodZeen: `users/{userId}/recipes/{allPaths=**}`) bilan solishtirish. Storage qoidasi Firestore'ni o'qiydi — CLI ruxsat so'rasa "Yes".
+3. Simulatorda: profil saqlash, rasmli eʼlon joylash (Joylashuvim / Tumanni tanlash), filtrlar, Mening eʼlonlarim, o'chirish, "Qaytarildi", chiqish.
+4. Konsolda: eʼlonda telefon va aniq koordinata yo'qligini, rasmlar EXIF'siz ekanini tekshirish.
+5. PR #3 ni `firebase-phase1` ga, keyin `firebase-phase1` ni `main` ga merge qilish.
+
+**Ochiq savollar / keyinroq:**
+- Xato matnlari bir xil emas: Firebase "Kod notoʻgʻri. Qayta tekshiring" / "Kod eskirdi. Yangisini oling", dizayn — "Qayta kiriting" / "Kod eskirgan. Yangisini soʻrang"; kod eskirganda "Qayta yuborish" darhol faollashishi kerak.
+- Haqiqiy iPhone'da reCAPTCHA'siz: APNs `.p8` kalitini Firebase'ga yuklash + Xcode'da Push Notifications va Background Modes → Remote notifications.
+- Simulator uchun reCAPTCHA'ni o'chirish (`appVerificationDisabledForTesting`, faqat test raqamlar bilan) — taklif qilingan, qilinmagan.
+- Telegram Gateway orqali kod yuborish — muhokama qilingan, hozircha faqat Firebase SMS.
+- Eʼlonni tahrirlash oqimi yo'q ("tez orada" toast).
+
+**Ish uslubi (oldingi sessiyadan):** foydalanuvchi bilan o'zbekcha gaplashiladi; dizayn topshiriqlari PDF + PNG (+ HTML) bilan keladi; har bir ekran real Inter va Material Symbols shriftlari bilan golden skrinshot qilinib dizayn bilan solishtiriladi (393, 375×667, 360; yorug'/qorong'i; 130% matn); matnlar `tr()` orqali, yangi matnga `ru.dart` da tarjima shart (`l10n_test`); ripple yo'q, bosiladigan joy ≥44.
 
 ---
 
