@@ -3,7 +3,7 @@
  *
  * topildi_tg_sessions/{sid}: one sign-in attempt (see Session).
  * topildi_tg_chats/{chatId}: the sid a bot chat is answering, so the shared
- * contact (which carries no payload) finds its session.
+ * contact (which carries no payload) finds its session
  * Both are server-only (firestore.rules).
  */
 import { createHash, randomBytes, timingSafeEqual } from "node:crypto";
