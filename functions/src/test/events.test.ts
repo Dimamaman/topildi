@@ -101,7 +101,7 @@ describe("payload", () => {
   it("carries the route and groups by chat", () => {
     const d = messageCreated("c1", { senderId: "u2", kind: "text", text: "Salom" }, chat)!;
     const m = multicast(["t1", "t2"], { title: "A", body: "B" }, d);
-    assert.deepEqual(m.tokens, ["t1", "t2"]);
+    assert.deepEqual(m.fids, ["t1", "t2"]);
     assert.deepEqual(m.data, { route: "/chats/c1" });
     assert.equal(m.apns?.payload?.aps.threadId, "c1");
     assert.equal(m.apns?.payload?.aps.sound, "default");

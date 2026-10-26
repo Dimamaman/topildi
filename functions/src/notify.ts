@@ -19,7 +19,7 @@ const alreadyExists = 6;
 /**
  * Stores the notification (if it has a record) under the trigger's event id,
  * so a retried event neither lists nor pushes twice, then pushes to every
- * device of the recipient in that device's language and drops dead tokens.
+ * device of the recipient in that device's language and drops dead ones.
  */
 export async function deliver(eventId: string, d: Delivery): Promise<void> {
   const user = getFirestore().collection(paths.users).doc(d.to);
@@ -44,11 +44,11 @@ export async function deliver(eventId: string, d: Delivery): Promise<void> {
   }
 
   const stale: string[] = [];
-  for (const [lang, tokens] of byLang) {
-    const res = await getMessaging().sendEachForMulticast(multicast(tokens, pushText(d.push, lang), d));
+  for (const [lang, fids] of byLang) {
+    const res = await getMessaging().sendEachForMulticast(multicast(fids, pushText(d.push, lang), d));
     res.responses.forEach((r, i) => {
       const code = r.error?.code;
-      if (code && staleTokenErrors.has(code)) stale.push(tokens[i]);
+      if (code && staleTokenErrors.has(code)) stale.push(fids[i]);
       else if (code) logger.warn("push failed", { code, kind: d.push.kind });
     });
   }
