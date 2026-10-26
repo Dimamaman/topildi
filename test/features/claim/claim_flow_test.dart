@@ -38,4 +38,27 @@ void main() {
     expect(find.textContaining('Aziz T. javobingizni'), findsOneWidget);
     expect(find.textContaining('Prototip'), findsNothing);
   });
+
+  testWidgets('Finder answers someone else’s lost item: “Men topdim”', (tester) async {
+    await tester.pumpWidget(const TopildiApp(initialLocation: '/listing/l6'));
+    await _settle(tester);
+
+    await tester.tap(find.text('Men topdim'));
+    await _settle(tester);
+    expect(find.text('Buyum sizda ekanini tasdiqlang'), findsOneWidget);
+    expect(find.text('Buyumda qanday belgi bor?'), findsOneWidget);
+    expect(find.text('3 ta urinishingiz bor · Javobni faqat egasi koʻradi'), findsOneWidget);
+
+    await tester.enterText(find.byType(TextField), 'Gʻilofida kichik tirnalgan joy bor');
+    await tester.tap(find.text('Soʻrov yuborish'));
+    await _settle(tester);
+    expect(find.text('Soʻrovingiz yuborildi'), findsOneWidget);
+    expect(find.text('Egasi tekshirmoqda'), findsOneWidget);
+  });
+
+  testWidgets('Profil tab shows claims waiting for my answer', (tester) async {
+    await tester.pumpWidget(const TopildiApp(initialLocation: Routes.home));
+    await _settle(tester);
+    expect(find.bySemanticsLabel(RegExp(r'^Profil, \d+ ta yangi$')), findsOneWidget);
+  });
 }

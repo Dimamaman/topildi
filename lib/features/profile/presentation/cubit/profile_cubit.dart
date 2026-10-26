@@ -1,11 +1,13 @@
 import 'dart:async';
 
 import 'package:equatable/equatable.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 
 import '../../../../core/usecase/usecase.dart';
 import '../../../../core/view_state.dart';
+import '../../../claim/domain/usecases/watch_pending_claims.dart';
 import '../../../listing/domain/usecases/watch_listings.dart';
 import '../../domain/entities/profile_summary.dart';
 import '../../domain/usecases/profile_usecases.dart';
@@ -28,14 +30,23 @@ class ProfileState extends Equatable {
 
 @injectable
 class ProfileCubit extends Cubit<ProfileState> {
-  ProfileCubit(this._get, this._setNotifications, this._signOut, WatchListings watch) : super(const ProfileState()) {
+  ProfileCubit(this._get, this._setNotifications, this._signOut, WatchListings watch, WatchPendingClaims pending)
+      : super(const ProfileState()) {
     _sub = watch().listen((_) => load(silent: true));
+    // A claim arrived or was answered: refresh the "Soʻrov bor" tags.
+    _pendingSub = pending().listen((r) => r.match((_) {}, (counts) {
+          final changed = _pending != null && !mapEquals(_pending, counts);
+          _pending = counts;
+          if (changed) load(silent: true);
+        }));
   }
 
   final GetMyProfile _get;
   final SetNotifications _setNotifications;
   final SignOut _signOut;
   late final StreamSubscription<void> _sub;
+  late final StreamSubscription<void> _pendingSub;
+  Map<String, int>? _pending;
 
   Future<void> load({bool silent = false}) async {
     if (!silent) emit(state.copyWith(view: const ViewLoading()));
@@ -59,6 +70,7 @@ class ProfileCubit extends Cubit<ProfileState> {
   @override
   Future<void> close() {
     _sub.cancel();
+    _pendingSub.cancel();
     return super.close();
   }
 }

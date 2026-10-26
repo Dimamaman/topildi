@@ -97,10 +97,14 @@ import 'package:topildi/features/claim/domain/usecases/reject_claim.dart'
     as _i695;
 import 'package:topildi/features/claim/domain/usecases/submit_claim.dart'
     as _i774;
+import 'package:topildi/features/claim/domain/usecases/watch_pending_claims.dart'
+    as _i843;
 import 'package:topildi/features/claim/presentation/cubit/claim_cubit.dart'
     as _i176;
 import 'package:topildi/features/claim/presentation/cubit/claims_cubit.dart'
     as _i573;
+import 'package:topildi/features/claim/presentation/cubit/pending_claims_cubit.dart'
+    as _i142;
 import 'package:topildi/features/create_listing/data/repositories/create_listing_repository_impl.dart'
     as _i434;
 import 'package:topildi/features/create_listing/domain/repositories/create_listing_repository.dart'
@@ -511,17 +515,12 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i774.SubmitClaim>(
       () => _i774.SubmitClaim(gh<_i28.ClaimRepository>()),
     );
+    gh.factory<_i843.WatchPendingClaims>(
+      () => _i843.WatchPendingClaims(gh<_i28.ClaimRepository>()),
+    );
     gh.factory<_i570.ProfileSetupCubit>(
       () =>
           _i570.ProfileSetupCubit(gh<_i189.SaveProfile>(), gh<_i554.Session>()),
-    );
-    gh.factory<_i533.ProfileCubit>(
-      () => _i533.ProfileCubit(
-        gh<_i126.GetMyProfile>(),
-        gh<_i126.SetNotifications>(),
-        gh<_i126.SignOut>(),
-        gh<_i592.WatchListings>(),
-      ),
     );
     gh.factory<_i358.ChatCubit>(
       () => _i358.ChatCubit(
@@ -550,6 +549,18 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i176.ClaimCubit>(
       () =>
           _i176.ClaimCubit(gh<_i164.GetClaimTarget>(), gh<_i774.SubmitClaim>()),
+    );
+    gh.factory<_i533.ProfileCubit>(
+      () => _i533.ProfileCubit(
+        gh<_i126.GetMyProfile>(),
+        gh<_i126.SetNotifications>(),
+        gh<_i126.SignOut>(),
+        gh<_i592.WatchListings>(),
+        gh<_i843.WatchPendingClaims>(),
+      ),
+    );
+    gh.factory<_i142.PendingClaimsCubit>(
+      () => _i142.PendingClaimsCubit(gh<_i843.WatchPendingClaims>()),
     );
     gh.factory<_i573.ClaimsCubit>(
       () => _i573.ClaimsCubit(

@@ -18,6 +18,7 @@ import '../../../../core/widgets/t_top_bar.dart';
 import '../../../listing/presentation/category_ui.dart';
 import '../../domain/entities/claim.dart';
 import '../cubit/claim_cubit.dart';
+import 'claim_sent_page.dart';
 import '../../../../core/l10n/tr.dart';
 
 class ClaimPage extends StatelessWidget {
@@ -47,8 +48,11 @@ class _ClaimView extends StatelessWidget {
       listener: (context, state) {
         if (state.sent) {
           final target = state.view;
-          final finder = target is ViewLoaded<ClaimTarget> ? target.data.listing.author.displayName : null;
-          context.pushReplacement(Routes.claimSent(listingId), extra: finder);
+          final listing = target is ViewLoaded<ClaimTarget> ? target.data.listing : null;
+          context.pushReplacement(
+            Routes.claimSent(listingId),
+            extra: ClaimSentArgs(authorName: listing?.author.displayName, lost: listing != null && !listing.isFound),
+          );
         } else if (state.submitFailure != null) {
           TFeedback.error(
             context,
@@ -63,7 +67,12 @@ class _ClaimView extends StatelessWidget {
       builder: (context, state) {
         final view = state.view;
         return Scaffold(
-          appBar: TTopBar(title: tr('Egaligingizni tasdiqlang'), bordered: true),
+          appBar: TTopBar(
+            title: view is ViewLoaded<ClaimTarget> && !view.data.listing.isFound
+                ? tr('Buyum sizda ekanini tasdiqlang')
+                : tr('Egaligingizni tasdiqlang'),
+            bordered: true,
+          ),
           body: switch (view) {
             ViewLoading() || ViewEmpty() => const Center(child: CircularProgressIndicator()),
             ViewError(:final isOffline) => isOffline
@@ -72,7 +81,7 @@ class _ClaimView extends StatelessWidget {
             ViewLoaded(:final data) => _Form(target: data, state: state),
           },
           bottomNavigationBar: view is ViewLoaded<ClaimTarget>
-              ? _Footer(attemptsLeft: view.data.attemptsLeft, submitting: state.submitting)
+              ? _Footer(attemptsLeft: view.data.attemptsLeft, lost: !view.data.listing.isFound, submitting: state.submitting)
               : null,
         );
       },
@@ -93,6 +102,9 @@ class _Form extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     final cubit = context.read<ClaimCubit>();
     final l = target.listing;
+    // A "lost" listing is answered by someone who found the item: they prove
+    // they hold it by naming the owner's hidden detail.
+    final lost = !l.isFound;
     final error = state.answerError;
 
     return ListView(
@@ -116,7 +128,9 @@ class _Form extends StatelessWidget {
                     Text(l.title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
                     const SizedBox(height: 3),
                     Text(
-                      tr('Topuvchi: {name} · {area}', {'name': l.author.displayName, 'area': l.areaName.split(',').first}),
+                      lost
+                          ? tr('Egasi: {name} · {area}', {'name': l.author.displayName, 'area': l.areaName.split(',').first})
+                          : tr('Topuvchi: {name} · {area}', {'name': l.author.displayName, 'area': l.areaName.split(',').first}),
                       style: TextStyle(fontSize: 13, color: cs.onSurfaceVariant),
                     ),
                   ],
@@ -146,7 +160,9 @@ class _Form extends StatelessWidget {
                     Text(tr('Nega bu savol?'), style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
                     const SizedBox(height: 4),
                     Text(
-                      tr('Topuvchi buyumning faqat egasi biladigan bir belgisini yashirib qoʻygan. Uni toʻgʻri aytsangiz, buyum sizniki ekani tasdiqlanadi. Bu begonalar olib ketishining oldini oladi.'),
+                      lost
+                          ? tr('Egasi buyumning faqat oʻzi biladigan bir belgisini yashirib qoʻygan. Buyumga qarab uni toʻgʻri aytsangiz, buyum haqiqatan sizda ekani tasdiqlanadi. Bu soxta xabarlarning oldini oladi.')
+                          : tr('Topuvchi buyumning faqat egasi biladigan bir belgisini yashirib qoʻygan. Uni toʻgʻri aytsangiz, buyum sizniki ekani tasdiqlanadi. Bu begonalar olib ketishining oldini oladi.'),
                       style: TextStyle(fontSize: 14, height: 20 / 14, color: cs.secondary),
                     ),
                   ],
@@ -156,7 +172,7 @@ class _Form extends StatelessWidget {
           ),
         ),
         const SizedBox(height: TSpace.md),
-        Text(tr('Buyumingizda qanday belgi bor?'),
+        Text(lost ? tr('Buyumda qanday belgi bor?') : tr('Buyumingizda qanday belgi bor?'),
             style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: error != null ? cs.error : null)),
         const SizedBox(height: TSpace.xs),
         TextField(
@@ -167,7 +183,7 @@ class _Form extends StatelessWidget {
           enabled: target.attemptsLeft > 0,
           style: const TextStyle(fontSize: 15, height: 22 / 15),
           decoration: InputDecoration(
-            hintText: tr('Masalan: ichida koʻk rangli bank kartam bor'),
+            hintText: lost ? tr('Masalan: brelokda qizil yulduzcha bor') : tr('Masalan: ichida koʻk rangli bank kartam bor'),
             counterText: '',
             errorText: error,
             errorMaxLines: 2,
@@ -261,9 +277,10 @@ class _ProofButton extends StatelessWidget {
 }
 
 class _Footer extends StatelessWidget {
-  const _Footer({required this.attemptsLeft, required this.submitting});
+  const _Footer({required this.attemptsLeft, required this.lost, required this.submitting});
 
   final int attemptsLeft;
+  final bool lost;
   final bool submitting;
 
   @override
@@ -274,7 +291,11 @@ class _Footer extends StatelessWidget {
       horizontal: TSpace.screen,
       children: [
         Text(
-          none ? tr('Urinishlar tugadi') : tr('{attemptsLeft} ta urinishingiz bor · Javobni faqat topuvchi koʻradi', {'attemptsLeft': attemptsLeft}),
+          none
+              ? tr('Urinishlar tugadi')
+              : lost
+              ? tr('{attemptsLeft} ta urinishingiz bor · Javobni faqat egasi koʻradi', {'attemptsLeft': attemptsLeft})
+              : tr('{attemptsLeft} ta urinishingiz bor · Javobni faqat topuvchi koʻradi', {'attemptsLeft': attemptsLeft}),
           textAlign: TextAlign.center,
           style: TextStyle(fontSize: 12, color: none ? cs.error : cs.onSurfaceVariant),
         ),

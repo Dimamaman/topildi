@@ -149,7 +149,7 @@ class _DetailViewState extends State<_DetailView> {
                         _Carousel(listing: data, index: state.photoIndex, isMine: state.isMine),
                         _Heading(listing: data, showDescription: !state.isMine),
                         if (state.isMine && state.pendingClaims > 0)
-                          _ClaimsCard(count: state.pendingClaims, onTap: () => _openClaims(context, data)),
+                          _ClaimsCard(count: state.pendingClaims, lost: !data.isFound, onTap: () => _openClaims(context, data)),
                         _Details(listing: data, showMap: Features.map && !state.isMine),
                         SizedBox(
                           // The panel grows with the text size; keep the last row clear of it.
@@ -691,17 +691,25 @@ class _Heading extends StatelessWidget {
 
 /// Author: "N ta yangi soʻrov" on warning-container; opens Claims.
 class _ClaimsCard extends StatelessWidget {
-  const _ClaimsCard({required this.count, required this.onTap});
+  const _ClaimsCard({required this.count, required this.lost, required this.onTap});
 
   final int count;
+
+  /// My "lost" listing: the claims come from people who found the item.
+  final bool lost;
   final VoidCallback onTap;
 
   static const _words = ['Bir', 'Ikki', 'Uch', 'Toʻrt', 'Besh', 'Olti', 'Yetti', 'Sakkiz', 'Toʻqqiz', 'Oʻn'];
 
   /// "Ikki kishi bu buyum ularniki ekanini aytmoqda." (words up to ten).
-  static String body(int n) {
+  static String body(int n, {bool lost = false}) {
     final who = n <= 10 ? tr(_words[n - 1]) : '$n';
     // {n} lets languages that don't spell numbers out (Russian) use digits.
+    if (lost) {
+      return n == 1
+          ? tr('Bir kishi buyumingizni topganini aytmoqda.')
+          : tr('{who} kishi buyumingizni topganini aytmoqda.', {'who': who, 'n': n});
+    }
     return n == 1
         ? tr('Bir kishi bu buyum uniki ekanini aytmoqda.')
         : tr('{who} kishi bu buyum ularniki ekanini aytmoqda.', {'who': who, 'n': n});
@@ -716,7 +724,7 @@ class _ClaimsCard extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(top: 14),
       child: _Tap(
-        label: '$title. ${body(count)}',
+        label: '$title. ${body(count, lost: lost)}',
         onTap: onTap,
         child: Container(
           constraints: const BoxConstraints(minHeight: 44),
@@ -743,7 +751,7 @@ class _ClaimsCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      body(count),
+                      body(count, lost: lost),
                       style: text.bodySmall!
                           .copyWith(fontSize: 13, height: 18 / 13, color: cs.secondary)
                           .inter(FontWeight.w400),
@@ -950,7 +958,7 @@ class _VisitorPanel extends StatelessWidget {
         ? _PillButton(label: tr('Soʻrov yuborildi'), onTap: null, bg: tc.warningContainer, fg: tc.warning)
         : listing.isFound
         ? _PillButton(label: tr('Bu meniki'), onTap: () => _claim(context))
-        : _PillButton(label: tr('Men topdim'), onTap: () => TFeedback.success(context, tr('Egasiga xabar yuborildi')));
+        : _PillButton(label: tr('Men topdim'), onTap: () => _claim(context));
     return GlassSurface(
       color: context.glass.panel,
       padding: const EdgeInsets.fromLTRB(22, 10, 10, 10),

@@ -39,18 +39,23 @@ class FirestoreClaimDataSource implements ClaimRemoteDataSource {
     return _list(snap)..sort((a, b) => b.createdAt.compareTo(a.createdAt));
   }
 
-  @override
-  Future<Map<String, int>> pendingCountsForAuthor(String authorId) async {
-    final snap = await _col
-        .where('listingAuthorId', isEqualTo: authorId)
-        .where('status', isEqualTo: ClaimStatus.pending.name)
-        .get();
+  Query<Map<String, dynamic>> _pending(String authorId) =>
+      _col.where('listingAuthorId', isEqualTo: authorId).where('status', isEqualTo: ClaimStatus.pending.name);
+
+  Map<String, int> _counts(QuerySnapshot<Map<String, dynamic>> snap) {
     final counts = <String, int>{};
-    for (final c in _list(snap)) {
-      counts[c.listingId] = (counts[c.listingId] ?? 0) + 1;
+    for (final d in snap.docs) {
+      final id = d.data()['listingId'] as String? ?? '';
+      counts[id] = (counts[id] ?? 0) + 1;
     }
     return counts;
   }
+
+  @override
+  Future<Map<String, int>> pendingCountsForAuthor(String authorId) async => _counts(await _pending(authorId).get());
+
+  @override
+  Stream<Map<String, int>> watchPendingCounts(String authorId) => _pending(authorId).snapshots().map(_counts);
 
   @override
   Future<List<Claim>> byClaimant(String claimantId, String listingId) async {

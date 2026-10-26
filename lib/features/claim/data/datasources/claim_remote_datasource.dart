@@ -11,6 +11,9 @@ abstract interface class ClaimRemoteDataSource {
   /// Pending claims per listing across all of [authorId]'s listings.
   Future<Map<String, int>> pendingCountsForAuthor(String authorId);
 
+  /// The same, live: emits again whenever a claim arrives or is answered.
+  Stream<Map<String, int>> watchPendingCounts(String authorId);
+
   /// [claimantId]'s own claims on the listing (attempts, pending state).
   Future<List<Claim>> byClaimant(String claimantId, String listingId);
 

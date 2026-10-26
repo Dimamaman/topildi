@@ -13,4 +13,7 @@ abstract interface class ClaimRepository {
   FutureEither<String> accept(String claimId);
 
   FutureEither<Claim> reject(String claimId);
+
+  /// Pending claims per listing of the signed-in user, live.
+  StreamEither<Map<String, int>> watchPendingCounts();
 }

@@ -1,10 +1,5 @@
-import 'package:fpdart/fpdart.dart';
-
-import '../../../../core/error/failure.dart';
 import '../../../../core/usecase/usecase.dart';
 import '../entities/chat.dart';
-
-typedef StreamEither<T> = Stream<Either<Failure, T>>;
 
 abstract interface class ChatRepository {
   /// The signed-in user's chats; a new list on every change.

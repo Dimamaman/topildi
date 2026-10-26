@@ -21,6 +21,7 @@ class TBottomNav extends StatelessWidget {
     required this.onSelect,
     required this.onAdd,
     this.unreadChats = 0,
+    this.pendingClaims = 0,
     this.showMap = Features.map,
   });
 
@@ -32,20 +33,23 @@ class TBottomNav extends StatelessWidget {
   final VoidCallback onAdd;
   final int unreadChats;
 
+  /// Claims waiting for my answer; badge on Profil.
+  final int pendingClaims;
+
   static const barHeight = 62.0;
 
   /// Show the Xarita tab. Hidden tabs keep their branch number, so the
   /// shell's branches never shift.
   final bool showMap;
 
-  static const _chatsBranch = 2;
+  static const _chatsBranch = 2, _profileBranch = 3;
 
   /// (shell branch, icon, label) of each visible tab.
   List<(int, IconData, String)> get _items => [
     (0, Symbols.home_rounded, tr('Lenta')),
     if (showMap) (1, Symbols.map_rounded, tr('Xarita')),
     (_chatsBranch, Symbols.chat_bubble_rounded, tr('Chatlar')),
-    (3, Symbols.account_circle_rounded, tr('Profil')),
+    (_profileBranch, Symbols.account_circle_rounded, tr('Profil')),
   ];
 
   /// Gap under the bar: 24 above the screen edge, never inside the
@@ -93,7 +97,11 @@ class TBottomNav extends StatelessWidget {
                                   icon: icon,
                                   label: label,
                                   active: branch == currentIndex,
-                                  badge: branch == _chatsBranch ? unreadChats : 0,
+                                  badge: switch (branch) {
+                                    _chatsBranch => unreadChats,
+                                    _profileBranch => pendingClaims,
+                                    _ => 0,
+                                  },
                                   onTap: () {
                                     if (branch != currentIndex) HapticFeedback.selectionClick();
                                     onSelect(branch);

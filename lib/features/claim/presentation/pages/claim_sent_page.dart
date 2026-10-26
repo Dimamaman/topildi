@@ -7,19 +7,27 @@ import '../../../../core/theme/topildi_theme.dart';
 import '../../../../core/widgets/t_button.dart';
 import '../../../../core/l10n/tr.dart';
 
-/// Confirmation after a claim. The finder is notified by push; there is no
-/// in-app switch to the finder side.
-class ClaimSentPage extends StatelessWidget {
-  const ClaimSentPage({super.key, this.finderName});
+/// What [ClaimSentPage] shows: whose answer we wait for, and whether the
+/// claim was "Men topdim" on a lost listing.
+class ClaimSentArgs {
+  const ClaimSentArgs({this.authorName, this.lost = false});
 
-  final String? finderName;
+  final String? authorName;
+  final bool lost;
+}
+
+/// Confirmation after a claim; the listing's author reviews it.
+class ClaimSentPage extends StatelessWidget {
+  const ClaimSentPage({super.key, this.args = const ClaimSentArgs()});
+
+  final ClaimSentArgs args;
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final tc = context.tc;
     final text = Theme.of(context).textTheme;
-    final who = finderName ?? tr('Topuvchi');
+    final who = args.authorName ?? (args.lost ? tr('Egasi') : tr('Topuvchi'));
 
     return Scaffold(
       body: SafeArea(
@@ -56,7 +64,7 @@ class ClaimSentPage extends StatelessWidget {
                       borderRadius: BorderRadius.circular(TRadius.lg),
                       border: Border.all(color: cs.outlineVariant),
                     ),
-                    child: const _Timeline(),
+                    child: _Timeline(lost: args.lost),
                   ),
                   const SizedBox(height: TSpace.x2l),
                   TButton.primary(label: tr('Lentaga qaytish'), onPressed: () => context.go(Routes.home)),
@@ -73,14 +81,16 @@ class ClaimSentPage extends StatelessWidget {
 enum _StepState { done, current, upcoming }
 
 class _Timeline extends StatelessWidget {
-  const _Timeline();
+  const _Timeline({required this.lost});
+
+  final bool lost;
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
         _Step(state: _StepState.done, title: tr('Soʻrov yuborildi'), subtitle: tr('Hozirgina')),
-        _Step(state: _StepState.current, title: tr('Topuvchi tekshirmoqda'), subtitle: tr('Odatda bir necha soat')),
+        _Step(state: _StepState.current, title: lost ? tr('Egasi tekshirmoqda') : tr('Topuvchi tekshirmoqda'), subtitle: tr('Odatda bir necha soat')),
         _Step(state: _StepState.upcoming, title: tr('Chat ochiladi va uchrashasiz'), isLast: true),
       ],
     );

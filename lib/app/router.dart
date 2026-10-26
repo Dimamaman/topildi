@@ -118,7 +118,7 @@ GoRouter createRouter({String initialLocation = Routes.splash}) => GoRouter(
           routes: [
             GoRoute(
               path: 'sent',
-              builder: (_, state) => ClaimSentPage(finderName: state.extra as String?),
+              builder: (_, state) => ClaimSentPage(args: state.extra as ClaimSentArgs? ?? const ClaimSentArgs()),
             ),
           ],
         ),

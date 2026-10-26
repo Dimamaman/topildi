@@ -32,6 +32,22 @@ class ClaimRepositoryImpl implements ClaimRepository {
     }
   }
 
+  /// Offline is reported once up front; after that the stream's own errors
+  /// become failures and the stream ends.
+  StreamEither<T> _live<T>(Stream<T> Function() open) async* {
+    if (!await _network.isConnected) {
+      yield left(const NetworkFailure());
+      return;
+    }
+    try {
+      await for (final v in open()) {
+        yield right(v);
+      }
+    } catch (e) {
+      yield left(failureOf(e));
+    }
+  }
+
   Future<ListingModel> _listing(String id) async => await _listings.fetchById(id) ?? (throw const NotFoundFailure());
 
   Future<Claim> _claim(String id) async => await _claims.byId(id) ?? (throw const NotFoundFailure());
@@ -87,4 +103,7 @@ class ClaimRepositoryImpl implements ClaimRepository {
         if (model.author.id != _session.userId) throw const ForbiddenFailure();
         return _claims.reject(claimId);
       });
+
+  @override
+  StreamEither<Map<String, int>> watchPendingCounts() => _live(() => _claims.watchPendingCounts(_session.userId));
 }

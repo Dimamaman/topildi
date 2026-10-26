@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:injectable/injectable.dart';
 
 import '../../../chat/data/datasources/chat_mock_datasource.dart';
@@ -65,6 +67,9 @@ class ClaimMockDataSource implements ClaimRemoteDataSource {
   static const _latency = Duration(milliseconds: 500);
 
   final List<Claim> _claims = [];
+
+  /// Fires when a claim is added or answered.
+  final _changes = StreamController<void>.broadcast();
   final ChatMockDataSource _chats;
 
   @override
@@ -76,10 +81,19 @@ class ClaimMockDataSource implements ClaimRemoteDataSource {
   @override
   Future<Map<String, int>> pendingCountsForAuthor(String authorId) async {
     final counts = <String, int>{};
-    for (final c in _claims.where((c) => c.status == ClaimStatus.pending)) {
+    // The mock does not know listing authors; my own claims are not for me.
+    for (final c in _claims.where((c) => c.status == ClaimStatus.pending && c.claimant.id != authorId)) {
       counts[c.listingId] = (counts[c.listingId] ?? 0) + 1;
     }
     return counts;
+  }
+
+  @override
+  Stream<Map<String, int>> watchPendingCounts(String authorId) async* {
+    yield await pendingCountsForAuthor(authorId);
+    await for (final _ in _changes.stream) {
+      yield await pendingCountsForAuthor(authorId);
+    }
   }
 
   @override
@@ -107,6 +121,7 @@ class ClaimMockDataSource implements ClaimRemoteDataSource {
       createdAt: DateTime.now(),
     );
     _claims.add(claim);
+    _changes.add(null);
     return claim;
   }
 
@@ -114,6 +129,7 @@ class ClaimMockDataSource implements ClaimRemoteDataSource {
     await Future<void>.delayed(_latency ~/ 2);
     final i = _claims.indexWhere((c) => c.id == id);
     _claims[i] = _claims[i].copyWith(status: status);
+    _changes.add(null);
     return _claims[i];
   }
 
