@@ -10,6 +10,7 @@ import '../../../../core/theme/topildi_theme.dart';
 import '../../../../core/utils/date_format.dart';
 import '../../../../core/view_state.dart';
 import '../../../../core/widgets/photo_placeholder.dart';
+import '../../../../core/widgets/pull_down_menu.dart';
 import '../../../../core/widgets/state_views.dart';
 import '../../../../core/widgets/t_avatar.dart';
 import '../../../../core/widgets/t_feedback.dart';
@@ -177,32 +178,35 @@ class _Header extends StatelessWidget {
                         ],
                       ),
                     ),
-                    PopupMenuButton<String>(
-                      tooltip: tr('Koʻproq'),
-                      icon: const Icon(Symbols.more_vert_rounded),
-                      onSelected: (v) async {
-                        if (v == 'report') {
-                          final ok = await TFeedback.confirm(
+                    Builder(
+                      builder: (anchor) => IconButton(
+                        tooltip: tr('Koʻproq'),
+                        icon: const Icon(Symbols.more_horiz_rounded),
+                        onPressed: () async {
+                          final v = await showPullDownMenu(
                             context,
-                            title: tr('Shikoyat qilasizmi?'),
-                            body: tr('Moderatorlar suhbatni koʻrib chiqadi.'),
-                            confirmLabel: tr('Shikoyat qilish'),
-                            destructive: true,
+                            anchor: anchor,
+                            label: tr('Koʻproq'),
+                            items: [('report', tr('Shikoyat qilish'))],
+                            icons: const {0: Symbols.flag_rounded},
+                            destructive: const {0},
                           );
-                          if (ok && context.mounted) {
-                            TFeedback.success(
+                          if (v != 'report' || !context.mounted) return;
+                            final ok = await TFeedback.confirm(
                               context,
-                              tr('Shikoyat yuborildi'),
+                              title: tr('Shikoyat qilasizmi?'),
+                              body: tr('Moderatorlar suhbatni koʻrib chiqadi.'),
+                              confirmLabel: tr('Shikoyat qilish'),
+                              destructive: true,
                             );
-                          }
-                        }
-                      },
-                      itemBuilder: (_) => [
-                        PopupMenuItem(
-                          value: 'report',
-                          child: Text(tr('Shikoyat qilish')),
-                        ),
-                      ],
+                            if (ok && context.mounted) {
+                              TFeedback.success(
+                                context,
+                                tr('Shikoyat yuborildi'),
+                              );
+                            }
+                        },
+                      ),
                     ),
                   ],
                 ),

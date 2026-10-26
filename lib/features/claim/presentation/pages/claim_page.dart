@@ -212,13 +212,15 @@ class _Form extends StatelessWidget {
           ),
           const SizedBox(height: TSpace.xs),
         ],
-        _ProofButton(
-          attached: state.hasProofPhoto,
-          onTap: () async {
-            if (state.hasProofPhoto) return cubit.setProofPhoto(null);
-            final path = await pickPhoto(context, title: tr('Dalil rasm'));
-            if (path != null) cubit.setProofPhoto(path);
-          },
+        Builder(
+          builder: (anchor) => _ProofButton(
+            attached: state.hasProofPhoto,
+            onTap: () async {
+              if (state.hasProofPhoto) return cubit.setProofPhoto(null);
+              final path = await pickPhoto(context, anchor: anchor, title: tr('Dalil rasm'));
+              if (path != null) cubit.setProofPhoto(path);
+            },
+          ),
         ),
       ],
     );

@@ -6,6 +6,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import '../../../../app/routes.dart';
 import '../../../../core/theme/topildi_surfaces.dart';
 import '../../../../core/theme/topildi_theme.dart';
+import '../../../../core/widgets/pull_down_menu.dart';
 import '../../../../core/widgets/t_button.dart';
 import '../../../../core/widgets/t_input.dart';
 import '../../../../core/widgets/t_top_bar.dart';
@@ -46,29 +47,15 @@ class _CreateDetailsPageState extends State<CreateDetailsPage> {
     widget.editing ? context.pop() : context.push(Routes.createLocation);
   }
 
-  Future<void> _pickCategory() async {
-    final picked = await showModalBottomSheet<ItemCategory>(
-      context: context,
-      isScrollControlled: true,
-      builder: (ctx) => SafeArea(
-        child: ListView(
-          shrinkWrap: true,
-          children: [
-            Padding(
-              padding: EdgeInsets.fromLTRB(TSpace.screen, 0, TSpace.screen, TSpace.xs),
-              child: Text(tr('Kategoriya'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
-            ),
-            for (final c in ItemCategory.values)
-              ListTile(
-                minTileHeight: TSize.tapTarget,
-                leading: Icon(c.icon),
-                title: Text(c.label),
-                trailing: c == _cubit.state.draft.category ? const Icon(Symbols.check_rounded) : null,
-                onTap: () => Navigator.pop(ctx, c),
-              ),
-          ],
-        ),
-      ),
+  Future<void> _pickCategory(BuildContext anchor) async {
+    const all = ItemCategory.values;
+    final picked = await showPullDownMenu(
+      context,
+      anchor: anchor,
+      label: tr('Kategoriya'),
+      items: [for (final c in all) (c, c.label)],
+      icons: {for (var i = 0; i < all.length; i++) i: all[i].icon},
+      current: _cubit.state.draft.category,
     );
     if (picked != null) _cubit.setCategory(picked);
   }
@@ -100,31 +87,33 @@ class _CreateDetailsPageState extends State<CreateDetailsPage> {
               const SizedBox(height: TSpace.md),
               Text(tr('Kategoriya'), style: text.labelLarge!.copyWith(color: categoryError != null ? cs.error : null)),
               const SizedBox(height: 6),
-              Material(
-                color: cs.surfaceContainerLowest,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(TRadius.md),
-                  side: BorderSide(color: categoryError != null ? cs.error : cs.outline, width: categoryError != null ? 2 : 1),
-                ),
-                clipBehavior: Clip.antiAlias,
-                child: InkWell(
-                  onTap: _pickCategory,
-                  child: SizedBox(
-                    height: TSize.input,
-                    child: Padding(
-                      padding: const EdgeInsets.only(left: 14, right: 12),
-                      child: Row(
-                        children: [
-                          Icon(d.category?.icon ?? Symbols.category_rounded, size: 20, color: cs.onSurfaceVariant),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Text(
-                              d.category?.label ?? tr('Tanlang'),
-                              style: text.bodyLarge!.copyWith(color: d.category == null ? cs.onSurfaceVariant : null),
+              Builder(
+                builder: (anchor) => Material(
+                  color: cs.surfaceContainerLowest,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(TRadius.md),
+                    side: BorderSide(color: categoryError != null ? cs.error : cs.outline, width: categoryError != null ? 2 : 1),
+                  ),
+                  clipBehavior: Clip.antiAlias,
+                  child: InkWell(
+                    onTap: () => _pickCategory(anchor),
+                    child: SizedBox(
+                      height: TSize.input,
+                      child: Padding(
+                        padding: const EdgeInsets.only(left: 14, right: 12),
+                        child: Row(
+                          children: [
+                            Icon(d.category?.icon ?? Symbols.category_rounded, size: 20, color: cs.onSurfaceVariant),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                d.category?.label ?? tr('Tanlang'),
+                                style: text.bodyLarge!.copyWith(color: d.category == null ? cs.onSurfaceVariant : null),
+                              ),
                             ),
-                          ),
-                          Icon(Symbols.expand_more_rounded, color: cs.onSurfaceVariant),
-                        ],
+                            Icon(Symbols.expand_more_rounded, color: cs.onSurfaceVariant),
+                          ],
+                        ),
                       ),
                     ),
                   ),

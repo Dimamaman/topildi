@@ -19,6 +19,7 @@ import '../../../../core/theme/topildi_theme.dart';
 import '../../../../core/utils/date_format.dart';
 import '../../../../core/view_state.dart';
 import '../../../../core/widgets/glass_surface.dart';
+import '../../../../core/widgets/pull_down_menu.dart';
 import '../../../../core/widgets/photo_placeholder.dart';
 import '../../../../core/widgets/state_views.dart';
 import '../../../../core/widgets/t_feedback.dart';
@@ -365,37 +366,13 @@ class _AuthorActions extends StatelessWidget {
   final Listing listing;
 
   Future<void> _more(BuildContext context, BuildContext anchor) async {
-    final cs = Theme.of(context).colorScheme;
-    final box = anchor.findRenderObject()! as RenderBox;
-    final overlay = Navigator.of(context).overlay!.context.findRenderObject()! as RenderBox;
-    final rect = Rect.fromPoints(
-      box.localToGlobal(box.size.bottomLeft(Offset.zero), ancestor: overlay),
-      box.localToGlobal(box.size.bottomRight(Offset.zero), ancestor: overlay),
-    );
-    PopupMenuItem<String> item(String value, IconData icon, String label, Color color) => PopupMenuItem(
-      value: value,
-      height: 44,
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(label, style: TextStyle(fontSize: 16, color: color)),
-          ),
-          const SizedBox(width: 12),
-          Icon(icon, size: 20, color: color),
-        ],
-      ),
-    );
-    final picked = await showMenu<String>(
-      context: context,
-      position: RelativeRect.fromRect(rect, Offset.zero & overlay.size),
-      color: cs.surfaceContainerLowest,
-      elevation: 8,
-      constraints: const BoxConstraints(minWidth: 220),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-      items: [
-        item('delete', Symbols.delete_rounded, tr('Eʼlonni oʻchirish'), cs.error),
-        item('share', Symbols.ios_share_rounded, tr('Ulashish'), cs.onSurface),
-      ],
+    final picked = await showPullDownMenu(
+      context,
+      anchor: anchor,
+      label: tr('Yana'),
+      items: [('delete', tr('Eʼlonni oʻchirish')), ('share', tr('Ulashish'))],
+      icons: const {0: Symbols.delete_rounded, 1: Symbols.ios_share_rounded},
+      destructive: const {0},
     );
     if (!context.mounted) return;
     switch (picked) {

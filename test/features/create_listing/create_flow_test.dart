@@ -35,6 +35,9 @@ void main() {
     await tester.enterText(find.byType(TextField).at(0), 'Kumush uzuk');
     await tester.tap(find.text('Tanlang'));
     await tester.pumpAndSettle();
+    // Last row of the pull-down: scroll the menu to it first.
+    await tester.ensureVisible(find.text('Boshqa').last);
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Boshqa').last);
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField).last, 'Ichki tomonida sana yozilgan');

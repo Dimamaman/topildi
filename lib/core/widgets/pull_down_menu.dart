@@ -29,26 +29,37 @@ class PullDownDrag extends ChangeNotifier {
   }
 }
 
-/// iOS 26 Liquid Glass pull-down menu, opened under [anchor] (the row it
-/// belongs to) with its right edge on the row's right edge; above the row
-/// when there is no room below. No dimming; a tap outside or the back
-/// button closes it. [dividersAfter] puts a thin separator after those
-/// item indexes. Shown in an overlay entry rather than a route, so a finger
-/// still pressed on the row (see [PullDownDrag]) is not cancelled.
+/// iOS 26 Liquid Glass pull-down menu, opened under [anchor] (the row or
+/// button it belongs to; or the global rect [at]) with its right edge on the
+/// anchor's right edge; above it when there is no room below. No dimming; a
+/// tap outside or the back button closes it. [dividersAfter] puts a thin
+/// separator after those item indexes. A pick menu checks [current]; an
+/// action menu (no item is [current]) has no check column and shows
+/// [icons] at the trailing edge. Shown in an overlay entry rather than a
+/// route, so a finger still pressed on the row (see [PullDownDrag]) is not
+/// cancelled.
 Future<T?> showPullDownMenu<T>(
   BuildContext context, {
-  required BuildContext anchor,
+  BuildContext? anchor,
+  Rect? at,
   required List<(T, String)> items,
-  required T current,
+  T? current,
   String? label,
+  Map<int, IconData> icons = const {},
   Set<int> dividersAfter = const {},
   Set<int> destructive = const {},
   PullDownDrag? drag,
 }) {
+  assert((anchor == null) != (at == null), 'Pass exactly one of anchor and at');
   final overlay = Navigator.of(context, rootNavigator: true).overlay!;
   final overlayBox = overlay.context.findRenderObject()! as RenderBox;
-  final box = anchor.findRenderObject()! as RenderBox;
-  final rect = box.localToGlobal(Offset.zero, ancestor: overlayBox) & box.size;
+  final Rect rect;
+  if (anchor != null) {
+    final box = anchor.findRenderObject()! as RenderBox;
+    rect = box.localToGlobal(Offset.zero, ancestor: overlayBox) & box.size;
+  } else {
+    rect = at!;
+  }
   final completer = Completer<T?>();
   final route = ModalRoute.of(context);
   late final OverlayEntry entry;
@@ -80,6 +91,7 @@ Future<T?> showPullDownMenu<T>(
         items: items,
         current: current,
         label: label,
+        icons: icons,
         dividersAfter: dividersAfter,
         destructive: destructive,
         drag: drag,
@@ -97,6 +109,7 @@ class _MenuSpec<T> {
     required this.items,
     required this.current,
     required this.label,
+    required this.icons,
     required this.dividersAfter,
     required this.destructive,
     required this.drag,
@@ -104,8 +117,11 @@ class _MenuSpec<T> {
 
   final Rect anchor;
   final List<(T, String)> items;
-  final T current;
+  final T? current;
   final String? label;
+
+  /// Trailing icons by item index.
+  final Map<int, IconData> icons;
   final Set<int> dividersAfter;
 
   /// Items drawn in the error colour (e.g. "Rasmni olib tashlash").
@@ -238,11 +254,15 @@ class _PullDownMenuState<T> extends State<_PullDownMenu<T>> with SingleTickerPro
     final up = wanted > below && below < 16 + row * 4.5 && above > below;
     final height = math.min(wanted, up ? above : below);
     final scrollable = content > height;
+    // Pick menus keep a check column; action menus start with the label.
+    final checks = spec.items.any((it) => it.$1 == spec.current);
 
     final rows = <Widget>[];
     for (var i = 0; i < spec.items.length; i++) {
       final (value, label) = spec.items[i];
-      final selected = value == spec.current;
+      final selected = checks && value == spec.current;
+      final color = spec.destructive.contains(i) ? cs.error : cs.onSurface;
+      final icon = spec.icons[i];
       rows.add(
         Semantics(
           key: _keys[i],
@@ -255,26 +275,32 @@ class _PullDownMenuState<T> extends State<_PullDownMenu<T>> with SingleTickerPro
           child: Container(
             constraints: const BoxConstraints(minHeight: _MenuSpec.rowHeight),
             margin: const EdgeInsets.symmetric(horizontal: 6),
-            padding: const EdgeInsets.fromLTRB(8, 10, 12, 10),
+            padding: EdgeInsets.fromLTRB(checks ? 8 : 12, 10, 12, 10),
             decoration: BoxDecoration(
               color: _hover == i ? g.menuPressed : null,
               borderRadius: BorderRadius.circular(16),
             ),
             child: Row(
               children: [
-                SizedBox(
-                  width: 22,
-                  child: selected ? Icon(Symbols.check_rounded, size: 20, color: cs.onSurface) : null,
-                ),
-                const SizedBox(width: 8),
+                if (checks) ...[
+                  SizedBox(
+                    width: 22,
+                    child: selected ? Icon(Symbols.check_rounded, size: 20, color: cs.onSurface) : null,
+                  ),
+                  const SizedBox(width: 8),
+                ],
                 Expanded(
                   child: Text(
                     label,
                     style: Theme.of(context).textTheme.bodyLarge!
-                        .copyWith(fontSize: 17, height: 22 / 17, color: spec.destructive.contains(i) ? cs.error : cs.onSurface)
+                        .copyWith(fontSize: 17, height: 22 / 17, color: color)
                         .inter(selected ? FontWeight.w600 : FontWeight.w400),
                   ),
                 ),
+                if (icon != null) ...[
+                  const SizedBox(width: 12),
+                  Icon(icon, size: 21, color: color),
+                ],
               ],
             ),
           ),

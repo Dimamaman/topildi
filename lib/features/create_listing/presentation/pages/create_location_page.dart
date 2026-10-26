@@ -17,6 +17,7 @@ import '../../../../core/widgets/t_feedback.dart';
 import '../../../../core/theme/topildi_surfaces.dart';
 import '../../../../core/theme/topildi_theme.dart';
 import '../../../../core/utils/date_format.dart';
+import '../../../../core/widgets/pull_down_menu.dart';
 import '../../../../core/widgets/t_button.dart';
 import '../../../../core/widgets/t_chip.dart';
 import '../../../../core/widgets/t_top_bar.dart';
@@ -91,38 +92,13 @@ class _CreateLocationPageState extends State<CreateLocationPage> {
   }
 
   /// Without the map: place the listing at the chosen district's centre.
-  Future<void> _pickDistrict() async {
-    final picked = await showModalBottomSheet<String>(
-      context: context,
-      isScrollControlled: true,
-      builder: (ctx) => SafeArea(
-        child: ConstrainedBox(
-          constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(ctx).height * 0.7),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(TSpace.screen, 0, TSpace.screen, TSpace.xs),
-                child: Text(tr('Tumanni tanlang'), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
-              ),
-              Flexible(
-                child: ListView(
-                  shrinkWrap: true,
-                  children: [
-                    for (final d in Regions.tashkentDistricts)
-                      ListTile(
-                        title: Text(d),
-                        trailing: _cubit.state.draft.district == d ? const Icon(Symbols.check_rounded) : null,
-                        onTap: () => Navigator.pop(ctx, d),
-                      ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
+  Future<void> _pickDistrict(BuildContext anchor) async {
+    final picked = await showPullDownMenu(
+      context,
+      anchor: anchor,
+      label: tr('Tumanni tanlang'),
+      items: [for (final d in Regions.tashkentDistricts) (d, d)],
+      current: _cubit.state.draft.district,
     );
     if (picked == null || !mounted) return;
     final (lat, lng) = Regions.tashkentDistrictCenters[picked]!;
@@ -186,10 +162,12 @@ class _CreateLocationPageState extends State<CreateLocationPage> {
                       ),
                       const SizedBox(width: 10),
                       Expanded(
-                        child: TButton.secondary(
-                          label: tr('Tumanni tanlash'),
-                          icon: Symbols.list_rounded,
-                          onPressed: _pickDistrict,
+                        child: Builder(
+                          builder: (anchor) => TButton.secondary(
+                            label: tr('Tumanni tanlash'),
+                            icon: Symbols.list_rounded,
+                            onPressed: () => _pickDistrict(anchor),
+                          ),
                         ),
                       ),
                     ],

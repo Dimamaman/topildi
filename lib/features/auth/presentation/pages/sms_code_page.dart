@@ -13,6 +13,7 @@ import '../../../../core/di/injection.dart';
 import '../../../../core/theme/t_text.dart';
 import '../../../../core/theme/topildi_theme.dart';
 import '../../../../core/widgets/glass_surface.dart';
+import '../../../../core/widgets/pull_down_menu.dart';
 import '../../domain/entities/phone_number.dart';
 import '../../domain/usecases/verify_sms_code.dart';
 import '../cubit/sms_code_cubit.dart';
@@ -86,13 +87,11 @@ class _SmsCodeViewState extends State<_SmsCodeView> with SingleTickerProviderSta
     final data = await Clipboard.getData(Clipboard.kTextPlain);
     final digits = (data?.text ?? '').replaceAll(RegExp(r'\D'), '');
     if (!mounted || digits.isEmpty) return;
-    final overlay = Overlay.of(context).context.findRenderObject()! as RenderBox;
-    final picked = await showMenu<bool>(
-      context: context,
-      position: RelativeRect.fromRect(at & Size.zero, Offset.zero & overlay.size),
-      color: Theme.of(context).colorScheme.surfaceContainerLowest,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-      items: [PopupMenuItem(value: true, height: 44, child: Text(tr('Qoʻyish')))],
+    final picked = await showPullDownMenu<bool>(
+      context,
+      at: at & Size.zero,
+      items: [(true, tr('Qoʻyish'))],
+      icons: const {0: Symbols.content_paste_rounded},
     );
     if (picked != true || !mounted) return;
     final code = digits.substring(0, math.min(_len, digits.length));

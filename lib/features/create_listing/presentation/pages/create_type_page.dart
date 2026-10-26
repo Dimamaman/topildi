@@ -88,11 +88,13 @@ class CreateTypePage extends StatelessWidget {
                   for (var i = 0; i < d.photos.length; i++)
                     _PhotoTile(path: d.photos[i], tint: i, isMain: i == 0, onRemove: () => cubit.removePhoto(i)),
                   if (d.photos.length < CreateDraft.maxPhotos)
-                    _AddPhotoTile(
-                      onTap: () async {
-                        final path = await pickPhoto(context);
-                        if (path != null) cubit.addPhoto(path);
-                      },
+                    Builder(
+                      builder: (anchor) => _AddPhotoTile(
+                        onTap: () async {
+                          final path = await pickPhoto(context, anchor: anchor);
+                          if (path != null) cubit.addPhoto(path);
+                        },
+                      ),
                     ),
                 ],
               ),

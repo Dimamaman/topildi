@@ -95,7 +95,8 @@ class _ProfileSetupViewState extends State<_ProfileSetupView> with SingleTickerP
       anchor: anchor,
       label: tr('Profil rasmi'),
       items: [(0, tr('Suratga olish')), (1, tr('Galereyadan tanlash')), (2, tr('Rasmni olib tashlash'))],
-      current: -1,
+      icons: const {0: Symbols.photo_camera_rounded, 1: Symbols.photo_library_rounded, 2: Symbols.delete_rounded},
+      dividersAfter: const {1},
       destructive: const {2},
     );
     switch (v) {
