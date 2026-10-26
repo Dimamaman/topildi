@@ -50,7 +50,7 @@ class _ChatView extends StatelessWidget {
         } else if (state.failure != null) {
           TFeedback.error(
             context,
-            tr('Amalni bajarib boʻlmadi. Qayta urinib koʻring.'),
+            tr('Amalni bajarib boʻlmadi. Qayta urinib koʻring'),
           );
         }
       },
@@ -192,19 +192,19 @@ class _Header extends StatelessWidget {
                             destructive: const {0},
                           );
                           if (v != 'report' || !context.mounted) return;
-                            final ok = await TFeedback.confirm(
+                          final ok = await TFeedback.confirm(
+                            context,
+                            title: tr('Shikoyat qilasizmi?'),
+                            body: tr('Moderatorlar suhbatni koʻrib chiqadi.'),
+                            confirmLabel: tr('Shikoyat qilish'),
+                            destructive: true,
+                          );
+                          if (ok && context.mounted) {
+                            TFeedback.success(
                               context,
-                              title: tr('Shikoyat qilasizmi?'),
-                              body: tr('Moderatorlar suhbatni koʻrib chiqadi.'),
-                              confirmLabel: tr('Shikoyat qilish'),
-                              destructive: true,
+                              tr('Shikoyat yuborildi'),
                             );
-                            if (ok && context.mounted) {
-                              TFeedback.success(
-                                context,
-                                tr('Shikoyat yuborildi'),
-                              );
-                            }
+                          }
                         },
                       ),
                     ),
