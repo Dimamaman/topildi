@@ -30,6 +30,11 @@ abstract class FirebaseModule {
 /// so everything of ours is namespaced.
 abstract final class FirePaths {
   static const users = 'topildi_users';
+
+  /// Under a user: `notifications/{id}` (written by Cloud Functions) and
+  /// `devices/{fcmToken}` (push tokens). Both readable by the owner only.
+  static const notifications = 'notifications';
+  static const devices = 'devices';
   static const listings = 'topildi_listings';
   static const claims = 'topildi_claims';
 

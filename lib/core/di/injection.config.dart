@@ -141,8 +141,12 @@ import 'package:topildi/features/listing/presentation/cubit/filters_cubit.dart'
     as _i534;
 import 'package:topildi/features/listing/presentation/cubit/map_cubit.dart'
     as _i446;
+import 'package:topildi/features/notifications/data/datasources/firestore_notification_datasource.dart'
+    as _i865;
 import 'package:topildi/features/notifications/data/datasources/notification_mock_datasource.dart'
     as _i669;
+import 'package:topildi/features/notifications/data/datasources/notification_remote_datasource.dart'
+    as _i206;
 import 'package:topildi/features/notifications/data/repositories/notification_repository_impl.dart'
     as _i985;
 import 'package:topildi/features/notifications/domain/repositories/notification_repository.dart'
@@ -173,9 +177,6 @@ extension GetItInjectableX on _i174.GetIt {
     final appDirsModule = _$AppDirsModule();
     final storageModule = _$StorageModule();
     final firebaseModule = _$FirebaseModule();
-    gh.lazySingleton<_i669.NotificationMockDataSource>(
-      () => _i669.NotificationMockDataSource(),
-    );
     gh.lazySingleton<_i688.PhotoPicker>(
       () => _i688.FakePhotoPicker(),
       registerFor: {_test},
@@ -186,6 +187,10 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.lazySingleton<_i1037.KeyValueStore>(
       () => _i1037.MemoryKeyValueStore(),
+      registerFor: {_test},
+    );
+    gh.lazySingleton<_i206.NotificationRemoteDataSource>(
+      () => _i669.NotificationMockDataSource(),
       registerFor: {_test},
     );
     gh.lazySingleton<_i305.Geocoder>(
@@ -257,6 +262,13 @@ extension GetItInjectableX on _i174.GetIt {
       ),
       registerFor: {_prod},
     );
+    gh.lazySingleton<_i206.NotificationRemoteDataSource>(
+      () => _i865.FirestoreNotificationDataSource(
+        gh<_i974.FirebaseFirestore>(),
+        gh<_i59.FirebaseAuth>(),
+      ),
+      registerFor: {_prod},
+    );
     gh.lazySingleton<_i305.LocationService>(
       () => _i305.DeviceLocationService(),
       registerFor: {_prod},
@@ -305,12 +317,6 @@ extension GetItInjectableX on _i174.GetIt {
       () => _i283.ClaimMockDataSource(gh<_i97.ChatRemoteDataSource>()),
       registerFor: {_test},
     );
-    gh.lazySingleton<_i1040.NotificationRepository>(
-      () => _i985.NotificationRepositoryImpl(
-        gh<_i669.NotificationMockDataSource>(),
-        gh<_i263.NetworkInfo>(),
-      ),
-    );
     gh.lazySingleton<_i1037.KeyValueStore>(
       () => _i1037.PrefsKeyValueStore(gh<_i460.SharedPreferences>()),
       registerFor: {_prod},
@@ -327,6 +333,12 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.lazySingleton<_i271.ThemeCubit>(
       () => _i271.ThemeCubit(gh<_i1037.KeyValueStore>()),
+    );
+    gh.lazySingleton<_i1040.NotificationRepository>(
+      () => _i985.NotificationRepositoryImpl(
+        gh<_i206.NotificationRemoteDataSource>(),
+        gh<_i263.NetworkInfo>(),
+      ),
     );
     gh.factory<_i582.GetNotifications>(
       () => _i582.GetNotifications(gh<_i1040.NotificationRepository>()),

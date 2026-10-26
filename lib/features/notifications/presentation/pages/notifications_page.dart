@@ -333,10 +333,25 @@ class _Row extends StatelessWidget {
         context.push(Routes.listing(listingId));
       case OpenSuccess(:final chatId):
         context.push(Routes.success(chatId));
-      case OpenProfile():
-        context.go(Routes.profile);
     }
   }
+
+  static String textOf(AppNotification n) => switch (n.kind) {
+    NotificationKind.newClaim => tr('“{title}” eʼloningizga yangi soʻrov keldi. Javobni tekshiring.', {
+      'title': n.listingTitle,
+    }),
+    NotificationKind.claimAccepted => tr('{name} soʻrovingizni qabul qildi. Chatda kelishib oling.', {
+      'name': n.actorName,
+    }),
+    NotificationKind.claimRejected when n.attemptsLeft > 0 => tr(
+      '“{title}” boʻyicha soʻrovingiz rad etildi. Yana {n} ta urinishingiz bor.',
+      {'title': n.listingTitle, 'n': n.attemptsLeft},
+    ),
+    NotificationKind.claimRejected => tr('“{title}” boʻyicha soʻrovingiz rad etildi.', {'title': n.listingTitle}),
+    NotificationKind.returned => tr('{finderName} buyumingizni qaytardi. Unga rahmat aytishni unutmang!', {
+      'finderName': n.actorName,
+    }),
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -344,18 +359,17 @@ class _Row extends StatelessWidget {
     final tc = context.tc;
     final (icon, size, filled, bg, fg) = switch (n.kind) {
       NotificationKind.newClaim => (Symbols.verified_user_rounded, 20.0, true, cs.primaryContainer, cs.primary),
-      NotificationKind.message => (Symbols.chat_bubble_rounded, 20.0, true, cs.primaryContainer, cs.primary),
-      NotificationKind.match => (Symbols.search_rounded, 22.0, false, tc.lostContainer, tc.lost),
       NotificationKind.claimAccepted => (Symbols.check_rounded, 22.0, false, tc.successContainer, tc.success),
+      NotificationKind.claimRejected => (Symbols.close_rounded, 22.0, false, tc.lostContainer, tc.lost),
       NotificationKind.returned => (Symbols.favorite_rounded, 20.0, true, tc.successContainer, tc.success),
-      NotificationKind.expiring => (Symbols.schedule_rounded, 22.0, false, tc.warningContainer, tc.warning),
     };
+    final message = textOf(n);
     final unread = !n.read;
     final time = _time(n.createdAt);
     final text = Theme.of(context).textTheme;
     return Semantics(
       button: true,
-      label: '${unread ? tr('Oʻqilmagan. ') : ''}${n.text}. $time',
+      label: '${unread ? tr('Oʻqilmagan. ') : ''}$message. $time',
       excludeSemantics: true,
       child: GestureDetector(
         onTap: () => _go(context),
@@ -389,7 +403,7 @@ class _Row extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              n.text,
+                              message,
                               style: unread
                                   ? text.bodyLarge!
                                         .copyWith(fontSize: 15, height: 20 / 15, color: cs.onSurface)

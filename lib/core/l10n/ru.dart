@@ -407,6 +407,13 @@ const ruStrings = <String, String>{
   'Filtrlar, faol': 'Фильтры, включены',
   'Bildirishnomalar': 'Уведомления',
   'Bildirishnomalar, {unread} ta yangi': 'Уведомления, новых: {unread}',
+  '“{title}” eʼloningizga yangi soʻrov keldi. Javobni tekshiring.':
+      'По объявлению «{title}» новый запрос. Проверьте ответ.',
+  '{name} soʻrovingizni qabul qildi. Chatda kelishib oling.': '{name} принял(а) ваш запрос. Договоритесь в чате.',
+  '“{title}” boʻyicha soʻrovingiz rad etildi. Yana {n} ta urinishingiz bor.':
+      'Ваш запрос по «{title}» отклонён. Осталось попыток: {n}.',
+  '“{title}” boʻyicha soʻrovingiz rad etildi.': 'Ваш запрос по «{title}» отклонён.',
+  'Amalni bajarib boʻlmadi. Qayta urinib koʻring.': 'Не удалось выполнить действие. Попробуйте ещё раз.',
 
   // Map
   'Siz shu yerdasiz': 'Вы здесь',

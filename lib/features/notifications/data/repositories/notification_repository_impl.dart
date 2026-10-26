@@ -2,35 +2,39 @@ import 'package:fpdart/fpdart.dart';
 import 'package:injectable/injectable.dart';
 
 import '../../../../core/error/failure.dart';
+import '../../../../core/error/firebase_failure.dart';
 import '../../../../core/network/network_info.dart';
 import '../../../../core/usecase/usecase.dart';
 import '../../domain/entities/app_notification.dart';
 import '../../domain/repositories/notification_repository.dart';
-import '../datasources/notification_mock_datasource.dart';
+import '../datasources/notification_remote_datasource.dart';
 
 @LazySingleton(as: NotificationRepository)
 class NotificationRepositoryImpl implements NotificationRepository {
   const NotificationRepositoryImpl(this._source, this._network);
 
-  final NotificationMockDataSource _source;
+  final NotificationRemoteDataSource _source;
   final NetworkInfo _network;
 
-  @override
-  FutureEither<List<AppNotification>> getAll() async {
+  Future<Either<Failure, T>> _guard<T>(Future<T> Function() run) async {
     if (!await _network.isConnected) return left(const NetworkFailure());
     try {
-      return right(await _source.fetchAll());
+      return right(await run());
     } catch (e) {
-      return left(ServerFailure(e.toString()));
+      return left(failureOf(e));
     }
   }
 
   @override
-  FutureEither<void> markAllRead() async => right(_source.markAll());
+  FutureEither<List<AppNotification>> getAll() => _guard(_source.fetchAll);
 
   @override
-  FutureEither<void> markRead(String id) async => right(_source.mark(id));
+  FutureEither<void> markAllRead() => _guard(_source.markAll);
 
   @override
-  Stream<int> watchUnread() => _source.watchUnread();
+  FutureEither<void> markRead(String id) => _guard(() => _source.mark(id));
+
+  /// A failing stream (offline, rules) just stops the badge: it keeps the last count.
+  @override
+  Stream<int> watchUnread() => _source.watchUnread().handleError((Object _) {});
 }
