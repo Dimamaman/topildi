@@ -2,10 +2,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../core/di/injection.dart';
-import '../features/auth/domain/entities/phone_number.dart';
+import '../features/auth/domain/entities/telegram_login.dart';
 import '../features/auth/presentation/pages/profile_setup_page.dart';
 import '../features/auth/presentation/pages/sign_in_page.dart';
-import '../features/auth/presentation/pages/sms_code_page.dart';
+import '../features/auth/presentation/pages/telegram_wait_page.dart';
 import '../features/notifications/presentation/pages/notifications_page.dart';
 import '../features/onboarding/presentation/pages/onboarding_page.dart';
 import '../features/onboarding/presentation/pages/splash_page.dart';
@@ -40,9 +40,9 @@ GoRouter createRouter({String initialLocation = Routes.splash}) => GoRouter(
       builder: (_, _) => const SignInPage(),
       routes: [
         GoRoute(
-          path: 'code',
-          redirect: (_, state) => state.extra is PhoneNumber ? null : Routes.signIn,
-          builder: (_, state) => SmsCodePage(phone: state.extra! as PhoneNumber),
+          path: 'telegram',
+          redirect: (_, state) => state.extra is TelegramLogin ? null : Routes.signIn,
+          builder: (_, state) => TelegramWaitPage(login: state.extra! as TelegramLogin),
         ),
       ],
     ),

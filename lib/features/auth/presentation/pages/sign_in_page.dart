@@ -15,7 +15,6 @@ import '../../../../core/theme/topildi_surfaces.dart';
 import '../../../../core/widgets/glass_surface.dart';
 import '../../../../core/widgets/t_feedback.dart';
 import '../cubit/sign_in_cubit.dart';
-import '../widgets/phone_formatter.dart';
 import '../../../../core/l10n/tr.dart';
 
 class SignInPage extends StatelessWidget {
@@ -30,33 +29,11 @@ class SignInPage extends StatelessWidget {
 const _side = 24.0;
 const _anim = Duration(milliseconds: 200);
 
-/// Kirish, iOS 26 style: centred logo and title, capsule phone field,
-/// capsule "Kodni olish" and a glass Google button; terms at the bottom.
-/// While the keyboard is up the header compacts (logo 64 → 48, title
-/// 34 → 28) and the page scrolls so the button stays above the keyboard.
-class _SignInView extends StatefulWidget {
+/// Kirish, iOS 26 style: centred logo and title, capsule "Telegram orqali
+/// kirish" and a glass Google button; terms at the bottom. Telegram opens
+/// the bot, where the number is shared with one tap (no SMS code).
+class _SignInView extends StatelessWidget {
   const _SignInView();
-
-  @override
-  State<_SignInView> createState() => _SignInViewState();
-}
-
-class _SignInViewState extends State<_SignInView> {
-  final _buttonKey = GlobalKey();
-  bool _keyboard = false;
-
-  /// Brings "Kodni olish" into view once the keyboard has opened.
-  void _revealButton() => WidgetsBinding.instance.addPostFrameCallback((_) {
-    final ctx = _buttonKey.currentContext;
-    if (ctx != null && ctx.mounted) {
-      Scrollable.ensureVisible(
-        ctx,
-        duration: _anim,
-        curve: Curves.easeOut,
-        alignmentPolicy: ScrollPositionAlignmentPolicy.keepVisibleAtEnd,
-      );
-    }
-  });
 
   @override
   Widget build(BuildContext context) {
@@ -64,9 +41,6 @@ class _SignInViewState extends State<_SignInView> {
     final text = Theme.of(context).textTheme;
     final dark = Theme.of(context).brightness == Brightness.dark;
     final cubit = context.read<SignInCubit>();
-    final keyboard = MediaQuery.viewInsetsOf(context).bottom > 0;
-    if (keyboard && !_keyboard) _revealButton();
-    _keyboard = keyboard;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: dark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
@@ -74,8 +48,8 @@ class _SignInViewState extends State<_SignInView> {
         listenWhen: (a, b) => b.next != SignInNext.none || (b.failure != null && a.failure != b.failure),
         listener: (context, state) {
           switch (state.next) {
-            case SignInNext.code:
-              context.push(Routes.signInCode, extra: state.phone);
+            case SignInNext.telegram:
+              context.push(Routes.signInTelegram, extra: state.login);
             case SignInNext.profile:
               context.go(Routes.profileSetup);
             case SignInNext.home:
@@ -104,35 +78,30 @@ class _SignInViewState extends State<_SignInView> {
               bottom: false,
               child: LayoutBuilder(
                 builder: (context, c) => SingleChildScrollView(
-                  padding: EdgeInsets.fromLTRB(_side, keyboard ? 16 : 66, _side, keyboard ? 16 : 40),
+                  padding: const EdgeInsets.fromLTRB(_side, 66, _side, 40),
                   child: ConstrainedBox(
-                    constraints: BoxConstraints(minHeight: c.maxHeight - (keyboard ? 32 : 106)),
+                    constraints: BoxConstraints(minHeight: c.maxHeight - 106),
                     child: IntrinsicHeight(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          Center(child: _Logo(compact: keyboard)),
-                          SizedBox(height: keyboard ? 16 : 24),
+                          const Center(child: _Logo()),
+                          const SizedBox(height: 24),
                           Semantics(
                             header: true,
-                            child: AnimatedDefaultTextStyle(
-                              duration: _anim,
+                            child: Text(
+                              tr('Xush kelibsiz!'),
                               textAlign: TextAlign.center,
                               style: text.headlineMedium!
-                                  .copyWith(
-                                    fontSize: keyboard ? 28 : 34,
-                                    height: keyboard ? 34 / 28 : 41 / 34,
-                                    letterSpacing: keyboard ? -0.5 : -0.7,
-                                  )
+                                  .copyWith(fontSize: 34, height: 41 / 34, letterSpacing: -0.7)
                                   .inter(FontWeight.w700),
-                              child: Text(tr('Xush kelibsiz!'), textAlign: TextAlign.center),
                             ),
                           ),
                           const SizedBox(height: 8),
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 8),
                             child: Text(
-                              tr('Telefon raqamingizni kiriting, sizga SMS kod yuboramiz.'),
+                              tr('Telegram orqali kiring: raqamingizni botga bir bosishda ulashasiz, SMS kod kerak emas.'),
                               textAlign: TextAlign.center,
                               style: text.bodyLarge!
                                   .copyWith(fontSize: 17, height: 24 / 17, color: cs.secondary)
@@ -140,7 +109,13 @@ class _SignInViewState extends State<_SignInView> {
                             ),
                           ),
                           const SizedBox(height: 32),
-                          _PhoneField(error: state.error, onChanged: cubit.setInput, onSubmitted: cubit.requestCode),
+                          _PrimaryButton(
+                            label: tr('Telegram orqali kirish'),
+                            icon: Symbols.send_rounded,
+                            ready: true,
+                            loading: state.loading,
+                            onTap: cubit.telegram,
+                          ),
                           const SizedBox(height: 10),
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -161,18 +136,6 @@ class _SignInViewState extends State<_SignInView> {
                                   ),
                                 ),
                               ],
-                            ),
-                          ),
-                          const SizedBox(height: 28),
-                          KeyedSubtree(
-                            key: _buttonKey,
-                            child: _PrimaryButton(
-                              label: tr('Kodni olish'),
-                              // Dimmed until the number is complete; a tap still
-                              // validates so the reason shows under the field.
-                              ready: state.phone != null,
-                              loading: state.loading,
-                              onTap: cubit.requestCode,
                             ),
                           ),
                           const SizedBox(height: 18),
@@ -221,167 +184,34 @@ class _SignInViewState extends State<_SignInView> {
   }
 }
 
-/// 64×64 (48 while typing) rounded primary square with the pin-check mark.
+/// 64×64 rounded primary square with the pin-check mark.
 class _Logo extends StatelessWidget {
-  const _Logo({required this.compact});
-
-  final bool compact;
+  const _Logo();
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final size = compact ? 48.0 : 64.0;
     return ExcludeSemantics(
-      child: AnimatedContainer(
-        duration: _anim,
-        curve: Curves.easeOut,
-        width: size,
-        height: size,
+      child: Container(
+        width: 64,
+        height: 64,
         decoration: BoxDecoration(
           color: cs.primary,
-          borderRadius: BorderRadius.circular(compact ? 16 : 22),
+          borderRadius: BorderRadius.circular(22),
           boxShadow: [BoxShadow(color: cs.primary.withValues(alpha: 0.3), offset: const Offset(0, 10), blurRadius: 30)],
         ),
-        child: Icon(Symbols.where_to_vote_rounded, size: compact ? 26 : 34, fill: 1, color: cs.onPrimary),
+        child: Icon(Symbols.where_to_vote_rounded, size: 34, fill: 1, color: cs.onPrimary),
       ),
-    );
-  }
-}
-
-/// "TELEFON RAQAM" label + 58px capsule: "+998" pill and the formatted
-/// number. 1px outline-variant at rest, 2px primary when focused, 2px
-/// error with the message below when invalid.
-class _PhoneField extends StatefulWidget {
-  const _PhoneField({required this.error, required this.onChanged, required this.onSubmitted});
-
-  final String? error;
-  final ValueChanged<String> onChanged;
-  final VoidCallback onSubmitted;
-
-  @override
-  State<_PhoneField> createState() => _PhoneFieldState();
-}
-
-class _PhoneFieldState extends State<_PhoneField> {
-  final _focus = FocusNode();
-
-  @override
-  void initState() {
-    super.initState();
-    _focus.addListener(() => setState(() {}));
-  }
-
-  @override
-  void dispose() {
-    _focus.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    final text = Theme.of(context).textTheme;
-    final error = widget.error;
-    final (borderColor, borderWidth) = error != null
-        ? (cs.error, 2.0)
-        : _focus.hasFocus
-        ? (cs.primary, 2.0)
-        : (cs.outlineVariant, 1.0);
-    final style = text.bodyLarge!
-        .copyWith(fontSize: 18, height: 24 / 18, letterSpacing: 0.3, color: cs.onSurface)
-        .inter(FontWeight.w400);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(left: 16, bottom: 8),
-          child: Text(
-            tr('Telefon raqam').toUpperCase(),
-            style: text.labelMedium!
-                .copyWith(fontSize: 13, height: 18 / 13, letterSpacing: 0.2, color: cs.onSurfaceVariant)
-                .inter(FontWeight.w400),
-          ),
-        ),
-        GestureDetector(
-          onTap: _focus.requestFocus,
-          behavior: HitTestBehavior.opaque,
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 150),
-            constraints: const BoxConstraints(minHeight: 58),
-            padding: const EdgeInsets.only(left: 8, right: 20),
-            decoration: BoxDecoration(
-              color: cs.surfaceContainerLowest,
-              borderRadius: BorderRadius.circular(999),
-              // Drawn inside, so the field doesn't shift when the width changes.
-              border: Border.all(color: borderColor, width: borderWidth, strokeAlign: BorderSide.strokeAlignInside),
-            ),
-            child: Row(
-              children: [
-                // Only Uzbekistan for now, so not tappable.
-                Container(
-                  constraints: const BoxConstraints(minHeight: 42),
-                  padding: const EdgeInsets.symmetric(horizontal: 14),
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(color: context.glass.quiet, borderRadius: BorderRadius.circular(999)),
-                  child: Text(
-                    '+998',
-                    style: text.bodyLarge!
-                        .copyWith(fontSize: 17, height: 22 / 17, color: cs.onSurface)
-                        .inter(FontWeight.w600),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: TextField(
-                    focusNode: _focus,
-                    autofocus: true,
-                    keyboardType: TextInputType.phone,
-                    autofillHints: const [AutofillHints.telephoneNumberNational],
-                    inputFormatters: [FilteringTextInputFormatter.digitsOnly, UzPhoneFormatter()],
-                    onChanged: widget.onChanged,
-                    onSubmitted: (_) => widget.onSubmitted(),
-                    style: style,
-                    cursorColor: cs.primary,
-                    // The capsule draws the border; switch off every themed one.
-                    decoration: InputDecoration(
-                      isCollapsed: true,
-                      filled: false,
-                      contentPadding: const EdgeInsets.symmetric(vertical: 17),
-                      border: InputBorder.none,
-                      enabledBorder: InputBorder.none,
-                      focusedBorder: InputBorder.none,
-                      errorBorder: InputBorder.none,
-                      focusedErrorBorder: InputBorder.none,
-                      hintText: '90 123 45 67',
-                      hintStyle: style.copyWith(color: cs.onSurfaceVariant),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        if (error != null)
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-            child: Semantics(
-              liveRegion: true,
-              child: Text(
-                error,
-                style: text.bodySmall!.copyWith(fontSize: 13, height: 18 / 13, color: cs.error).inter(FontWeight.w500),
-              ),
-            ),
-          ),
-      ],
     );
   }
 }
 
 /// 56px primary capsule; 0.45 opacity until [ready], white spinner while [loading].
 class _PrimaryButton extends StatelessWidget {
-  const _PrimaryButton({required this.label, required this.ready, required this.loading, required this.onTap});
+  const _PrimaryButton({required this.label, this.icon, required this.ready, required this.loading, required this.onTap});
 
   final String label;
+  final IconData? icon;
   final bool ready, loading;
   final VoidCallback onTap;
 
@@ -408,12 +238,18 @@ class _PrimaryButton extends StatelessWidget {
                 ? CupertinoActivityIndicator(color: cs.onPrimary)
                 : FittedBox(
                     fit: BoxFit.scaleDown,
-                    child: Text(
-                      label,
-                      maxLines: 1,
-                      style: Theme.of(context).textTheme.labelLarge!
-                          .copyWith(fontSize: 17, height: 22 / 17, color: cs.onPrimary)
-                          .inter(FontWeight.w600),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (icon != null) ...[Icon(icon, size: 20, fill: 1, color: cs.onPrimary), const SizedBox(width: 10)],
+                        Text(
+                          label,
+                          maxLines: 1,
+                          style: Theme.of(context).textTheme.labelLarge!
+                              .copyWith(fontSize: 17, height: 22 / 17, color: cs.onPrimary)
+                              .inter(FontWeight.w600),
+                        ),
+                      ],
                     ),
                   ),
           ),

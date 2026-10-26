@@ -5,11 +5,12 @@ import '../../../../core/error/failure.dart';
 import '../../../../core/network/network_info.dart';
 import '../../../../core/session/session.dart';
 import '../../../../core/usecase/usecase.dart';
-import '../../domain/entities/phone_number.dart';
+import '../../domain/entities/auth_result.dart';
+import '../../domain/entities/telegram_login.dart';
 import '../../domain/repositories/auth_repository.dart';
-import '../../../../core/l10n/tr.dart';
 
-/// Mock auth for widget tests: any 6-digit code except 000000 is accepted.
+/// Mock auth for widget tests: a Telegram sign-in is confirmed on the
+/// second claim, as if the number was shared while the app waited.
 @test
 @LazySingleton(as: AuthRepository)
 class AuthRepositoryImpl implements AuthRepository {
@@ -18,8 +19,7 @@ class AuthRepositoryImpl implements AuthRepository {
   final Session _session;
   final NetworkInfo _network;
 
-  /// Number awaiting SMS verification; persisted only after it is verified.
-  String? _pendingPhone;
+  int _claims = 0;
 
   static const _latency = Duration(milliseconds: 600);
 
@@ -35,17 +35,17 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  FutureEither<void> requestCode(PhoneNumber phone) => _guard(() async {
+  FutureEither<TelegramLogin> startTelegram() => _guard(() async {
         await Future<void>.delayed(_latency);
-        _pendingPhone = phone.digits;
+        _claims = 0;
+        return TelegramLogin(sid: 'mock', secret: 'mock', url: Uri.parse('https://t.me/topildi_bot?start=mock'));
       });
 
   @override
-  FutureEither<AuthResult> verifyCode(PhoneNumber phone, String code) => _guard(() async {
+  FutureEither<AuthResult?> claimTelegram(TelegramLogin login) => _guard(() async {
         await Future<void>.delayed(_latency);
-        if (code == '000000') throw ValidationFailure(tr('Kod notoʻgʻri. Qayta kiriting'));
-        await _session.signIn(phone: _pendingPhone ?? phone.digits);
-        _pendingPhone = null;
+        if (++_claims < 2) return null;
+        await _session.signIn(phone: '901234567');
         return const AuthResult(needsProfile: true);
       });
 

@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -28,6 +29,11 @@ abstract class FirebaseModule {
   @prod
   @lazySingleton
   FirebaseMessaging get messaging => FirebaseMessaging.instance;
+
+  /// Same region as functions/src/index.ts.
+  @prod
+  @lazySingleton
+  FirebaseFunctions get functions => FirebaseFunctions.instanceFor(region: 'us-central1');
 }
 
 /// Firestore collections and Storage folders of Topildi. The Firebase

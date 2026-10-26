@@ -4,7 +4,7 @@ import 'package:injectable/injectable.dart';
 
 import '../../../../core/error/failure.dart';
 import '../../../../core/session/session.dart';
-import '../../domain/entities/phone_number.dart';
+import '../../domain/entities/auth_result.dart';
 import '../../domain/usecases/save_profile.dart';
 import '../../../../core/l10n/tr.dart';
 

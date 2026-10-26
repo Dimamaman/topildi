@@ -1,6 +1,5 @@
-import 'dart:async';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -17,65 +16,56 @@ import '../../../../core/network/network_info.dart';
 import '../../../../core/session/session.dart';
 import '../../../../core/usecase/usecase.dart';
 import '../../../../firebase_options.dart';
-import '../../domain/entities/phone_number.dart';
+import '../../domain/entities/auth_result.dart';
+import '../../domain/entities/telegram_login.dart';
 import '../../domain/repositories/auth_repository.dart';
 
-/// Firebase Auth (SMS code or Google) + the public profile in
+/// Firebase Auth (Telegram bot or Google) + the public profile in
 /// `topildi_users/{uid}`. The phone number stays inside Firebase Auth: it is never
 /// written to Firestore.
 @prod
 @LazySingleton(as: AuthRepository)
 class FirebaseAuthRepository implements AuthRepository {
-  FirebaseAuthRepository(this._auth, this._db, this._storage, this._google, this._session, this._network);
+  FirebaseAuthRepository(this._auth, this._db, this._storage, this._functions, this._google, this._session, this._network);
 
   final FirebaseAuth _auth;
   final FirebaseFirestore _db;
   final FirebaseStorage _storage;
+  final FirebaseFunctions _functions;
   final GoogleSignIn _google;
   final Session _session;
   final NetworkInfo _network;
 
-  String? _verificationId;
-  int? _resendToken;
   bool _googleReady = false;
 
   DocumentReference<Map<String, dynamic>> get _me => _db.collection(FirePaths.users).doc(_auth.currentUser!.uid);
 
+  /// functions/src/login.ts: the session lives on the server, the app
+  /// keeps only the secret that claims it.
   @override
-  FutureEither<void> requestCode(PhoneNumber phone) async {
+  FutureEither<TelegramLogin> startTelegram() async {
     if (!await _network.isConnected) return left(const NetworkFailure());
-    final sent = Completer<Either<Failure, void>>();
     try {
-      await _auth.verifyPhoneNumber(
-        phoneNumber: '+998${phone.digits}',
-        forceResendingToken: _resendToken,
-        timeout: const Duration(seconds: 60),
-        codeSent: (id, token) {
-          _verificationId = id;
-          _resendToken = token;
-          if (!sent.isCompleted) sent.complete(right(null));
-        },
-        codeAutoRetrievalTimeout: (id) => _verificationId = id,
-        verificationFailed: (e) {
-          if (!sent.isCompleted) sent.complete(left(_authFailure(e)));
-        },
-        // Android-only instant verification; iOS always goes through the code.
-        verificationCompleted: (credential) => _auth.signInWithCredential(credential),
-      );
-    } on FirebaseAuthException catch (e) {
-      return left(_authFailure(e));
+      final r = await _functions.httpsCallable('topildiTgStart').call<Map<String, dynamic>>();
+      final d = r.data;
+      return right(TelegramLogin(sid: d['sid'] as String, secret: d['secret'] as String, url: Uri.parse(d['url'] as String)));
+    } catch (e) {
+      return left(failureOf(e));
     }
-    return sent.future;
   }
 
   @override
-  FutureEither<AuthResult> verifyCode(PhoneNumber phone, String code) async {
+  FutureEither<AuthResult?> claimTelegram(TelegramLogin login) async {
     if (!await _network.isConnected) return left(const NetworkFailure());
-    final id = _verificationId;
-    if (id == null) return left(ValidationFailure(tr('Kod eskirdi. Yangisini oling')));
     try {
-      await _auth.signInWithCredential(PhoneAuthProvider.credential(verificationId: id, smsCode: code));
-      await _session.signIn(phone: phone.digits);
+      final r = await _functions
+          .httpsCallable('topildiTgClaim')
+          .call<Map<String, dynamic>>({'sid': login.sid, 'secret': login.secret});
+      final d = r.data;
+      if (d['status'] != 'verified') return right(null);
+      await _auth.signInWithCustomToken(d['token'] as String);
+      // "+998901234567" → the 9 digits the session keeps.
+      await _session.signIn(phone: (d['phone'] as String).substring(4));
       return right(await _loadProfile());
     } on FirebaseAuthException catch (e) {
       return left(_authFailure(e));
@@ -160,9 +150,6 @@ class FirebaseAuthRepository implements AuthRepository {
   }
 
   static Failure _mapAuthFailure(FirebaseAuthException e) => switch (e.code) {
-    'invalid-verification-code' => ValidationFailure(tr('Kod notoʻgʻri. Qayta tekshiring')),
-    'session-expired' || 'invalid-verification-id' => ValidationFailure(tr('Kod eskirdi. Yangisini oling')),
-    'invalid-phone-number' => ValidationFailure(tr('Telefon raqami notoʻgʻri')),
     'too-many-requests' || 'quota-exceeded' => ValidationFailure(tr('Juda koʻp urinish. Birozdan soʻng qayta urinib koʻring')),
     'network-request-failed' => const NetworkFailure(),
     _ => ServerFailure('${e.code}: ${e.message ?? ''}'),

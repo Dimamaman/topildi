@@ -1,10 +1,13 @@
 import '../../../../core/usecase/usecase.dart';
-import '../entities/phone_number.dart';
+import '../entities/auth_result.dart';
+import '../entities/telegram_login.dart';
 
 abstract interface class AuthRepository {
-  FutureEither<void> requestCode(PhoneNumber phone);
+  /// Starts a sign-in through the Telegram bot.
+  FutureEither<TelegramLogin> startTelegram();
 
-  FutureEither<AuthResult> verifyCode(PhoneNumber phone, String code);
+  /// Signs in once the number is shared in Telegram; null while still waiting.
+  FutureEither<AuthResult?> claimTelegram(TelegramLogin login);
 
   FutureEither<AuthResult> signInWithGoogle();
 

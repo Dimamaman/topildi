@@ -11,6 +11,7 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 
 import 'package:cloud_firestore/cloud_firestore.dart' as _i974;
+import 'package:cloud_functions/cloud_functions.dart' as _i809;
 import 'package:firebase_auth/firebase_auth.dart' as _i59;
 import 'package:firebase_messaging/firebase_messaging.dart' as _i892;
 import 'package:firebase_storage/firebase_storage.dart' as _i457;
@@ -36,20 +37,20 @@ import 'package:topildi/features/auth/data/repositories/firebase_auth_repository
     as _i1033;
 import 'package:topildi/features/auth/domain/repositories/auth_repository.dart'
     as _i679;
-import 'package:topildi/features/auth/domain/usecases/request_sms_code.dart'
-    as _i190;
+import 'package:topildi/features/auth/domain/usecases/claim_telegram_login.dart'
+    as _i1030;
 import 'package:topildi/features/auth/domain/usecases/save_profile.dart'
     as _i189;
 import 'package:topildi/features/auth/domain/usecases/sign_in_with_google.dart'
     as _i1010;
-import 'package:topildi/features/auth/domain/usecases/verify_sms_code.dart'
-    as _i531;
+import 'package:topildi/features/auth/domain/usecases/start_telegram_login.dart'
+    as _i754;
 import 'package:topildi/features/auth/presentation/cubit/profile_setup_cubit.dart'
     as _i570;
 import 'package:topildi/features/auth/presentation/cubit/sign_in_cubit.dart'
     as _i480;
-import 'package:topildi/features/auth/presentation/cubit/sms_code_cubit.dart'
-    as _i684;
+import 'package:topildi/features/auth/presentation/cubit/telegram_wait_cubit.dart'
+    as _i867;
 import 'package:topildi/features/chat/data/datasources/chat_mock_datasource.dart'
     as _i584;
 import 'package:topildi/features/chat/data/datasources/chat_remote_datasource.dart'
@@ -261,6 +262,10 @@ extension GetItInjectableX on _i174.GetIt {
       () => firebaseModule.messaging,
       registerFor: {_prod},
     );
+    gh.lazySingleton<_i809.FirebaseFunctions>(
+      () => firebaseModule.functions,
+      registerFor: {_prod},
+    );
     gh.lazySingleton<_i97.ChatRemoteDataSource>(
       () => _i584.ChatMockDataSource(gh<_i395.ListingRemoteDataSource>()),
       registerFor: {_test},
@@ -395,6 +400,18 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i554.Session>(),
       ),
     );
+    gh.lazySingleton<_i679.AuthRepository>(
+      () => _i1033.FirebaseAuthRepository(
+        gh<_i59.FirebaseAuth>(),
+        gh<_i974.FirebaseFirestore>(),
+        gh<_i457.FirebaseStorage>(),
+        gh<_i809.FirebaseFunctions>(),
+        gh<_i116.GoogleSignIn>(),
+        gh<_i554.Session>(),
+        gh<_i263.NetworkInfo>(),
+      ),
+      registerFor: {_prod},
+    );
     gh.lazySingleton<_i856.ListingRepository>(
       () => _i786.ListingRepositoryImpl(
         gh<_i395.ListingRemoteDataSource>(),
@@ -404,17 +421,6 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.factory<_i567.NotificationBadgeCubit>(
       () => _i567.NotificationBadgeCubit(gh<_i582.WatchUnreadNotifications>()),
-    );
-    gh.lazySingleton<_i679.AuthRepository>(
-      () => _i1033.FirebaseAuthRepository(
-        gh<_i59.FirebaseAuth>(),
-        gh<_i974.FirebaseFirestore>(),
-        gh<_i457.FirebaseStorage>(),
-        gh<_i116.GoogleSignIn>(),
-        gh<_i554.Session>(),
-        gh<_i263.NetworkInfo>(),
-      ),
-      registerFor: {_prod},
     );
     gh.factory<_i445.GetListingDetail>(
       () => _i445.GetListingDetail(gh<_i856.ListingRepository>()),
@@ -463,8 +469,8 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i554.Session>(),
       ),
     );
-    gh.factory<_i190.RequestSmsCode>(
-      () => _i190.RequestSmsCode(gh<_i679.AuthRepository>()),
+    gh.factory<_i1030.ClaimTelegramLogin>(
+      () => _i1030.ClaimTelegramLogin(gh<_i679.AuthRepository>()),
     );
     gh.factory<_i189.SaveProfile>(
       () => _i189.SaveProfile(gh<_i679.AuthRepository>()),
@@ -472,8 +478,8 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i1010.SignInWithGoogle>(
       () => _i1010.SignInWithGoogle(gh<_i679.AuthRepository>()),
     );
-    gh.factory<_i531.VerifySmsCode>(
-      () => _i531.VerifySmsCode(gh<_i679.AuthRepository>()),
+    gh.factory<_i754.StartTelegramLogin>(
+      () => _i754.StartTelegramLogin(gh<_i679.AuthRepository>()),
     );
     gh.factory<_i113.PostListing>(
       () => _i113.PostListing(gh<_i762.CreateListingRepository>()),
@@ -509,14 +515,11 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i956.WatchChats>(
       () => _i956.WatchChats(gh<_i956.ChatRepository>()),
     );
-    gh.factory<_i480.SignInCubit>(
-      () => _i480.SignInCubit(
-        gh<_i190.RequestSmsCode>(),
-        gh<_i1010.SignInWithGoogle>(),
-      ),
-    );
     gh.factory<_i80.SuccessCubit>(
       () => _i80.SuccessCubit(gh<_i581.GetReturnSummary>()),
+    );
+    gh.factory<_i867.TelegramWaitCubit>(
+      () => _i867.TelegramWaitCubit(gh<_i1030.ClaimTelegramLogin>()),
     );
     gh.factory<_i126.GetMyProfile>(
       () => _i126.GetMyProfile(gh<_i749.ProfileRepository>()),
@@ -532,6 +535,12 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.factory<_i389.ChatListCubit>(
       () => _i389.ChatListCubit(gh<_i956.WatchChats>()),
+    );
+    gh.factory<_i480.SignInCubit>(
+      () => _i480.SignInCubit(
+        gh<_i754.StartTelegramLogin>(),
+        gh<_i1010.SignInWithGoogle>(),
+      ),
     );
     gh.factory<_i546.AcceptClaim>(
       () => _i546.AcceptClaim(gh<_i28.ClaimRepository>()),
@@ -561,12 +570,6 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i354.MarkChatRead>(),
         gh<_i496.SendMessage>(),
         gh<_i905.MarkReturned>(),
-      ),
-    );
-    gh.factory<_i684.SmsCodeCubit>(
-      () => _i684.SmsCodeCubit(
-        gh<_i531.VerifySmsCode>(),
-        gh<_i190.RequestSmsCode>(),
       ),
     );
     gh.factory<_i64.DetailCubit>(

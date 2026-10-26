@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:injectable/injectable.dart';
 import 'package:topildi/app/app.dart';
 import 'package:topildi/core/di/injection.dart';
-import 'package:topildi/features/auth/presentation/cubit/sms_code_cubit.dart';
+import 'package:topildi/features/auth/presentation/cubit/telegram_wait_cubit.dart';
 import 'package:topildi/core/session/session.dart';
 
 Future<void> _settle(WidgetTester t) async {
@@ -15,7 +15,7 @@ Future<void> _settle(WidgetTester t) async {
 void main() {
   setUpAll(() => configureDependencies(environment: Environment.test));
 
-  testWidgets('Splash → onboarding → sign in → SMS → profile → feed', (tester) async {
+  testWidgets('Splash → onboarding → sign in → Telegram → profile → feed', (tester) async {
     tester.view.physicalSize = const Size(390 * 3, 844 * 3);
     tester.view.devicePixelRatio = 3;
     addTearDown(tester.view.reset);
@@ -34,33 +34,19 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Xush kelibsiz!'), findsOneWidget);
-    await tester.enterText(find.byType(TextField), '90123');
-    await tester.tap(find.text('Kodni olish'));
+    await tester.tap(find.text('Telegram orqali kirish'));
+    await tester.pump(const Duration(seconds: 1));
     await tester.pump();
-    expect(find.textContaining('Raqam toʻliq emas'), findsOneWidget);
 
-    await tester.enterText(find.byType(TextField), '901234567');
-    expect(tester.widget<EditableText>(find.byType(EditableText)).controller.text, '90 123 45 67');
-    await tester.tap(find.text('Kodni olish'));
-    await _settle(tester);
-
-    expect(find.textContaining('+998 90 *** ** 67', findRichText: true), findsOneWidget);
-    expect(find.textContaining('Kodni qayta yuborish', findRichText: true), findsOneWidget);
-    await tester.enterText(find.byType(TextField), '482');
-    await tester.pump();
-    expect(find.bySemanticsLabel('6 xonali kod, 3 ta kiritildi'), findsOneWidget);
-
-    // Timer runs out → resend becomes a link.
-    await tester.pump(const Duration(seconds: SmsCodeCubit.resendAfter + 1));
-    expect(find.textContaining('Kodni qayta yuborish · ', findRichText: true), findsNothing);
-    expect(find.text('Kodni qayta yuborish'), findsOneWidget);
-
-    // Wrong code: message stays, cells clear.
-    await tester.enterText(find.byType(TextField), '000000');
-    await _settle(tester);
-    expect(find.text('Kod notoʻgʻri. Qayta kiriting'), findsOneWidget);
-    expect(find.bySemanticsLabel('6 xonali kod, 0 ta kiritildi'), findsOneWidget);
-    await tester.enterText(find.byType(TextField), '482713');
+    // Waits while the number is shared in Telegram; the mock confirms on the second check.
+    expect(find.text('Telegramda tasdiqlang'), findsOneWidget);
+    expect(find.text('Tasdiqlash kutilmoqda'), findsOneWidget);
+    await tester.pump(TelegramWaitCubit.every);
+    await tester.pump(const Duration(seconds: 1));
+    expect(find.text('Telegramda tasdiqlang'), findsOneWidget);
+    await tester.pump(TelegramWaitCubit.every);
+    await tester.pump(const Duration(seconds: 1));
+    expect(find.text('Tasdiqlandi!'), findsOneWidget);
     await _settle(tester);
 
     expect(find.text('Oxirgi qadam'), findsOneWidget);

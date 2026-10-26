@@ -13,6 +13,14 @@ service cloud.firestore {
     function signedIn() { return request.auth != null; }
     function isMe(uid) { return signedIn() && request.auth.uid == uid; }
 
+    // Telegram sign-in attempts (functions/src/login.ts): server only.
+    match /topildi_tg_sessions/{sid} {
+      allow read, write: if false;
+    }
+    match /topildi_tg_chats/{chatId} {
+      allow read, write: if false;
+    }
+
     // Public profile. No phone number is ever stored here.
     match /topildi_users/{uid} {
       allow read: if signedIn();
