@@ -154,7 +154,7 @@ Xarita bilan bog'liq hamma narsa vaqtincha **yashirilgan**, kod o'chirilmagan. B
 
 Qaytarish: `flutter run --dart-define=FEATURE_MAP=true` yoki `features.dart` da standart qiymatni `true` qilish.
 
-## 4. 2-bosqich — so'rovlar va chat 🟡 kod tayyor, deploy qilinmagan
+## 4. 2-bosqich — so'rovlar va chat 🟡 deploy qilingan, simulatorda sinalmagan
 
 **Qilingan (kod, 2026-10-26):** so'rovlar ("Bu meniki") va chat Firestore'ga o'tkazildi. Cloud Functions yo'q — chatni ilova yaratadi, xavfsizlikni rules taʼminlaydi.
 
@@ -173,7 +173,7 @@ Qaytarish: `flutter run --dart-define=FEATURE_MAP=true` yoki `features.dart` da 
 - "Qaytarildi": finder chat'ni yopadi, eʼlonni `returned` qiladi (`returnedViaChat` orqali, lost eʼlonda ham) va o'z `returnedCount` ini +1 qiladi.
 
 **Qolgan ishlar:**
-1. Deploy (ruxsat bilan): `firebase deploy --only firestore,storage --project foodai-73d66`; chats indeksi "Enabled" bo'lishini kutish.
+1. ~~Deploy~~ — 2026-10-26 qilindi (rules + indekslar). Konsolda chats indeksi "Enabled" bo'lganini tekshirish.
 2. Konsolga ikkinchi test raqam qo'shish; simulatorda ikki akkaunt bilan: eʼlon → "Bu meniki" (proof rasm bilan) → qabul → chat, real vaqtda xabar, badge, ✓✓ → "Qaytarildi" → Success. Lost eʼlon uchun ham.
 3. Konsolda: claim/chat hujjatlarida telefon yo'q; proof rasm EXIF'siz.
 
