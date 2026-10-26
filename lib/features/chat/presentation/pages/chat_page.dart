@@ -6,6 +6,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import '../../../../app/routes.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/l10n/tr.dart';
+import '../../../../core/push/push_service.dart';
 import '../../../../core/theme/topildi_theme.dart';
 import '../../../../core/utils/date_format.dart';
 import '../../../../core/view_state.dart';
@@ -18,16 +19,35 @@ import '../../../listing/presentation/category_ui.dart';
 import '../../domain/entities/chat.dart';
 import '../cubit/chat_cubit.dart';
 
-class ChatPage extends StatelessWidget {
+class ChatPage extends StatefulWidget {
   const ChatPage({super.key, required this.chatId});
 
   final String chatId;
 
   @override
+  State<ChatPage> createState() => _ChatPageState();
+}
+
+class _ChatPageState extends State<ChatPage> {
+  final _push = getIt<PushService>();
+
+  @override
+  void initState() {
+    super.initState();
+    _push.setChatOpen(true);
+  }
+
+  @override
+  void dispose() {
+    _push.setChatOpen(false);
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => getIt<ChatCubit>()..load(chatId),
-      child: _ChatView(chatId: chatId),
+      create: (_) => getIt<ChatCubit>()..load(widget.chatId),
+      child: _ChatView(chatId: widget.chatId),
     );
   }
 }

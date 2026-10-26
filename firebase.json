@@ -25,5 +25,21 @@
   },
   "storage": {
     "rules": "storage.rules"
-  }
+  },
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "topildi",
+      "ignore": [
+        "node_modules",
+        ".git",
+        "src",
+        "lib/test",
+        "*.log"
+      ],
+      "predeploy": [
+        "npm --prefix \"$RESOURCE_DIR\" run build"
+      ]
+    }
+  ]
 }

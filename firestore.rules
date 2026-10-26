@@ -22,6 +22,24 @@ service cloud.firestore {
         && (!('firstName' in request.resource.data)
             || (request.resource.data.firstName is string && request.resource.data.firstName.size() <= 30));
       allow delete: if isMe(uid);
+
+      // Push targets, id = the Firebase Installation ID. Owner only: never public.
+      match /devices/{fid} {
+        allow read, delete: if isMe(uid);
+        allow create, update: if isMe(uid)
+          && request.resource.data.keys().hasOnly(['fid', 'platform', 'lang', 'updatedAt'])
+          && request.resource.data.fid == fid
+          && request.resource.data.platform in ['ios', 'android']
+          && request.resource.data.lang in ['uz_Latn', 'uz_Cyrl', 'ru'];
+      }
+
+      // Written by Cloud Functions (Admin SDK); the owner only marks them read.
+      match /notifications/{id} {
+        allow read: if isMe(uid);
+        allow update: if isMe(uid)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read'])
+          && request.resource.data.read == true;
+      }
     }
 
     match /topildi_listings/{id} {

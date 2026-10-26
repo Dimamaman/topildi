@@ -37,9 +37,9 @@ void main() {
     expect(find.bySemanticsLabel('Hammasi oʻqildi').hitTestable(), findsNothing);
   });
 
-  testWidgets('tapping a message notification opens the chat', (tester) async {
+  testWidgets('tapping an accepted claim opens the chat', (tester) async {
     await _open(tester);
-    await tester.tap(find.text('Sardor R. sizga xabar yozdi'));
+    await tester.tap(find.text('Sardor R. soʻrovingizni qabul qildi. Chatda kelishib oling.'));
     await _settle(tester);
     expect(find.text('BUGUN'), findsNothing);
   });

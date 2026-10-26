@@ -15,14 +15,14 @@ Topildi — yo'qolgan va topilgan buyumlar uchun Flutter ilova.
 | Lokalizatsiya (uz-Latn, uz-Cyrl, ru) | ✅ tayyor |
 | Firebase 1-bosqich: kirish, profil, lenta, eʼlon | ✅ tayyor, simulatorda kirish va eʼlon joylash ishladi |
 | Firebase 2-bosqich: so'rovlar ("Bu meniki" / "Men topdim") va chat | ✅ kod va rules deploy qilingan, ikki akkaunt bilan to'liq sinov qolgan |
-| Push bildirishnomalar | ⏳ keyingi bosqich |
-| Bildirishnomalar sahifasi | ⏳ hali mock |
+| Push bildirishnomalar | 🟡 kod tayyor (`push-notifications` branch), emulatorda sinalgan; APNs kalit, Xcode va deploy qoldi |
+| Bildirishnomalar sahifasi | 🟡 Firestore'dan o'qiydi; Cloud Functions deploy qilingach to'ladi |
 | Xarita | ⏸ `Features.map` bilan yashirilgan |
 | Android | ⏳ sozlanmagan |
 
 **Branchlar (2026-10-26):** hamma ish `main` ga birlashtirildi — PR #3 → `firebase-phase1` → `main` (fast-forward). Yangi ish `main` dan alohida branch'da boshlanadi.
 
-**Tekshiruv:** `flutter analyze` toza; `flutter test` — 83 ta test o'tadi; `flutter build ios --simulator --debug` muvaffaqiyatli; Firestore va Storage rules deploy qilingan.
+**Tekshiruv:** `flutter analyze` toza; `flutter test` — 88 ta test o'tadi; `functions`: `npm test` — 13 ta; `flutter build ios --simulator --debug` muvaffaqiyatli; Firestore va Storage rules deploy qilingan.
 
 ---
 
@@ -92,6 +92,25 @@ Cloud Functions yo'q: chatni ilova yaratadi, xavfsizlikni Firestore rules taʼmi
 - **Shell layout xatosi** ("_RenderLayoutBuilder was mutated in RenderViewport.performLayout", "Each child must be laid out exactly once"): shell cubit'lari endi `lazy: false` — birinchi o'quvchi Lenta'ning qotib turuvchi sarlavhasi edi, u layout paytida quriladi.
 - Xarita `Features.map` bilan yashirildi (pastda).
 
+### 6. Push bildirishnomalar va Bildirishnomalar sahifasi (`push-notifications` branch)
+
+| Hodisa | Kimga | Push bosilsa | Sahifada |
+|---|---|---|---|
+| Yangi so'rov | eʼlon muallifi | Soʻrovlar | ✅ |
+| So'rov qabul qilindi | so'rovchi | Chat | ✅ |
+| So'rov rad etildi (qolgan urinishlar bilan) | so'rovchi | Eʼlon | ✅ |
+| Chat xabari | ikkinchi aʼzo | Chat | ❌ (Chatlar tabi bor) |
+| "Qaytarildi" | buyum egasi | Success | ✅ |
+
+- **Cloud Functions** — `functions/` (TypeScript, Node 22), `firebase.json` da alohida **`topildi` codebase**: `firebase deploy --only functions:topildi` FoodZeen funksiyalariga tegmaydi. Nomlar `topildi` bilan boshlanadi. Triggerlar: `topildiOnClaimCreated`, `topildiOnClaimUpdated`, `topildiOnMessageCreated`.
+  - `events.ts` — kimga nima (sof funksiyalar), `texts.ts` — push matnlari 3 tilda, `payload.ts` — FCM xabari, `notify.ts` — yozish va yuborish.
+  - Bildirishnoma hujjati id'si = trigger event id: qayta urinishda ikki marta yozilmaydi va push takrorlanmaydi. O'lik qurilmalar (`UNREGISTERED`) o'chiriladi.
+  - Region: `index.ts` dagi `region` (hozir `us-central1`) **Firestore joylashuvi bilan bir xil bo'lishi kerak** — deploy oldidan konsolda tekshiring.
+- **Firestore:** `topildi_users/{uid}/devices/{fid}` — `{fid, platform, lang, updatedAt}`, faqat egasi; `topildi_users/{uid}/notifications/{id}` — `{kind, listingId, listingTitle, chatId?, actorName?, attemptsLeft?, read, createdAt}`, faqat Functions yozadi, egasi faqat `read` ni o'zgartiradi. Matn saqlanmaydi — ilova uni tilga qarab chizadi.
+- **Ilova:** `lib/core/push/push_service.dart` (`FirebasePushService` `@prod`, `NoopPushService` `@test`) — `firebase_messaging` 17 ning FID API'si (`register()` / `onRegistered`). Shell ochilganda boshlanadi, push bosilsa `data.route` ochiladi (ilova yopiq bo'lsa ham). Profil'dagi "Bildirishnomalar" kaliti yoqadi/o'chiradi; chiqishdan oldin qurilma o'chiriladi. Chat ekrani ochiq turganda bannerlar o'chiriladi. Til almashsa push tili ham almashadi.
+- **Sahifa:** `firestore_notification_datasource.dart` (oxirgi 50 ta, o'qilmaganlar soni real vaqtda), `notification_firestore.dart`.
+- **Testlar:** `functions/src/test/events.test.ts` (13 ta, `npm test`), `notification_firestore_test`, `push_settings_test`. Emulatorda to'liq tekshirilgan: 4 trigger to'g'ri hujjat yozadi, matnli xabar sahifaga tushmaydi, rules begonaga o'qitmaydi.
+
 ### Maxfiylik qoidalari (saqlanadi)
 
 - **Telefon raqami** Firestore'ga hech qachon yozilmaydi — na eʼlonda, na so'rovda, na chatda.
@@ -115,19 +134,18 @@ Cloud Functions yo'q: chatni ilova yaratadi, xavfsizlikni Firestore rules taʼmi
 4. Konsolda: claim/chat hujjatlarida telefon yo'q; Storage'dagi dalil rasmlar EXIF'siz.
 5. 1-bosqichdan qolgan sinovlar: profil saqlash, filtrlar, o'chirish, chiqish.
 
-### 2. Push bildirishnomalar (keyingi katta bosqich)
+### 2. Push bildirishnomalarni ishga tushirish
 
-Hozir push yo'q: odam so'rov yoki xabar kelganini ilovani ochgandagina ko'radi; rad etilgan so'rovchi buni bilmaydi.
-
-1. **Egasi qiladi:** Apple Developer'da APNs `.p8` kalit yaratib, Firebase → Project settings → Cloud Messaging'ga yuklash.
-2. Xcode: Push Notifications va Background Modes → Remote notifications.
-3. Ilova: `firebase_messaging`, ruxsat so'rash, FCM tokenni `topildi_users/{uid}` ga saqlash (rules kalitlar ro'yxatiga qo'shish).
-4. `functions/` (TypeScript) — Cloud Functions: yangi so'rov → muallifga; qabul / rad → so'rovchiga; yangi xabar → ikkinchi aʼzoga; push bosilganda tegishli ekran ochiladi.
-5. Foyda: APNs ulangach haqiqiy iPhone'da kirishda reCAPTCHA chiqmaydi.
+1. **Egasi qiladi:** Apple Developer → Keys → APNs `.p8` kalit → Firebase → Project settings → Cloud Messaging → Topildi iOS ilovasiga yuklash.
+2. **Egasi qiladi:** Xcode → Runner → Signing & Capabilities → **Push Notifications** (Background Modes → Remote notifications allaqachon yoqilgan).
+3. `functions/src/index.ts` dagi `region` ni Firestore joylashuviga moslash.
+4. Deploy: `cd functions && npm ci && cd .. && firebase deploy --only functions:topildi,firestore:rules --project foodai-73d66`.
+5. Haqiqiy iPhone'da ikki akkaunt bilan sinov (simulatorda push to'liq ishlamaydi): har bir hodisa, push bosilganda to'g'ri ekran (ilova yopiq / fonda / ochiq), chiqqandan keyin push kelmasligi, til almashganda push tili.
+6. Keyin: ilova ikonkasidagi badge soni (hozir yuborilmaydi), o'xshash eʼlon topilganda bildirishnoma.
 
 ### 3. Bildirishnomalar sahifasi
 
-Hozir mock. Real qilish: `topildi_users/{uid}/notifications` (yoki push bilan birga Cloud Function yozadi) — so'rov keldi, qabul qilindi, rad etildi, buyum qaytarildi; o'qilgan / o'qilmagan; qo'ng'iroqcha belgisi.
+Firestore'ga ulangan (yuqorida). Hozircha "o'xshash buyum topildi" va "eʼlon arxivlanadi" turlari yo'q.
 
 ### 4. Mayda kamchiliklar
 

@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:injectable/injectable.dart';
@@ -23,6 +24,10 @@ abstract class FirebaseModule {
   @prod
   @lazySingleton
   GoogleSignIn get googleSignIn => GoogleSignIn.instance;
+
+  @prod
+  @lazySingleton
+  FirebaseMessaging get messaging => FirebaseMessaging.instance;
 }
 
 /// Firestore collections and Storage folders of Topildi. The Firebase
@@ -30,6 +35,11 @@ abstract class FirebaseModule {
 /// so everything of ours is namespaced.
 abstract final class FirePaths {
   static const users = 'topildi_users';
+
+  /// Under a user: `notifications/{id}` (written by Cloud Functions) and
+  /// `devices/{fid}` (push targets). Both readable by the owner only.
+  static const notifications = 'notifications';
+  static const devices = 'devices';
   static const listings = 'topildi_listings';
   static const claims = 'topildi_claims';
 

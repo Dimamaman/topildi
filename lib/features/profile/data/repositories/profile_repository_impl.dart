@@ -3,6 +3,7 @@ import 'package:injectable/injectable.dart';
 
 import '../../../../core/error/failure.dart';
 import '../../../../core/network/network_info.dart';
+import '../../../../core/push/push_service.dart';
 import '../../../../core/session/session.dart';
 import '../../../../core/storage/stores.dart';
 import '../../../../core/usecase/usecase.dart';
@@ -14,13 +15,14 @@ import '../../domain/repositories/profile_repository.dart';
 
 @LazySingleton(as: ProfileRepository)
 class ProfileRepositoryImpl implements ProfileRepository {
-  ProfileRepositoryImpl(this._listings, this._claims, this._session, this._network, this._kv);
+  ProfileRepositoryImpl(this._listings, this._claims, this._session, this._network, this._kv, this._push);
 
   final ListingRemoteDataSource _listings;
   final ClaimRemoteDataSource _claims;
   final Session _session;
   final NetworkInfo _network;
   final KeyValueStore _kv;
+  final PushService _push;
 
   bool get _notificationsOn => _kv.getBool(StoreKeys.notificationsOn) ?? true;
 
@@ -58,11 +60,14 @@ class ProfileRepositoryImpl implements ProfileRepository {
   @override
   FutureEither<void> setNotifications(bool on) async {
     await _kv.setBool(StoreKeys.notificationsOn, on);
+    on ? await _push.start() : await _push.stop();
     return right(null);
   }
 
   @override
   FutureEither<void> signOut() async {
+    // While still signed in: the rules let only the owner delete the token.
+    await _push.stop();
     await _session.signOut();
     return right(null);
   }

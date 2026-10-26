@@ -12,6 +12,7 @@
 
 import 'package:cloud_firestore/cloud_firestore.dart' as _i974;
 import 'package:firebase_auth/firebase_auth.dart' as _i59;
+import 'package:firebase_messaging/firebase_messaging.dart' as _i892;
 import 'package:firebase_storage/firebase_storage.dart' as _i457;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart' as _i558;
 import 'package:get_it/get_it.dart' as _i174;
@@ -25,6 +26,7 @@ import 'package:topildi/core/map/map_tiles.dart' as _i297;
 import 'package:topildi/core/media/app_dirs.dart' as _i706;
 import 'package:topildi/core/media/photo_picker.dart' as _i688;
 import 'package:topildi/core/network/network_info.dart' as _i263;
+import 'package:topildi/core/push/push_service.dart' as _i73;
 import 'package:topildi/core/session/session.dart' as _i554;
 import 'package:topildi/core/storage/stores.dart' as _i1037;
 import 'package:topildi/core/theme/theme_cubit.dart' as _i271;
@@ -141,8 +143,12 @@ import 'package:topildi/features/listing/presentation/cubit/filters_cubit.dart'
     as _i534;
 import 'package:topildi/features/listing/presentation/cubit/map_cubit.dart'
     as _i446;
+import 'package:topildi/features/notifications/data/datasources/firestore_notification_datasource.dart'
+    as _i865;
 import 'package:topildi/features/notifications/data/datasources/notification_mock_datasource.dart'
     as _i669;
+import 'package:topildi/features/notifications/data/datasources/notification_remote_datasource.dart'
+    as _i206;
 import 'package:topildi/features/notifications/data/repositories/notification_repository_impl.dart'
     as _i985;
 import 'package:topildi/features/notifications/domain/repositories/notification_repository.dart'
@@ -173,8 +179,9 @@ extension GetItInjectableX on _i174.GetIt {
     final appDirsModule = _$AppDirsModule();
     final storageModule = _$StorageModule();
     final firebaseModule = _$FirebaseModule();
-    gh.lazySingleton<_i669.NotificationMockDataSource>(
-      () => _i669.NotificationMockDataSource(),
+    gh.lazySingleton<_i73.PushService>(
+      () => _i73.NoopPushService(),
+      registerFor: {_test},
     );
     gh.lazySingleton<_i688.PhotoPicker>(
       () => _i688.FakePhotoPicker(),
@@ -186,6 +193,10 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.lazySingleton<_i1037.KeyValueStore>(
       () => _i1037.MemoryKeyValueStore(),
+      registerFor: {_test},
+    );
+    gh.lazySingleton<_i206.NotificationRemoteDataSource>(
+      () => _i669.NotificationMockDataSource(),
       registerFor: {_test},
     );
     gh.lazySingleton<_i305.Geocoder>(
@@ -246,12 +257,23 @@ extension GetItInjectableX on _i174.GetIt {
       () => firebaseModule.googleSignIn,
       registerFor: {_prod},
     );
+    gh.lazySingleton<_i892.FirebaseMessaging>(
+      () => firebaseModule.messaging,
+      registerFor: {_prod},
+    );
     gh.lazySingleton<_i97.ChatRemoteDataSource>(
       () => _i584.ChatMockDataSource(gh<_i395.ListingRemoteDataSource>()),
       registerFor: {_test},
     );
     gh.lazySingleton<_i97.ChatRemoteDataSource>(
       () => _i48.FirestoreChatDataSource(
+        gh<_i974.FirebaseFirestore>(),
+        gh<_i59.FirebaseAuth>(),
+      ),
+      registerFor: {_prod},
+    );
+    gh.lazySingleton<_i206.NotificationRemoteDataSource>(
+      () => _i865.FirestoreNotificationDataSource(
         gh<_i974.FirebaseFirestore>(),
         gh<_i59.FirebaseAuth>(),
       ),
@@ -305,12 +327,6 @@ extension GetItInjectableX on _i174.GetIt {
       () => _i283.ClaimMockDataSource(gh<_i97.ChatRemoteDataSource>()),
       registerFor: {_test},
     );
-    gh.lazySingleton<_i1040.NotificationRepository>(
-      () => _i985.NotificationRepositoryImpl(
-        gh<_i669.NotificationMockDataSource>(),
-        gh<_i263.NetworkInfo>(),
-      ),
-    );
     gh.lazySingleton<_i1037.KeyValueStore>(
       () => _i1037.PrefsKeyValueStore(gh<_i460.SharedPreferences>()),
       registerFor: {_prod},
@@ -327,6 +343,22 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.lazySingleton<_i271.ThemeCubit>(
       () => _i271.ThemeCubit(gh<_i1037.KeyValueStore>()),
+    );
+    gh.lazySingleton<_i1040.NotificationRepository>(
+      () => _i985.NotificationRepositoryImpl(
+        gh<_i206.NotificationRemoteDataSource>(),
+        gh<_i263.NetworkInfo>(),
+      ),
+    );
+    gh.lazySingleton<_i73.PushService>(
+      () => _i73.FirebasePushService(
+        gh<_i892.FirebaseMessaging>(),
+        gh<_i974.FirebaseFirestore>(),
+        gh<_i59.FirebaseAuth>(),
+        gh<_i1037.KeyValueStore>(),
+        gh<_i122.LanguageCubit>(),
+      ),
+      registerFor: {_prod},
     );
     gh.factory<_i582.GetNotifications>(
       () => _i582.GetNotifications(gh<_i1040.NotificationRepository>()),
@@ -372,15 +404,6 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.factory<_i567.NotificationBadgeCubit>(
       () => _i567.NotificationBadgeCubit(gh<_i582.WatchUnreadNotifications>()),
-    );
-    gh.lazySingleton<_i749.ProfileRepository>(
-      () => _i708.ProfileRepositoryImpl(
-        gh<_i395.ListingRemoteDataSource>(),
-        gh<_i1026.ClaimRemoteDataSource>(),
-        gh<_i554.Session>(),
-        gh<_i263.NetworkInfo>(),
-        gh<_i1037.KeyValueStore>(),
-      ),
     );
     gh.lazySingleton<_i679.AuthRepository>(
       () => _i1033.FirebaseAuthRepository(
@@ -454,6 +477,16 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.factory<_i113.PostListing>(
       () => _i113.PostListing(gh<_i762.CreateListingRepository>()),
+    );
+    gh.lazySingleton<_i749.ProfileRepository>(
+      () => _i708.ProfileRepositoryImpl(
+        gh<_i395.ListingRemoteDataSource>(),
+        gh<_i1026.ClaimRemoteDataSource>(),
+        gh<_i554.Session>(),
+        gh<_i263.NetworkInfo>(),
+        gh<_i1037.KeyValueStore>(),
+        gh<_i73.PushService>(),
+      ),
     );
     gh.factory<_i468.GetChatThread>(
       () => _i468.GetChatThread(gh<_i956.ChatRepository>()),
