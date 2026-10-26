@@ -70,7 +70,7 @@ class _ChatView extends StatelessWidget {
         } else if (state.failure != null) {
           TFeedback.error(
             context,
-            tr('Amalni bajarib boʻlmadi. Qayta urinib koʻring'),
+            tr('Amalni bajarib boʻlmadi. Qayta urinib koʻring.'),
           );
         }
       },
