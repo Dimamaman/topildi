@@ -60,15 +60,6 @@ class _CreateDetailsStepState extends State<CreateDetailsStep> {
     focus?.requestFocus();
   }
 
-  Future<void> _editHidden(CreateDraft d) async {
-    final text = await showGlassSheet<String>(
-      context,
-      label: tr('Yashirin belgi'),
-      builder: (_) => _HiddenDetailSheet(initial: d.hiddenDetail, isFound: d.isFound),
-    );
-    if (text != null) _cubit.setHiddenDetail(text);
-  }
-
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<CreateFlowCubit, CreateFlowState>(
@@ -114,7 +105,7 @@ class _CreateDetailsStepState extends State<CreateDetailsStep> {
                 isFound: d.isFound,
                 filled: d.hiddenDetail.trim().isNotEmpty,
                 error: hiddenError,
-                onTap: () => _editHidden(d),
+                onTap: () => editHiddenDetail(context, _cubit),
               ),
             ),
           ],
@@ -122,6 +113,17 @@ class _CreateDetailsStepState extends State<CreateDetailsStep> {
       },
     );
   }
+}
+
+/// Opens the "Yashirin belgi" sheet and saves what was written (step 2, Review).
+Future<void> editHiddenDetail(BuildContext context, CreateFlowCubit cubit) async {
+  final d = cubit.state.draft;
+  final text = await showGlassSheet<String>(
+    context,
+    label: tr('Yashirin belgi'),
+    builder: (_) => _HiddenDetailSheet(initial: d.hiddenDetail, isFound: d.isFound),
+  );
+  if (text != null) cubit.setHiddenDetail(text);
 }
 
 /// Category chips in one scrolling row; the chosen one is kept in view.

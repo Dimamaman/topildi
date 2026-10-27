@@ -17,7 +17,6 @@ class CreateFlowState extends Equatable {
     this.showDetailErrors = false,
     this.showAreaError = false,
     this.attempt = 0,
-    this.agreed = true,
     this.status = SubmitStatus.idle,
     this.postedId,
     this.failure,
@@ -30,7 +29,6 @@ class CreateFlowState extends Equatable {
 
   /// Bumped on every refused "Keyingi": the step then scrolls to its first error.
   final int attempt;
-  final bool agreed;
   final SubmitStatus status;
   final String? postedId;
   final Failure? failure;
@@ -40,7 +38,6 @@ class CreateFlowState extends Equatable {
     bool? showDetailErrors,
     bool? showAreaError,
     int? attempt,
-    bool? agreed,
     SubmitStatus? status,
     String? postedId,
     Failure? failure,
@@ -50,14 +47,13 @@ class CreateFlowState extends Equatable {
         showDetailErrors: showDetailErrors ?? this.showDetailErrors,
         showAreaError: showAreaError ?? this.showAreaError,
         attempt: attempt ?? this.attempt,
-        agreed: agreed ?? this.agreed,
         status: status ?? this.status,
         postedId: postedId ?? this.postedId,
         failure: failure,
       );
 
   @override
-  List<Object?> get props => [draft, showDetailErrors, showAreaError, attempt, agreed, status, postedId, failure];
+  List<Object?> get props => [draft, showDetailErrors, showAreaError, attempt, status, postedId, failure];
 }
 
 @injectable
@@ -122,10 +118,8 @@ class CreateFlowCubit extends Cubit<CreateFlowState> {
   }
 
   // Review
-  void setAgreed(bool v) => emit(state.copyWith(agreed: v));
-
   Future<void> publish() async {
-    if (!state.agreed || state.status == SubmitStatus.submitting) return;
+    if (state.status == SubmitStatus.submitting) return;
     emit(state.copyWith(status: SubmitStatus.submitting));
     final result = await _postListing(state.draft);
     if (isClosed) return;

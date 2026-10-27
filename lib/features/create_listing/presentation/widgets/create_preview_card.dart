@@ -5,7 +5,6 @@ import 'package:material_symbols_icons/symbols.dart';
 
 import '../../../../core/theme/t_text.dart';
 import '../../../../core/theme/topildi_theme.dart';
-import '../../../../core/utils/date_format.dart';
 import '../../../../core/widgets/glass_surface.dart';
 import '../../../../core/widgets/photo_placeholder.dart';
 import '../../../listing/presentation/category_ui.dart';
@@ -54,17 +53,6 @@ class _CreatePreviewCardState extends State<CreatePreviewCard> with SingleTicker
     super.dispose();
   }
 
-  String _when(DateTime at, DateTime now) {
-    final today = DateTime(now.year, now.month, now.day);
-    final day = DateTime(at.year, at.month, at.day);
-    final label = day == today
-        ? tr('Bugun')
-        : day == today.subtract(const Duration(days: 1))
-        ? tr('Kecha')
-        : TDate.dayMonth(at);
-    return '$label, ${TDate.time(at)}';
-  }
-
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
@@ -78,7 +66,7 @@ class _CreatePreviewCardState extends State<CreatePreviewCard> with SingleTicker
     final meta = [?category?.label, if (district != null) tr(district)].join(' · ');
     final typeColor = d.isFound ? tc.found : tc.lost;
     final typeLabel = d.isFound ? tr('Topilgan') : tr('Yoʻqolgan');
-    final chip = widget.showWhen ? '$typeLabel · ${_when(d.happenedAt(DateTime.now()), DateTime.now())}' : typeLabel;
+    final chip = widget.showWhen ? '$typeLabel · ${createWhenLabel(d.happenedAt(DateTime.now()))}' : typeLabel;
     const fade = Duration(milliseconds: 200);
 
     final Widget photo;

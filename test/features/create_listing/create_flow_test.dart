@@ -84,13 +84,20 @@ void main() {
 
     await tester.tap(find.text('Koʻrib chiqish'));
     await tester.pumpAndSettle();
-    // Hidden detail is masked until the eye toggle is pressed.
+    expect(find.text('HAMMASI TAYYOR'), findsOneWidget);
+    expect(find.text('Telefonlar · Chilonzor · Metro yonida'), findsNothing);
+    expect(find.text('Chilonzor · Metro yonida'), findsOneWidget);
+    // The hidden detail itself is never shown on Review.
     expect(find.text('Ichki tomonida sana yozilgan'), findsNothing);
-    await tester.tap(find.byTooltip('Koʻrsatish'));
-    await tester.pump();
-    expect(find.text('Ichki tomonida sana yozilgan'), findsOneWidget);
+    expect(find.text('Qoʻshildi · faqat siz koʻrasiz'), findsOneWidget);
 
-    await tester.tap(find.text('Eʼlon qilish'));
+    // Not far enough: the knob springs back and nothing is posted.
+    await tester.drag(find.byKey(const ValueKey('publish-knob')), const Offset(120, 0));
+    await tester.pumpAndSettle();
+    expect(find.text('Eʼlon qilish uchun suring'), findsOneWidget);
+
+    await tester.drag(find.byKey(const ValueKey('publish-knob')), const Offset(400, 0));
+    await tester.pump(const Duration(seconds: 1));
     await tester.pump(const Duration(seconds: 1));
     await tester.pumpAndSettle();
     expect(find.text('Eʼlon joylandi!'), findsOneWidget);
@@ -144,8 +151,8 @@ void main() {
     await tester.tap(find.text('Koʻrib chiqish'));
     await tester.pumpAndSettle();
 
-    // "Oʻzgartirish" on the title row: only step 2, saved straight back to Review.
-    await tester.tap(find.text('Oʻzgartirish').at(1));
+    // The title row opens only step 2, saved straight back to Review.
+    await tester.tap(find.text('Sarlavha va kategoriya'));
     await tester.pumpAndSettle();
     expect(find.text('2/3'), findsOneWidget);
     await tester.enterText(find.byType(TextField).at(0), 'Oltin uzuk');
@@ -153,6 +160,6 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.textContaining('Oltin uzuk'), findsWidgets);
     expect(find.textContaining('Kumush uzuk'), findsNothing);
-    expect(find.text('Eʼlon qilish'), findsOneWidget);
+    expect(find.text('Eʼlon qilish uchun suring'), findsOneWidget);
   });
 }

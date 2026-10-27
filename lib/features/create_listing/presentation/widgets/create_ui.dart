@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
 import '../../../../core/theme/t_text.dart';
+import '../../../../core/utils/date_format.dart';
 import '../../../../core/widgets/glass_surface.dart';
 import '../../../../core/widgets/t_feedback.dart';
 import '../../../../core/l10n/tr.dart';
@@ -484,6 +485,19 @@ Future<bool> confirmLeaveCreate(BuildContext context) => TFeedback.confirm(
   cancelLabel: tr('Bekor qilish'),
   destructive: true,
 );
+
+/// "Bugun, 09:40" · "Kecha, 18:30" · "19-oktabr, 05:25".
+String createWhenLabel(DateTime at, {DateTime? now}) {
+  final n = now ?? DateTime.now();
+  final today = DateTime(n.year, n.month, n.day);
+  final day = DateTime(at.year, at.month, at.day);
+  final label = day == today
+      ? tr('Bugun')
+      : day == today.subtract(const Duration(days: 1))
+      ? tr('Kecha')
+      : TDate.dayMonth(at);
+  return '$label, ${TDate.time(at)}';
+}
 
 /// Icons used in more than one step.
 abstract final class CreateIcons {
