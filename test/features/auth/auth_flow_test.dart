@@ -16,7 +16,7 @@ Future<void> _settle(WidgetTester t) async {
 void main() {
   setUpAll(() => configureDependencies(environment: Environment.test));
 
-  testWidgets('Splash → onboarding → sign in → Telegram → profile → feed', (tester) async {
+  testWidgets('Splash → onboarding → sign in → Telegram → feed', (tester) async {
     tester.view.physicalSize = const Size(390 * 3, 844 * 3);
     tester.view.devicePixelRatio = 3;
     addTearDown(tester.view.reset);
@@ -62,17 +62,8 @@ void main() {
     await tester.pump(SignInCubit.every);
     await _settle(tester);
 
-    expect(find.text('Oxirgi qadam'), findsOneWidget);
-    expect(find.text('Salom,'), findsOneWidget);
-    await tester.enterText(find.byType(TextField), 'Malika');
-    await tester.pump();
-    expect(find.text('M'), findsOneWidget); // avatar letter follows the name
-    // No surname step: others see the name alone.
-    expect(find.text('Familiya qoʻshish'), findsNothing);
-    expect(find.textContaining('Malika boʻlib', findRichText: true), findsOneWidget);
-    await tester.tap(find.text('Tayyor'));
-    await _settle(tester);
-
+    // Named after the Telegram account: no profile step.
+    expect(find.text('Oxirgi qadam'), findsNothing);
     expect(find.text('Hammasi'), findsOneWidget);
     final session = getIt<Session>();
     expect(session.signedIn, isTrue);

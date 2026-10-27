@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { botLang, checkContact, normalizePhone, parseUpdate, reply, sessionState } from "../telegram";
+import { botLang, checkContact, cleanName, normalizePhone, parseUpdate, reply, sessionState } from "../telegram";
 
-const msg = (m: object) => ({ message: { chat: { id: 7 }, from: { id: 42 }, ...m } });
+const msg = (m: object) => ({ message: { chat: { id: 7 }, from: { id: 42, first_name: "Malika" }, ...m } });
 
 describe("bot updates", () => {
   it("/start with a session id", () => {
@@ -22,7 +22,15 @@ describe("bot updates", () => {
 
   it("a shared contact", () => {
     const m = parseUpdate(msg({ contact: { phone_number: "998901234567", user_id: 42 } }));
-    assert.deepEqual(m, { kind: "contact", chatId: 7, fromId: 42, contactUserId: 42, phone: "998901234567", lang: "uz" });
+    assert.deepEqual(m, {
+      kind: "contact",
+      chatId: 7,
+      fromId: 42,
+      contactUserId: 42,
+      phone: "998901234567",
+      name: "Malika",
+      lang: "uz",
+    });
   });
 
   it("ignores updates without a message", () => {
@@ -33,6 +41,30 @@ describe("bot updates", () => {
     assert.equal(botLang("ru-RU"), "ru");
     assert.equal(botLang("en"), "uz");
     assert.equal(botLang(undefined), "uz");
+  });
+});
+
+describe("names", () => {
+  it("keeps a plain name", () => {
+    assert.equal(cleanName("  Malika  "), "Malika");
+  });
+
+  it("collapses spaces and drops invisible characters", () => {
+    assert.equal(cleanName("Dima\u200b \n  Aka"), "Dima Aka");
+  });
+
+  it("keeps emoji whole", () => {
+    assert.equal(cleanName("Dima 🔥"), "Dima 🔥");
+    assert.equal(cleanName("👨\u200d👩\u200d👧"), "👨\u200d👩\u200d👧");
+  });
+
+  it("cuts to 30 characters without splitting an emoji", () => {
+    assert.equal(Array.from(cleanName("a".repeat(29) + "🔥🔥")).length, 30);
+    assert.equal(cleanName("a".repeat(29) + "🔥🔥"), "a".repeat(29) + "🔥");
+  });
+
+  it("falls back when nothing printable is left", () => {
+    assert.equal(cleanName("\u200b\u200e "), "Foydalanuvchi");
   });
 });
 

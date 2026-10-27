@@ -14,15 +14,24 @@ export const sessionTtlMs = 10 * 60 * 1000;
 export type TgUpdate = {
   message?: {
     chat?: { id?: number };
-    from?: { id?: number; language_code?: string };
+    from?: { id?: number; first_name?: string; language_code?: string };
     text?: string;
-    contact?: { phone_number?: string; user_id?: number };
+    contact?: { phone_number?: string; user_id?: number; first_name?: string };
   };
 };
 
 export type Incoming =
   | { kind: "start"; chatId: number; sid: string; lang: BotLang }
-  | { kind: "contact"; chatId: number; fromId: number; contactUserId?: number; phone: string; lang: BotLang }
+  | {
+      kind: "contact";
+      chatId: number;
+      fromId: number;
+      contactUserId?: number;
+      phone: string;
+      /** The account's Telegram first name, for the Topildi profile. */
+      name: string;
+      lang: BotLang;
+    }
   | { kind: "other"; chatId: number; lang: BotLang };
 
 /** Session ids we hand out: base64url, also valid as a /start payload. */
@@ -36,7 +45,15 @@ export function parseUpdate(update: TgUpdate): Incoming | null {
   if (m.contact) {
     const fromId = m.from?.id;
     if (typeof fromId !== "number") return null;
-    return { kind: "contact", chatId, fromId, contactUserId: m.contact.user_id, phone: m.contact.phone_number ?? "", lang };
+    return {
+      kind: "contact",
+      chatId,
+      fromId,
+      contactUserId: m.contact.user_id,
+      phone: m.contact.phone_number ?? "",
+      name: cleanName(m.from?.first_name ?? m.contact.first_name ?? ""),
+      lang,
+    };
   }
   const start = /^\/start(?:@\w+)?\s+(\S+)$/.exec(m.text?.trim() ?? "");
   if (start && sidPattern.test(start[1])) return { kind: "start", chatId, sid: start[1], lang };
@@ -47,6 +64,26 @@ export function parseUpdate(update: TgUpdate): Incoming | null {
 export function normalizePhone(raw: string): string | null {
   const d = raw.replace(/\D/g, "");
   return /^998\d{9}$/.test(d) ? `+${d}` : null;
+}
+
+/** Same limit as topildi_users.firstName in firestore.rules. */
+export const maxNameLength = 30;
+
+/** When the Telegram name has nothing printable left. */
+export const fallbackName = "Foydalanuvchi";
+
+/**
+ * Telegram first name → profile name: control and invisible characters
+ * removed (except the joiner inside emoji like 👨‍👩‍👧), spaces collapsed, at most [maxNameLength] characters (never
+ * splitting an emoji's surrogate pair).
+ */
+export function cleanName(raw: string): string {
+  const name = raw
+    .replace(/[\p{Cc}\p{Cf}]/gu, (c) => (c === "\u200d" ? c : ""))
+    .replace(/\s+/gu, " ")
+    .trim();
+  const short = Array.from(name).slice(0, maxNameLength).join("").trim();
+  return short || fallbackName;
 }
 
 export type ContactCheck = { ok: true; phone: string } | { ok: false; reason: "foreign" | "badPhone" };
@@ -67,6 +104,8 @@ export type Session = {
   status: "pending" | "verified";
   expiresAt: number;
   phone?: string;
+  /** Telegram first name, set with the phone. */
+  name?: string;
 };
 
 export type SessionState = "missing" | "expired" | "pending" | "verified";

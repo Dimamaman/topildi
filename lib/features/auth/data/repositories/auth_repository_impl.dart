@@ -10,7 +10,8 @@ import '../../domain/entities/telegram_login.dart';
 import '../../domain/repositories/auth_repository.dart';
 
 /// Mock auth for widget tests: a Telegram sign-in is confirmed on the
-/// second claim, as if the number was shared while the app waited.
+/// second claim, as if the number was shared while the app waited, and
+/// arrives with the profile already named (as the server does).
 @test
 @LazySingleton(as: AuthRepository)
 class AuthRepositoryImpl implements AuthRepository {
@@ -46,7 +47,9 @@ class AuthRepositoryImpl implements AuthRepository {
         await Future<void>.delayed(_latency);
         if (++_claims < 2) return null;
         await _session.signIn(phone: '901234567');
-        return const AuthResult(needsProfile: true);
+        // The server names the profile after the Telegram account.
+        await _session.setName('Malika', '');
+        return const AuthResult(needsProfile: false);
       });
 
   @override

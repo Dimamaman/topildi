@@ -9,11 +9,12 @@
 import { createHash, randomBytes, timingSafeEqual } from "node:crypto";
 
 import { getAuth } from "firebase-admin/auth";
-import { getFirestore } from "firebase-admin/firestore";
+import { FieldValue, getFirestore } from "firebase-admin/firestore";
 import { logger } from "firebase-functions";
 import { HttpsError } from "firebase-functions/v2/https";
 
-import { checkContact, Incoming, reply, Session, sessionState, sessionTtlMs } from "./telegram";
+import { paths } from "./notify";
+import { checkContact, fallbackName, Incoming, reply, Session, sessionState, sessionTtlMs } from "./telegram";
 
 export const tgPaths = {
   sessions: "topildi_tg_sessions",
@@ -44,6 +45,8 @@ export async function startSession(botUsername: string) {
  * The app asks every few seconds. Pending → `{ status: "pending" }`;
  * verified → a custom token for the Auth user with that phone number (the
  * same user an earlier SMS sign-in created), and the session is spent.
+ * A first sign-in also gets its profile, named after the Telegram account,
+ * so the app goes straight to the feed.
  */
 export async function claimSession(sid: unknown, secret: unknown) {
   if (typeof sid !== "string" || typeof secret !== "string" || !sid || !secret) {
@@ -62,9 +65,35 @@ export async function claimSession(sid: unknown, secret: unknown) {
 
   const phone = s.phone!;
   const uid = await uidFor(phone);
+  await ensureProfile(uid, s.name ?? fallbackName);
   const customToken = await getAuth().createCustomToken(uid);
   await ref.delete();
   return { status: "verified" as const, token: customToken, phone };
+}
+
+/**
+ * Creates topildi_users/{uid} (the shape firestore.rules allows) unless it
+ * already has a name: returning users keep theirs.
+ */
+async function ensureProfile(uid: string, firstName: string) {
+  const ref = db().collection(paths.users).doc(uid);
+  await db().runTransaction(async (tx) => {
+    const doc = await tx.get(ref);
+    const current = doc.data()?.firstName;
+    if (typeof current === "string" && current.trim()) return;
+    tx.set(
+      ref,
+      {
+        firstName,
+        avatarUrl: null,
+        avatarEmoji: null,
+        avatarTone: 0,
+        updatedAt: FieldValue.serverTimestamp(),
+        ...(doc.exists ? {} : { createdAt: FieldValue.serverTimestamp(), returnedCount: 0 }),
+      },
+      { merge: true },
+    );
+  });
 }
 
 async function uidFor(phoneNumber: string): Promise<string> {
@@ -98,7 +127,7 @@ export async function handleUpdate(m: Incoming) {
       }
       const check = checkContact(m);
       if (!check.ok) return reply(m.chatId, m.lang, check.reason, check.reason === "foreign");
-      await ref.update({ status: "verified", phone: check.phone });
+      await ref.update({ status: "verified", phone: check.phone, name: m.name });
       await chat.delete();
       logger.info("Telegram sign-in verified", { sid });
       return reply(m.chatId, m.lang, "verified");

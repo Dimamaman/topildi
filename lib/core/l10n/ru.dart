@@ -120,8 +120,7 @@ const ruStrings = <String, String>{
   'ga rozilik bildirasiz.': '.',
   'Telegram orqali kirish': 'Войти через Telegram',
   'Telegram ochilmoqda…': 'Открываем Telegram…',
-  'Raqamingizni botga bir bosishda ulashasiz — SMS kod kerak emas.': 'Поделитесь номером с ботом в одно касание — SMS-код не нужен.',
-  'Raqamingiz boshqalarga hech qachon koʻrinmaydi': 'Ваш номер никогда не виден другим',
+  'Yoʻqotganingizni toping, topganingizni qaytaring. Kirish — bir bosishda.': 'Найдите потерянное, верните найденное. Вход — в одно касание.',
   'Telegramni ochib boʻlmadi. Qayta urinib koʻring': 'Не удалось открыть Telegram. Попробуйте ещё раз',
 
   // Profile setup

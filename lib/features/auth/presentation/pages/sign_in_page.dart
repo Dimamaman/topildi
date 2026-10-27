@@ -279,7 +279,7 @@ class _SignInViewState extends State<_SignInView> with TickerProviderStateMixin 
                                 ),
                                 const SizedBox(height: 8),
                                 Text(
-                                  tr('Raqamingizni botga bir bosishda ulashasiz — SMS kod kerak emas.'),
+                                  tr('Yoʻqotganingizni toping, topganingizni qaytaring. Kirish — bir bosishda.'),
                                   textAlign: TextAlign.center,
                                   style: text.bodyLarge!
                                       .copyWith(fontSize: 16, height: 23 / 16, color: cs.secondary)
@@ -309,23 +309,6 @@ class _SignInViewState extends State<_SignInView> with TickerProviderStateMixin 
                                       ),
                                     ),
                                   ),
-                                const SizedBox(height: 12),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(Symbols.lock_rounded, size: 16, fill: 1, color: cs.primary),
-                                    const SizedBox(width: 6),
-                                    Flexible(
-                                      child: Text(
-                                        tr('Raqamingiz boshqalarga hech qachon koʻrinmaydi'),
-                                        textAlign: TextAlign.center,
-                                        style: text.bodySmall!
-                                            .copyWith(fontSize: 13, height: 18 / 13, color: cs.onSurfaceVariant)
-                                            .inter(FontWeight.w400),
-                                      ),
-                                    ),
-                                  ],
-                                ),
                               ],
                             ),
                           ),
