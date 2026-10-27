@@ -3,7 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:injectable/injectable.dart';
 import 'package:topildi/app/app.dart';
 import 'package:topildi/core/di/injection.dart';
-import 'package:topildi/features/auth/presentation/cubit/telegram_wait_cubit.dart';
+import 'package:topildi/core/links/link_launcher.dart';
+import 'package:topildi/features/auth/presentation/cubit/sign_in_cubit.dart';
 import 'package:topildi/core/session/session.dart';
 
 Future<void> _settle(WidgetTester t) async {
@@ -34,19 +35,31 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Xush kelibsiz!'), findsOneWidget);
+    expect(find.text('Google orqali davom etish'), findsNothing);
     await tester.tap(find.text('Telegram orqali kirish'));
-    await tester.pump(const Duration(seconds: 1));
-    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 1300));
+    expect(find.text('Telegram ochilmoqda…'), findsOneWidget);
+    await tester.pump(const Duration(milliseconds: 200));
+    await tester.pump(const Duration(milliseconds: 700));
 
-    // Waits while the number is shared in Telegram; the mock confirms on the second check.
-    expect(find.text('Telegramda tasdiqlang'), findsOneWidget);
-    expect(find.text('Tasdiqlash kutilmoqda'), findsOneWidget);
-    await tester.pump(TelegramWaitCubit.every);
-    await tester.pump(const Duration(seconds: 1));
-    expect(find.text('Telegramda tasdiqlang'), findsOneWidget);
-    await tester.pump(TelegramWaitCubit.every);
-    await tester.pump(const Duration(seconds: 1));
-    expect(find.text('Tasdiqlandi!'), findsOneWidget);
+    // The tiles have flown in and the bot was opened with the session link.
+    final links = getIt<LinkLauncher>() as RecordingLinkLauncher;
+    expect(links.opened.single.toString(), startsWith('https://t.me/'));
+
+    // Back from Telegram before sharing the number: the tiles return.
+    final binding = tester.binding;
+    for (final s in [AppLifecycleState.inactive, AppLifecycleState.hidden, AppLifecycleState.paused]) {
+      binding.handleAppLifecycleStateChanged(s);
+    }
+    for (final s in [AppLifecycleState.hidden, AppLifecycleState.inactive, AppLifecycleState.resumed]) {
+      binding.handleAppLifecycleStateChanged(s);
+    }
+    await tester.pump(const Duration(milliseconds: 700));
+    await tester.pump(const Duration(milliseconds: 900));
+    expect(find.text('Telegram orqali kirish'), findsOneWidget);
+
+    // The confirmation arrives a moment later and still signs in.
+    await tester.pump(SignInCubit.every);
     await _settle(tester);
 
     expect(find.text('Oxirgi qadam'), findsOneWidget);

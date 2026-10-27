@@ -22,6 +22,7 @@ import 'package:injectable/injectable.dart' as _i526;
 import 'package:shared_preferences/shared_preferences.dart' as _i460;
 import 'package:topildi/core/di/firebase_module.dart' as _i917;
 import 'package:topildi/core/l10n/language_cubit.dart' as _i122;
+import 'package:topildi/core/links/link_launcher.dart' as _i855;
 import 'package:topildi/core/location/location_service.dart' as _i305;
 import 'package:topildi/core/map/map_tiles.dart' as _i297;
 import 'package:topildi/core/media/app_dirs.dart' as _i706;
@@ -49,8 +50,6 @@ import 'package:topildi/features/auth/presentation/cubit/profile_setup_cubit.dar
     as _i570;
 import 'package:topildi/features/auth/presentation/cubit/sign_in_cubit.dart'
     as _i480;
-import 'package:topildi/features/auth/presentation/cubit/telegram_wait_cubit.dart'
-    as _i867;
 import 'package:topildi/features/chat/data/datasources/chat_mock_datasource.dart'
     as _i584;
 import 'package:topildi/features/chat/data/datasources/chat_remote_datasource.dart'
@@ -220,6 +219,10 @@ extension GetItInjectableX on _i174.GetIt {
       () => _i263.AlwaysOnlineNetworkInfo(),
       registerFor: {_test},
     );
+    gh.lazySingleton<_i855.LinkLauncher>(
+      () => _i855.RecordingLinkLauncher(),
+      registerFor: {_test},
+    );
     gh.factory<_i706.AppDirs>(
       () => appDirsModule.testDirs,
       registerFor: {_test},
@@ -275,6 +278,10 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i974.FirebaseFirestore>(),
         gh<_i59.FirebaseAuth>(),
       ),
+      registerFor: {_prod},
+    );
+    gh.lazySingleton<_i855.LinkLauncher>(
+      () => _i855.UrlLinkLauncher(),
       registerFor: {_prod},
     );
     gh.lazySingleton<_i206.NotificationRemoteDataSource>(
@@ -518,9 +525,6 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i80.SuccessCubit>(
       () => _i80.SuccessCubit(gh<_i581.GetReturnSummary>()),
     );
-    gh.factory<_i867.TelegramWaitCubit>(
-      () => _i867.TelegramWaitCubit(gh<_i1030.ClaimTelegramLogin>()),
-    );
     gh.factory<_i126.GetMyProfile>(
       () => _i126.GetMyProfile(gh<_i749.ProfileRepository>()),
     );
@@ -539,7 +543,9 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i480.SignInCubit>(
       () => _i480.SignInCubit(
         gh<_i754.StartTelegramLogin>(),
-        gh<_i1010.SignInWithGoogle>(),
+        gh<_i1030.ClaimTelegramLogin>(),
+        gh<_i263.NetworkInfo>(),
+        gh<_i855.LinkLauncher>(),
       ),
     );
     gh.factory<_i546.AcceptClaim>(

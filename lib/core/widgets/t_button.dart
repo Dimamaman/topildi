@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../theme/topildi_theme.dart';
 import '../l10n/tr.dart';
 
-enum TButtonVariant { primary, secondary, outline, text, danger, google }
+enum TButtonVariant { primary, secondary, outline, text, danger }
 
 /// Topildi button. Full-width 52dp by default (from theme); [expand] false
 /// sizes it to its content.
@@ -58,10 +58,6 @@ class TButton extends StatelessWidget {
     this.loading = false,
     this.expand = true,
   }) : variant = TButtonVariant.danger;
-  TButton.google({super.key, required this.onPressed, this.loading = false, this.expand = true})
-    : label = tr('Google orqali davom etish'),
-      icon = null,
-      variant = TButtonVariant.google;
 
   final String label;
   final VoidCallback? onPressed;
@@ -87,18 +83,7 @@ class TButton extends StatelessWidget {
           ],
         );
       }
-      final leading = variant == TButtonVariant.google
-          ? Container(
-              width: 22,
-              height: 22,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(color: cs.surfaceContainerHigh, shape: BoxShape.circle),
-              child: Text(
-                'G',
-                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: cs.onSurface),
-              ),
-            )
-          : (icon != null ? Icon(icon, size: 20) : null);
+      final leading = icon != null ? Icon(icon, size: 20) : null;
       final text = Text(label, overflow: TextOverflow.ellipsis, textAlign: TextAlign.center);
       if (leading == null) return text;
       return Row(
@@ -157,17 +142,6 @@ class TButton extends StatelessWidget {
             side: BorderSide(color: cs.error),
           ),
           child: child(cs.error),
-        );
-      case TButtonVariant.google:
-        return OutlinedButton(
-          onPressed: onTap,
-          style: OutlinedButton.styleFrom(
-            overlayColor: Colors.transparent,
-            minimumSize: minSize,
-            foregroundColor: cs.onSurface,
-            backgroundColor: cs.surfaceContainerLowest,
-          ),
-          child: child(cs.onSurface),
         );
       case TButtonVariant.text:
         return TextButton(

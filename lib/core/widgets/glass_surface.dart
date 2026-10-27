@@ -56,7 +56,7 @@ class TGlass {
   /// Floating bottom action panel (Eʼlon detail).
   final Color panel;
 
-  /// Wide glass buttons on a plain page (Google orqali davom etish).
+  /// Wide glass buttons on a plain page.
   final Color button;
 
   /// Buttons inside a glass sheet (Yopish, Tozalash).

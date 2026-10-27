@@ -1,63 +1,159 @@
+import 'dart:async';
+
 import 'package:equatable/equatable.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:fpdart/fpdart.dart';
 import 'package:injectable/injectable.dart';
 
 import '../../../../core/error/failure.dart';
+import '../../../../core/l10n/tr.dart';
+import '../../../../core/links/link_launcher.dart';
+import '../../../../core/network/network_info.dart';
 import '../../../../core/usecase/usecase.dart';
 import '../../domain/entities/telegram_login.dart';
-import '../../domain/usecases/sign_in_with_google.dart';
+import '../../domain/usecases/claim_telegram_login.dart';
 import '../../domain/usecases/start_telegram_login.dart';
 
-/// After a successful step: the Telegram wait screen, profile setup (new user) or the feed.
-enum SignInNext { none, telegram, profile, home }
+/// [starting]: the button was tapped, the session is being made while the
+/// tiles fly in. [waiting]: Telegram is open; the result is checked in the
+/// background.
+enum SignInPhase { idle, starting, waiting }
+
+/// After sign-in: profile setup (new user) or the feed.
+enum SignInNext { none, profile, home }
 
 class SignInState extends Equatable {
-  const SignInState({this.loading = false, this.next = SignInNext.none, this.login, this.failure});
+  const SignInState({this.phase = SignInPhase.idle, this.next = SignInNext.none, this.error, this.offline = false});
 
-  final bool loading;
+  final SignInPhase phase;
   final SignInNext next;
 
-  /// Set with [SignInNext.telegram].
-  final TelegramLogin? login;
-  final Failure? failure;
+  /// Shown under the button.
+  final String? error;
 
-  SignInState copyWith({bool? loading, SignInNext? next, TelegramLogin? login, Failure? failure}) => SignInState(
-        loading: loading ?? this.loading,
-        next: next ?? SignInNext.none,
-        login: login,
-        failure: failure,
+  /// The tap found no network: banner on top, no animation.
+  final bool offline;
+
+  SignInState copyWith({SignInPhase? phase, SignInNext? next, String? Function()? error, bool? offline}) => SignInState(
+        phase: phase ?? this.phase,
+        next: next ?? this.next,
+        error: error != null ? error() : this.error,
+        offline: offline ?? this.offline,
       );
 
   @override
-  List<Object?> get props => [loading, next, login, failure];
+  List<Object?> get props => [phase, next, error, offline];
 }
 
+/// Sign-in through the Telegram bot, all on the sign-in screen: [begin]
+/// starts a server session, [open] opens the bot, then the result is
+/// checked every [every] and at once when the app comes back ([resumed]).
+/// Coming back before the number was shared returns to [SignInPhase.idle],
+/// but checking goes on, so a confirmation that lands a moment later still
+/// signs in.
 @injectable
 class SignInCubit extends Cubit<SignInState> {
-  SignInCubit(this._telegram, this._google) : super(const SignInState());
+  SignInCubit(this._start, this._claim, this._network, this._links) : super(const SignInState());
 
-  final StartTelegramLogin _telegram;
-  final SignInWithGoogle _google;
+  static const every = Duration(seconds: 2);
 
-  Future<void> telegram() async {
-    if (state.loading) return;
-    emit(state.copyWith(loading: true));
-    final r = await _telegram(const NoParams());
-    if (isClosed) return;
-    r.match(
-      (f) => emit(state.copyWith(loading: false, failure: f)),
-      (login) => emit(state.copyWith(loading: false, next: SignInNext.telegram, login: login)),
+  /// The server session lives 10 minutes.
+  static const giveUpAfter = Duration(minutes: 9);
+
+  final StartTelegramLogin _start;
+  final ClaimTelegramLogin _claim;
+  final NetworkInfo _network;
+  final LinkLauncher _links;
+
+  Future<Either<Failure, TelegramLogin>>? _session;
+  TelegramLogin? _login;
+  Timer? _poll, _deadline;
+  bool _checking = false;
+
+  /// False when offline or already busy: the page then leaves the tiles alone.
+  Future<bool> begin() async {
+    if (state.phase != SignInPhase.idle) return false;
+    emit(state.copyWith(phase: SignInPhase.starting, error: () => null, offline: false));
+    if (!await _network.isConnected) {
+      if (!isClosed) emit(state.copyWith(phase: SignInPhase.idle, offline: true));
+      return false;
+    }
+    _stopChecking();
+    _session = _start(const NoParams());
+    return true;
+  }
+
+  /// Opens the bot once the session is ready. False (with the reason in
+  /// [SignInState.error]) when the session failed or Telegram did not open.
+  Future<bool> open() async {
+    final r = await _session!;
+    if (isClosed) return false;
+    final login = r.match((f) {
+      // No network shows the banner instead of a message.
+      emit(state.copyWith(phase: SignInPhase.idle, error: () => f is NetworkFailure ? null : _message(f), offline: f is NetworkFailure));
+      return null;
+    }, (l) => l);
+    if (login == null) return false;
+    if (!await _links.open(login.url)) {
+      if (!isClosed) emit(state.copyWith(phase: SignInPhase.idle, error: () => tr('Telegramni ochib boʻlmadi. Qayta urinib koʻring')));
+      return false;
+    }
+    if (isClosed) return false;
+    _login = login;
+    _poll = Timer.periodic(every, (_) => check());
+    _deadline = Timer(giveUpAfter, _stopChecking);
+    emit(state.copyWith(phase: SignInPhase.waiting));
+    return true;
+  }
+
+  /// Back from Telegram: check now; still unconfirmed → the tiles come back.
+  Future<void> resumed() async {
+    if (state.phase != SignInPhase.waiting) return;
+    final signedIn = await check();
+    if (!signedIn && !isClosed && state.phase == SignInPhase.waiting) emit(state.copyWith(phase: SignInPhase.idle));
+  }
+
+  /// True once signed in.
+  Future<bool> check() async {
+    final login = _login;
+    if (login == null || _checking) return false;
+    _checking = true;
+    final r = await _claim(login);
+    _checking = false;
+    if (isClosed || _login != login) return false;
+    return r.match(
+      (f) {
+        // Expired: stop asking. Anything else may pass; keep asking.
+        if (f is NotFoundFailure) _stopChecking();
+        if (f is! NetworkFailure && f is! NotFoundFailure) debugPrint('Telegram claim failed: ${f.message}');
+        return false;
+      },
+      (result) {
+        if (result == null) return false;
+        _stopChecking();
+        emit(state.copyWith(phase: SignInPhase.idle, next: result.needsProfile ? SignInNext.profile : SignInNext.home));
+        return true;
+      },
     );
   }
 
-  Future<void> google() async {
-    if (state.loading) return;
-    emit(state.copyWith(loading: true));
-    final r = await _google(const NoParams());
-    if (isClosed) return;
-    r.match(
-      (f) => emit(state.copyWith(loading: false, failure: f)),
-      (r) => emit(state.copyWith(loading: false, next: r.needsProfile ? SignInNext.profile : SignInNext.home)),
-    );
+  void _stopChecking() {
+    _poll?.cancel();
+    _deadline?.cancel();
+    _login = null;
+  }
+
+  static String _message(Failure f) => switch (f) {
+        ValidationFailure(:final message?) => message,
+        // Debug builds also show the cause (e.g. a Functions error code).
+        _ when kDebugMode && f.message != null => '${tr('Kirishda xatolik yuz berdi')}\n${f.message}',
+        _ => tr('Kirishda xatolik yuz berdi'),
+      };
+
+  @override
+  Future<void> close() {
+    _stopChecking();
+    return super.close();
   }
 }

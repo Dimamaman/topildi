@@ -2,7 +2,6 @@ abstract final class Routes {
   static const splash = '/';
   static const onboarding = '/onboarding';
   static const signIn = '/sign-in';
-  static const signInTelegram = '/sign-in/telegram';
   static const profileSetup = '/profile-setup';
   static const terms = '/terms';
   static const privacy = '/privacy';
