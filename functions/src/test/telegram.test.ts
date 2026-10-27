@@ -15,6 +15,15 @@ describe("bot updates", () => {
     });
   });
 
+  it("the sign-in link pasted into the chat", () => {
+    assert.deepEqual(parseUpdate(msg({ text: "https://t.me/menikitopildi_bot?start=AbCdEfGhIjKlMnOp_-12" })), {
+      kind: "start",
+      chatId: 7,
+      sid: "AbCdEfGhIjKlMnOp_-12",
+      lang: "uz",
+    });
+  });
+
   it("/start without (or with a malformed) payload is not a sign-in", () => {
     assert.equal(parseUpdate(msg({ text: "/start" }))?.kind, "other");
     assert.equal(parseUpdate(msg({ text: "/start a.b" }))?.kind, "other");

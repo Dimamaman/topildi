@@ -30,19 +30,21 @@ class CreateListingRepositoryImpl implements CreateListingRepository {
         type: draft.type,
         category: draft.category!,
         title: draft.title.trim(),
-        description: draft.description.trim(),
+        // Posting no longer asks for a description.
+        description: '',
         areaName: draft.areaName!,
         // Only the approximate cell centre is stored publicly.
         lat: draft.point!.approximate().lat,
         lng: draft.point!.approximate().lng,
-        district: draft.district ?? 'Chilonzor',
+        district: draft.district!,
         happenedAt: draft.happenedAt(DateTime.now()),
         author: PublicUser(id: _session.userId, displayName: _session.displayName),
         hiddenDetail: draft.hiddenDetail.trim(),
         photoCount: draft.photos.isEmpty ? 1 : draft.photos.length,
         photos: draft.photos,
-        // Placeholder colour when there is no photo.
-        tint: DateTime.now().millisecond % 4,
+        // Placeholder colour when there is no photo: by category, as the
+        // live preview card shows it while posting.
+        tint: draft.category!.index,
       );
       final saved = await _source.insert(model);
       return right(saved.id);

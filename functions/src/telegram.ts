@@ -55,7 +55,10 @@ export function parseUpdate(update: TgUpdate): Incoming | null {
       lang,
     };
   }
-  const start = /^\/start(?:@\w+)?\s+(\S+)$/.exec(m.text?.trim() ?? "");
+  // "/start <sid>" from the deep link, or the link itself pasted into the
+  // bot's chat (handy when Telegram is on another device than the app).
+  const text = m.text?.trim() ?? "";
+  const start = /^\/start(?:@\w+)?\s+(\S+)$/.exec(text) ?? /^https?:\/\/t\.me\/\w+\?start=(\S+)$/.exec(text);
   if (start && sidPattern.test(start[1])) return { kind: "start", chatId, sid: start[1], lang };
   return { kind: "other", chatId, lang };
 }

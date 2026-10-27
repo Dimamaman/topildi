@@ -6,7 +6,8 @@ import 'glass_surface.dart';
 import '../l10n/tr.dart';
 
 /// Opens an iOS 26 floating glass sheet over everything (tab bar included):
-/// 8dp inside the screen edges, 46dp concentric corners, a scrim that closes
+/// 8dp inside the screen edges, as tall as its content (up to the full
+/// height), 46dp concentric corners, a scrim that closes
 /// it on tap, spring-in from the bottom and drag-down to dismiss. Android's
 /// back button closes it too.
 Future<T?> showGlassSheet<T>(BuildContext context, {required String label, required WidgetBuilder builder}) {
@@ -43,7 +44,10 @@ class GlassSheetRoute<T> extends PopupRoute<T> {
 
   @override
   Widget buildPage(BuildContext context, Animation<double> animation, Animation<double> secondaryAnimation) {
-    return _GlassSheetFrame(label: label, child: Builder(builder: builder));
+    return _GlassSheetFrame(
+      label: label,
+      child: Builder(builder: builder),
+    );
   }
 
   @override
@@ -111,39 +115,44 @@ class _GlassSheetFrameState extends State<_GlassSheetFrame> with SingleTickerPro
     final mq = MediaQuery.of(context);
     return Padding(
       padding: EdgeInsets.fromLTRB(8, mq.padding.top + 8, 8, 8 + mq.viewInsets.bottom),
-      child: Transform.translate(
-        offset: Offset(0, _dy),
-        child: GestureDetector(
-          onVerticalDragUpdate: (d) => _drag(d.delta.dy),
-          onVerticalDragEnd: (d) => _release(d.primaryVelocity ?? 0),
-          // Pulling down past the top of the content drags the sheet.
-          child: NotificationListener<ScrollNotification>(
-            onNotification: (n) {
-              if (n is OverscrollNotification && n.dragDetails != null && n.overscroll < 0) {
-                _drag(-n.overscroll);
-              } else if (n is ScrollUpdateNotification && _dy > 0 && n.dragDetails != null) {
-                _drag(-(n.scrollDelta ?? 0));
-              } else if (n is ScrollEndNotification && _dy > 0) {
-                _release(n.dragDetails?.primaryVelocity ?? 0);
-              }
-              return false;
-            },
-            child: Semantics(
-              scopesRoute: true,
-              namesRoute: true,
-              explicitChildNodes: true,
-              label: widget.label,
-              child: GlassSurface(
-                radius: 46,
-                blur: 30,
-                // Page colour, so the white / #182031 groups stand out in both themes.
-                color: cs.surface.withValues(alpha: 0.9),
-                rim: g.sheetRim,
-                shadowColor: g.sheetShadow,
-                shadowBlur: 60,
-                shadowOffset: 20,
-                padding: const EdgeInsets.all(14),
-                child: Material(type: MaterialType.transparency, child: widget.child),
+      // Short content gets a short sheet at the bottom; a sheet that fills
+      // its column (Filtrlar) still takes the full height.
+      child: Align(
+        alignment: Alignment.bottomCenter,
+        child: Transform.translate(
+          offset: Offset(0, _dy),
+          child: GestureDetector(
+            onVerticalDragUpdate: (d) => _drag(d.delta.dy),
+            onVerticalDragEnd: (d) => _release(d.primaryVelocity ?? 0),
+            // Pulling down past the top of the content drags the sheet.
+            child: NotificationListener<ScrollNotification>(
+              onNotification: (n) {
+                if (n is OverscrollNotification && n.dragDetails != null && n.overscroll < 0) {
+                  _drag(-n.overscroll);
+                } else if (n is ScrollUpdateNotification && _dy > 0 && n.dragDetails != null) {
+                  _drag(-(n.scrollDelta ?? 0));
+                } else if (n is ScrollEndNotification && _dy > 0) {
+                  _release(n.dragDetails?.primaryVelocity ?? 0);
+                }
+                return false;
+              },
+              child: Semantics(
+                scopesRoute: true,
+                namesRoute: true,
+                explicitChildNodes: true,
+                label: widget.label,
+                child: GlassSurface(
+                  radius: 46,
+                  blur: 30,
+                  // Page colour, so the white / #182031 groups stand out in both themes.
+                  color: cs.surface.withValues(alpha: 0.9),
+                  rim: g.sheetRim,
+                  shadowColor: g.sheetShadow,
+                  shadowBlur: 60,
+                  shadowOffset: 20,
+                  padding: const EdgeInsets.all(14),
+                  child: Material(type: MaterialType.transparency, child: widget.child),
+                ),
               ),
             ),
           ),

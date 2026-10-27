@@ -5,6 +5,7 @@ import 'package:injectable/injectable.dart';
 import '../../../../core/error/failure.dart';
 import '../../../../core/location/geo_point.dart';
 import '../../../listing/domain/entities/listing.dart';
+import '../../../listing/domain/entities/regions.dart';
 import '../../domain/entities/create_draft.dart';
 import '../../domain/usecases/post_listing.dart';
 
@@ -15,6 +16,7 @@ class CreateFlowState extends Equatable {
     this.draft = const CreateDraft(),
     this.showDetailErrors = false,
     this.showAreaError = false,
+    this.attempt = 0,
     this.agreed = true,
     this.status = SubmitStatus.idle,
     this.postedId,
@@ -25,6 +27,9 @@ class CreateFlowState extends Equatable {
 
   /// Errors are shown only after the user tried to continue.
   final bool showDetailErrors, showAreaError;
+
+  /// Bumped on every refused "Keyingi": the step then scrolls to its first error.
+  final int attempt;
   final bool agreed;
   final SubmitStatus status;
   final String? postedId;
@@ -34,6 +39,7 @@ class CreateFlowState extends Equatable {
     CreateDraft? draft,
     bool? showDetailErrors,
     bool? showAreaError,
+    int? attempt,
     bool? agreed,
     SubmitStatus? status,
     String? postedId,
@@ -43,6 +49,7 @@ class CreateFlowState extends Equatable {
         draft: draft ?? this.draft,
         showDetailErrors: showDetailErrors ?? this.showDetailErrors,
         showAreaError: showAreaError ?? this.showAreaError,
+        attempt: attempt ?? this.attempt,
         agreed: agreed ?? this.agreed,
         status: status ?? this.status,
         postedId: postedId ?? this.postedId,
@@ -50,12 +57,16 @@ class CreateFlowState extends Equatable {
       );
 
   @override
-  List<Object?> get props => [draft, showDetailErrors, showAreaError, agreed, status, postedId, failure];
+  List<Object?> get props => [draft, showDetailErrors, showAreaError, attempt, agreed, status, postedId, failure];
 }
 
 @injectable
 class CreateFlowCubit extends Cubit<CreateFlowState> {
-  CreateFlowCubit(this._postListing) : super(const CreateFlowState());
+  CreateFlowCubit(this._postListing) : super(_initial(DateTime.now()));
+
+  /// The time defaults to now.
+  static CreateFlowState _initial(DateTime now) =>
+      CreateFlowState(draft: CreateDraft(hour: now.hour, minute: now.minute));
 
   final PostListing _postListing;
 
@@ -71,27 +82,43 @@ class CreateFlowCubit extends Cubit<CreateFlowState> {
 
   void removePhoto(int index) => _draft((d) => d.copyWith(photos: [...d.photos]..removeAt(index)));
 
+  /// Long-press reorder; the first photo is the main one.
+  void movePhoto(int from, int to) => _draft((d) {
+        final photos = [...d.photos];
+        photos.insert(to, photos.removeAt(from));
+        return d.copyWith(photos: photos);
+      });
+
   // Step 2
   void setTitle(String v) => _draft((d) => d.copyWith(title: v));
   void setCategory(ItemCategory v) => _draft((d) => d.copyWith(category: v));
-  void setDescription(String v) => _draft((d) => d.copyWith(description: v));
   void setHiddenDetail(String v) => _draft((d) => d.copyWith(hiddenDetail: v));
 
   /// Returns true when step 2 can be left.
   bool submitDetails() {
-    emit(state.copyWith(showDetailErrors: true));
-    return DraftValidator.detailsValid(state.draft);
+    final ok = DraftValidator.detailsValid(state.draft);
+    emit(state.copyWith(showDetailErrors: true, attempt: ok ? null : state.attempt + 1));
+    return ok;
   }
 
+  /// A step opens without errors; they show again only after "Keyingi".
+  void hideErrors() => emit(state.copyWith(showDetailErrors: false, showAreaError: false));
+
   // Step 3
-  void setArea(String area, GeoPoint point, {String? district}) =>
-      _draft((d) => d.copyWith(areaName: area, point: point.approximate(), district: district));
+  /// [point] is the GPS position from "Aniqlash"; otherwise the district centre.
+  void setDistrict(String district, {GeoPoint? point}) {
+    final (lat, lng) = Regions.tashkentDistrictCenters[district]!;
+    _draft((d) => d.copyWith(district: district, point: (point ?? GeoPoint(lat, lng)).approximate()));
+  }
+
+  void setLandmark(String v) => _draft((d) => d.copyWith(landmark: v));
   void setDay(DraftDay day, {DateTime? date}) => _draft((d) => d.copyWith(day: day, date: date));
   void setTime(int hour, int minute) => _draft((d) => d.copyWith(hour: hour, minute: minute));
 
   bool submitLocation() {
-    emit(state.copyWith(showAreaError: true));
-    return DraftValidator.area(state.draft) == null;
+    final ok = DraftValidator.district(state.draft) == null;
+    emit(state.copyWith(showAreaError: true, attempt: ok ? null : state.attempt + 1));
+    return ok;
   }
 
   // Review

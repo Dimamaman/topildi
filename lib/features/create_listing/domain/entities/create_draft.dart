@@ -1,6 +1,5 @@
 import 'package:equatable/equatable.dart';
 
-import '../../../../core/config/features.dart';
 import '../../../../core/location/geo_point.dart';
 import '../../../listing/domain/entities/listing.dart';
 import '../../../../core/l10n/tr.dart';
@@ -9,15 +8,15 @@ enum DraftDay { today, yesterday, other }
 
 /// Listing being composed across Create1–3. [hiddenDetail] stays private:
 /// it is stored for the author and never put on the public [Listing].
+/// The place is a district plus an optional landmark; there is no map.
 class CreateDraft extends Equatable {
   const CreateDraft({
     this.type = ListingType.found,
     this.photos = const [],
     this.title = '',
     this.category,
-    this.description = '',
     this.hiddenDetail = '',
-    this.areaName,
+    this.landmark = '',
     this.point,
     this.district,
     this.day = DraftDay.today,
@@ -27,7 +26,7 @@ class CreateDraft extends Equatable {
   });
 
   static const maxPhotos = 6;
-  static const maxDescription = 500;
+  static const maxLandmark = 80;
 
   final ListingType type;
 
@@ -35,12 +34,12 @@ class CreateDraft extends Equatable {
   final List<String> photos;
   final String title;
   final ItemCategory? category;
-  final String description, hiddenDetail;
+  final String hiddenDetail;
 
-  /// Approximate (~300 m) area name chosen on the map.
-  final String? areaName;
+  /// Optional public hint, e.g. "Bogʻishamol, bekat yonida".
+  final String landmark;
 
-  /// Centre of the chosen ~300 m cell (already approximated).
+  /// Approximate point: the GPS cell from "Aniqlash" or the district centre.
   final GeoPoint? point;
   final String? district;
   final DraftDay day;
@@ -50,6 +49,18 @@ class CreateDraft extends Equatable {
   final int hour, minute;
 
   bool get isFound => type == ListingType.found;
+
+  /// Public place line: "Yunusobod, Bogʻishamol, bekat yonida".
+  String? get areaName {
+    final d = district;
+    if (d == null) return null;
+    final l = landmark.trim();
+    return l.isEmpty ? d : '$d, $l';
+  }
+
+  /// Nothing entered yet (leaving needs no confirmation).
+  bool get isEmpty =>
+      photos.isEmpty && title.trim().isEmpty && category == null && hiddenDetail.trim().isEmpty;
 
   DateTime happenedAt(DateTime now) {
     final base = switch (day) {
@@ -65,9 +76,8 @@ class CreateDraft extends Equatable {
     List<String>? photos,
     String? title,
     ItemCategory? category,
-    String? description,
     String? hiddenDetail,
-    String? areaName,
+    String? landmark,
     GeoPoint? point,
     String? district,
     DraftDay? day,
@@ -80,9 +90,8 @@ class CreateDraft extends Equatable {
         photos: photos ?? this.photos,
         title: title ?? this.title,
         category: category ?? this.category,
-        description: description ?? this.description,
         hiddenDetail: hiddenDetail ?? this.hiddenDetail,
-        areaName: areaName ?? this.areaName,
+        landmark: landmark ?? this.landmark,
         point: point ?? this.point,
         district: district ?? this.district,
         day: day ?? this.day,
@@ -93,7 +102,7 @@ class CreateDraft extends Equatable {
 
   @override
   List<Object?> get props =>
-      [type, photos, title, category, description, hiddenDetail, areaName, point, district, day, date, hour, minute];
+      [type, photos, title, category, hiddenDetail, landmark, point, district, day, date, hour, minute];
 }
 
 /// Field-level validation for step 2 and 3. Messages are user-facing.
@@ -106,11 +115,9 @@ abstract final class DraftValidator {
   static String? hiddenDetail(CreateDraft d) =>
       d.isFound && d.hiddenDetail.trim().length < 5 ? tr('Yashirin belgini yozing: egasini shu orqali tekshirasiz') : null;
 
-  static String? area(CreateDraft d) => d.areaName == null || d.point == null
-      ? (Features.map ? tr('Xaritada joyni belgilang') : tr('Joyni belgilang'))
-      : null;
+  static String? district(CreateDraft d) => d.district == null || d.point == null ? tr('Tumanni tanlang') : null;
 
   static bool detailsValid(CreateDraft d) => title(d) == null && category(d) == null && hiddenDetail(d) == null;
 
-  static bool isComplete(CreateDraft d) => detailsValid(d) && area(d) == null;
+  static bool isComplete(CreateDraft d) => detailsValid(d) && district(d) == null;
 }

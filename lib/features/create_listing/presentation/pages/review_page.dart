@@ -52,7 +52,7 @@ class _ReviewPageState extends State<ReviewPage> {
         final photos = d.photos.isEmpty ? 'rasmsiz' : tr('{n} ta rasm', {'n': d.photos.length});
         final rows = [
           (tr('Tur va rasmlar'), '${d.isFound ? tr('Topdim') : tr('Yoʻqotdim')} · $photos', Routes.create),
-          (tr('Sarlavha va tavsif'), d.description.trim().isEmpty ? d.title : '${d.title}. ${d.description}', Routes.createDetails),
+          (tr('Sarlavha'), d.title, Routes.createDetails),
           (tr('Joy va sana'), '${area.split(',').first} · ${TDate.full(happened)}', Routes.createLocation),
         ];
         final hasSecret = d.hiddenDetail.trim().isNotEmpty;

@@ -1,31 +1,31 @@
-import 'dart:math' as math;
-
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_map/flutter_map.dart';
-import 'package:latlong2/latlong.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
-import '../../../../core/config/features.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/location/geo_point.dart';
 import '../../../../core/location/location_service.dart';
-import '../../../../core/map/map_tiles.dart';
-import '../../../../core/widgets/t_feedback.dart';
-import '../../../../core/theme/topildi_surfaces.dart';
-import '../../../../core/theme/topildi_theme.dart';
 import '../../../../core/utils/date_format.dart';
-import '../../../../core/widgets/pull_down_menu.dart';
-import '../../../../core/widgets/t_button.dart';
-import '../../../../core/widgets/t_chip.dart';
 import '../../../listing/domain/entities/regions.dart';
 import '../../domain/entities/create_draft.dart';
 import '../cubit/create_flow_cubit.dart';
+import '../pages/create_flow_page.dart';
+import 'create_ui.dart';
 import '../../../../core/l10n/tr.dart';
 
-/// Step 3: approximate area (~300 m) and when it happened.
+/// Step 3: district (with "Aniqlash"), an optional landmark and when it
+/// happened. No map: the listing is placed by district.
 class CreateLocationStep extends StatefulWidget {
-  const CreateLocationStep({super.key});
+  const CreateLocationStep({super.key, required this.controller, required this.top});
+
+  final ScrollController controller;
+
+  /// Room above the form for the preview card.
+  final double top;
+
+  /// Farther than this from every district centre: not in Tashkent.
+  static const _maxDistrictMeters = 20000.0;
 
   @override
   State<CreateLocationStep> createState() => _CreateLocationStepState();
@@ -33,195 +33,199 @@ class CreateLocationStep extends StatefulWidget {
 
 class _CreateLocationStepState extends State<CreateLocationStep> {
   late final CreateFlowCubit _cubit = context.read<CreateFlowCubit>();
-  final _map = MapController();
-  final _location = getIt<LocationService>();
-  final _geocoder = getIt<Geocoder>();
-  late GeoPoint _center = _cubit.state.draft.point ?? GeoPoint.tashkent;
-  bool _resolving = false;
-  int _request = 0;
+  late final _landmark = TextEditingController(text: _cubit.state.draft.landmark);
+  final _districtKey = GlobalKey();
+  bool _locating = false;
 
-  @override
-  void initState() {
-    super.initState();
-    if (_cubit.state.draft.point == null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => _locate(quiet: true));
-    }
-  }
+  /// Why "Aniqlash" did not pick a district.
+  String? _locateNote;
 
   @override
   void dispose() {
-    _map.dispose();
+    _landmark.dispose();
     super.dispose();
   }
 
-  Future<void> _locate({bool quiet = false}) async {
-    final r = await _location.current();
-    if (!mounted) return;
-    r.match(
-      (problem) {
-        // No permission: start from the city centre; the user can still pan.
-        if (!quiet) TFeedback.error(context, problem.message);
-        _resolve(_center);
-      },
-      (g) {
-        // The map is only on screen when the feature is on.
-        if (Features.map) _map.move(LatLng(g.lat, g.lng), 16);
-        _resolve(g);
-      },
-    );
-  }
-
-  /// Snaps the map centre to its ~300 m cell and names it.
-  Future<void> _resolve(GeoPoint center) async {
-    final cell = center.approximate();
-    final id = ++_request;
+  Future<void> _locate() async {
+    if (_locating) return;
     setState(() {
-      _center = center;
-      _resolving = true;
+      _locating = true;
+      _locateNote = null;
     });
-    final info = await _geocoder.areaFor(cell);
-    if (!mounted || id != _request) return;
-    setState(() => _resolving = false);
-    _cubit.setArea(info?.name ?? tr('Belgilangan hudud'), cell, district: info?.district);
-  }
-
-  /// Without the map: place the listing at the chosen district's centre.
-  Future<void> _pickDistrict(BuildContext anchor) async {
-    final picked = await showPullDownMenu(
-      context,
-      anchor: anchor,
-      label: tr('Tumanni tanlang'),
-      items: [for (final d in Regions.tashkentDistricts) (d, d)],
-      current: _cubit.state.draft.district,
+    final r = await getIt<LocationService>().current();
+    if (!mounted) return;
+    setState(() => _locating = false);
+    r.match(
+      (problem) => setState(
+        () => _locateNote = switch (problem) {
+          LocationProblem.denied || LocationProblem.deniedForever => tr('Joylashuvga ruxsat yoʻq — tumanni oʻzingiz tanlang'),
+          _ => problem.message,
+        },
+      ),
+      (here) {
+        // The nearest district centre stands in for district borders.
+        String? best;
+        var bestMeters = double.infinity;
+        for (final MapEntry(key: name, value: (lat, lng)) in Regions.tashkentDistrictCenters.entries) {
+          final m = here.distanceTo(GeoPoint(lat, lng));
+          if (m < bestMeters) (best, bestMeters) = (name, m);
+        }
+        if (best == null || bestMeters > CreateLocationStep._maxDistrictMeters) {
+          setState(() => _locateNote = tr('Siz Toshkentdan tashqaridasiz — tumanni oʻzingiz tanlang'));
+          return;
+        }
+        _cubit.setDistrict(best, point: here);
+      },
     );
-    if (picked == null || !mounted) return;
-    final (lat, lng) = Regions.tashkentDistrictCenters[picked]!;
-    _request++; // Drop any GPS lookup still in flight.
-    setState(() => _resolving = false);
-    _cubit.setArea(picked, GeoPoint(lat, lng), district: picked);
   }
 
-  Future<void> _pickDate() async {
+  Future<void> _pickWhen() async {
     final now = DateTime.now();
-    final picked = await showDatePicker(
+    var picked = _cubit.state.draft.happenedAt(now);
+    if (picked.isAfter(now)) picked = now;
+    final done = await showCupertinoModalPopup<bool>(
       context: context,
-      firstDate: now.subtract(const Duration(days: 90)),
-      lastDate: now,
-      initialDate: _cubit.state.draft.happenedAt(now),
+      builder: (ctx) {
+        final cs = Theme.of(ctx).colorScheme;
+        return Container(
+          padding: EdgeInsets.only(bottom: MediaQuery.paddingOf(ctx).bottom),
+          decoration: BoxDecoration(
+            color: cs.surfaceContainerLowest,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(26)),
+          ),
+          child: Material(
+            type: MaterialType.transparency,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(8, 6, 8, 0),
+                  child: Row(
+                    children: [
+                      CupertinoButton(onPressed: () => Navigator.pop(ctx, false), child: Text(tr('Bekor qilish'))),
+                      const Spacer(),
+                      CupertinoButton(
+                        onPressed: () => Navigator.pop(ctx, true),
+                        child: Text(tr('Tayyor'), style: const TextStyle(fontWeight: FontWeight.w600)),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(
+                  height: 216,
+                  child: CupertinoDatePicker(
+                    mode: CupertinoDatePickerMode.dateAndTime,
+                    use24hFormat: true,
+                    initialDateTime: picked,
+                    minimumDate: now.subtract(const Duration(days: 90)),
+                    maximumDate: now,
+                    onDateTimeChanged: (d) => picked = d,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
-    if (picked != null) _cubit.setDay(DraftDay.other, date: picked);
-  }
-
-  Future<void> _pickTime() async {
-    final d = _cubit.state.draft;
-    final picked = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay(hour: d.hour, minute: d.minute),
-    );
-    if (picked != null) _cubit.setTime(picked.hour, picked.minute);
+    if (done != true) return;
+    final today = DateTime(now.year, now.month, now.day);
+    final day = DateTime(picked.year, picked.month, picked.day);
+    if (day == today) {
+      _cubit.setDay(DraftDay.today);
+    } else if (day == today.subtract(const Duration(days: 1))) {
+      _cubit.setDay(DraftDay.yesterday);
+    } else {
+      _cubit.setDay(DraftDay.other, date: day);
+    }
+    _cubit.setTime(picked.hour, picked.minute);
   }
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    return BlocBuilder<CreateFlowCubit, CreateFlowState>(
+    return BlocConsumer<CreateFlowCubit, CreateFlowState>(
+      listenWhen: (a, b) => a.attempt != b.attempt && b.showAreaError,
+      listener: (_, _) {
+        final ctx = _districtKey.currentContext;
+        if (ctx != null) Scrollable.ensureVisible(ctx, duration: const Duration(milliseconds: 250), alignment: 0.1);
+      },
       builder: (context, state) {
         final d = state.draft;
         final happened = d.happenedAt(DateTime.now());
+        final districtError = state.showAreaError ? DraftValidator.district(d) : null;
         return ListView(
+          controller: widget.controller,
+          physics: createScrollPhysics,
+          padding: EdgeInsets.fromLTRB(20, widget.top, 20, createFormBottomPadding(context)),
           children: [
-            if (Features.map)
-              SizedBox(
-                height: 330,
-                child: _AreaPicker(controller: _map, initial: _center, onMoved: _resolve, onLocate: _locate),
-              )
-            else
-              Padding(
-                padding: const EdgeInsets.fromLTRB(TSpace.screen, TSpace.md, TSpace.screen, 0),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: TButton.secondary(
-                        label: tr('Joylashuvim'),
-                        icon: Symbols.my_location_rounded,
-                        onPressed: _locate,
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Builder(
-                        builder: (anchor) => TButton.secondary(
-                          label: tr('Tumanni tanlash'),
-                          icon: Symbols.list_rounded,
-                          onPressed: () => _pickDistrict(anchor),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: TSpace.screen, vertical: TSpace.md),
+            KeyedSubtree(
+              key: _districtKey,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Row(
-                    children: [
-                      Icon(Symbols.location_on_rounded, size: 20, color: cs.primary),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          _resolving ? tr('Hudud aniqlanmoqda…') : (d.areaName ?? tr('Joy belgilanmagan')),
-                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                        ),
-                      ),
-                    ],
+                  CreateSectionLabel(
+                    label: d.isFound ? tr('Qaysi tumanda topdingiz?') : tr('Qaysi tumanda yoʻqotdingiz?'),
+                    value: tr('Toshkent'),
+                    error: districtError != null,
                   ),
-                  const SizedBox(height: 6),
-                  Text(
-                    tr('Boshqalarga aniq nuqta emas, taxminan 300 m lik hudud koʻrsatiladi.'),
-                    style: TextStyle(fontSize: 13, height: 19 / 13, color: cs.onSurfaceVariant),
+                  _DistrictChips(
+                    selected: d.district,
+                    locating: _locating,
+                    onLocate: _locate,
+                    onSelected: (name) {
+                      setState(() => _locateNote = null);
+                      _cubit.setDistrict(name);
+                    },
                   ),
-                  const SizedBox(height: 18),
-                  Text(
-                    d.isFound ? tr('Qachon topdingiz?') : tr('Qachon yoʻqotdingiz?'),
-                    style: Theme.of(context).textTheme.labelLarge,
-                  ),
-                  const SizedBox(height: 4),
-                  Wrap(
-                    spacing: TSpace.xs,
-                    children: [
-                      TChip(
-                        label: tr('Bugun'),
-                        selected: d.day == DraftDay.today,
-                        onTap: () => _cubit.setDay(DraftDay.today),
-                      ),
-                      TChip(
-                        label: tr('Kecha'),
-                        selected: d.day == DraftDay.yesterday,
-                        onTap: () => _cubit.setDay(DraftDay.yesterday),
-                      ),
-                      TChip(label: tr('Boshqa sana'), selected: d.day == DraftDay.other, onTap: _pickDate),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _PickerField(label: tr('Sana'), value: TDate.dayMonth(happened), onTap: _pickDate),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: _PickerField(
-                          label: tr('Taxminiy vaqt'),
-                          value: TDate.time(happened),
-                          onTap: _pickTime,
-                        ),
-                      ),
-                    ],
-                  ),
+                  if (districtError != null)
+                    CreateError(districtError)
+                  else if (_locateNote != null)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                      child: Text(_locateNote!, style: TextStyle(fontSize: 13, height: 18 / 13, color: cs.onSurfaceVariant)),
+                    ),
                 ],
               ),
+            ),
+            const SizedBox(height: 14),
+            CreateField(
+              label: tr('Moʻljal · ixtiyoriy'),
+              controller: _landmark,
+              icon: Symbols.near_me_rounded,
+              hint: tr('Masalan: metro bekati, doʻkon yonida'),
+              maxLength: CreateDraft.maxLandmark,
+              onChanged: _cubit.setLandmark,
+            ),
+            const SizedBox(height: 8),
+            CreateNote(
+              icon: Symbols.visibility_rounded,
+              text: tr('Eʼlonda faqat tuman va moʻljal koʻrinadi, aniq manzil emas.'),
+            ),
+            const SizedBox(height: 14),
+            CreateSectionLabel(
+              label: d.isFound ? tr('Qachon topdingiz?') : tr('Qachon yoʻqotdingiz?'),
+              value: '${TDate.dayMonth(happened)} · ${TDate.time(happened)}',
+              onValueTap: _pickWhen,
+            ),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                CreateChip(
+                  label: tr('Bugun'),
+                  fontSize: 15,
+                  selected: d.day == DraftDay.today,
+                  onTap: () => _cubit.setDay(DraftDay.today),
+                ),
+                CreateChip(
+                  label: tr('Kecha'),
+                  fontSize: 15,
+                  selected: d.day == DraftDay.yesterday,
+                  onTap: () => _cubit.setDay(DraftDay.yesterday),
+                ),
+                CreateChip(label: tr('Boshqa sana'), fontSize: 15, selected: d.day == DraftDay.other, onTap: _pickWhen),
+              ],
             ),
           ],
         );
@@ -230,148 +234,89 @@ class _CreateLocationStepState extends State<CreateLocationStep> {
   }
 }
 
-class _PickerField extends StatelessWidget {
-  const _PickerField({required this.label, required this.value, required this.onTap});
+/// "Aniqlash" then the districts, one scrolling row; the chosen one is kept in view.
+class _DistrictChips extends StatefulWidget {
+  const _DistrictChips({
+    required this.selected,
+    required this.locating,
+    required this.onLocate,
+    required this.onSelected,
+  });
 
-  final String label, value;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    return Material(
-      color: cs.surfaceContainerLowest,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(TRadius.md),
-        side: BorderSide(color: cs.outline),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: onTap,
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(minHeight: TSize.input),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(label, style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant)),
-                Text(value, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Interactive map; the ~300 m area stays fixed in the middle while the
-/// user pans underneath it.
-class _AreaPicker extends StatelessWidget {
-  const _AreaPicker({required this.controller, required this.initial, required this.onMoved, required this.onLocate});
-
-  final MapController controller;
-  final GeoPoint initial;
-  final ValueChanged<GeoPoint> onMoved;
+  final String? selected;
+  final bool locating;
   final VoidCallback onLocate;
+  final ValueChanged<String> onSelected;
+
+  @override
+  State<_DistrictChips> createState() => _DistrictChipsState();
+}
+
+class _DistrictChipsState extends State<_DistrictChips> {
+  final _keys = {for (final d in Regions.tashkentDistricts) d: GlobalKey()};
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _reveal(animate: false));
+  }
+
+  @override
+  void didUpdateWidget(_DistrictChips old) {
+    super.didUpdateWidget(old);
+    if (old.selected != widget.selected) WidgetsBinding.instance.addPostFrameCallback((_) => _reveal());
+  }
+
+  void _reveal({bool animate = true}) {
+    final s = widget.selected;
+    final ctx = s == null ? null : _keys[s]?.currentContext;
+    if (ctx == null || !ctx.mounted) return;
+    Scrollable.ensureVisible(
+      ctx,
+      alignment: 0.5,
+      duration: animate ? const Duration(milliseconds: 250) : Duration.zero,
+      curve: Curves.easeOutCubic,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    return Stack(
-      children: [
-        Positioned.fill(
-          child: FlutterMap(
-            mapController: controller,
-            options: MapOptions(
-              initialCenter: LatLng(initial.lat, initial.lng),
-              initialZoom: 15.5,
-              minZoom: 12,
-              maxZoom: 18,
-              backgroundColor: context.ts.map,
-              interactionOptions: const InteractionOptions(flags: InteractiveFlag.all & ~InteractiveFlag.rotate),
-              onMapEvent: (e) {
-                if (e is MapEventMoveEnd || e is MapEventFlingAnimationEnd || e is MapEventDoubleTapZoomEnd) {
-                  onMoved(GeoPoint(e.camera.center.latitude, e.camera.center.longitude));
-                }
-              },
-            ),
-            children: const [TopildiTileLayer()],
-          ),
+    const districts = Regions.tashkentDistricts;
+    return SizedBox(
+      height: 44,
+      // Runs to both screen edges, past the 20 side padding.
+      child: OverflowBox(
+        minWidth: MediaQuery.sizeOf(context).width,
+        maxWidth: MediaQuery.sizeOf(context).width,
+        child: ListView.separated(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          itemCount: districts.length + 1,
+          separatorBuilder: (_, _) => const SizedBox(width: 8),
+          itemBuilder: (context, i) {
+            if (i == 0) {
+              return CreateChip(
+                label: tr('Aniqlash'),
+                accent: true,
+                selected: false,
+                icon: Symbols.my_location_rounded,
+                leading: widget.locating
+                    ? SizedBox.square(dimension: 18, child: CupertinoActivityIndicator(radius: 8, color: cs.onPrimaryContainer))
+                    : null,
+                onTap: widget.onLocate,
+              );
+            }
+            final name = districts[i - 1];
+            return CreateChip(
+              key: _keys[name],
+              label: tr(name),
+              selected: name == widget.selected,
+              onTap: () => widget.onSelected(name),
+            );
+          },
         ),
-        // Fixed centre overlay: dashed ~300 m circle + pin.
-        IgnorePointer(
-          child: Center(
-            child: CustomPaint(
-              painter: _DashedCirclePainter(fill: cs.primary.withValues(alpha: 0.14), stroke: cs.primary),
-              child: SizedBox.square(
-                dimension: 160,
-                child: Icon(Symbols.location_on_rounded, size: 40, color: cs.primary, fill: 1),
-              ),
-            ),
-          ),
-        ),
-        Positioned(
-          top: 14,
-          left: 0,
-          right: 0,
-          child: IgnorePointer(
-            child: Center(
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                decoration: BoxDecoration(color: cs.inverseSurface, borderRadius: BorderRadius.circular(18)),
-                child: Text(
-                  tr('Xaritani surib, joyni belgilang'),
-                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: cs.onInverseSurface),
-                ),
-              ),
-            ),
-          ),
-        ),
-        const Positioned(left: 0, bottom: 0, child: OsmAttribution()),
-        Positioned(
-          right: 14,
-          bottom: 14,
-          child: Material(
-            color: cs.surfaceContainerLowest,
-            elevation: 2,
-            shadowColor: cs.scrim.withValues(alpha: 0.3),
-            borderRadius: BorderRadius.circular(TRadius.md),
-            child: IconButton(
-              tooltip: tr('Mening joylashuvim'),
-              onPressed: onLocate,
-              icon: Icon(Symbols.my_location_rounded, color: cs.primary),
-            ),
-          ),
-        ),
-      ],
+      ),
     );
   }
-}
-
-class _DashedCirclePainter extends CustomPainter {
-  _DashedCirclePainter({required this.fill, required this.stroke});
-
-  final Color fill, stroke;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final center = size.center(Offset.zero);
-    final r = size.shortestSide / 2 - 1;
-    canvas.drawCircle(center, r, Paint()..color = fill);
-    final paint = Paint()
-      ..color = stroke
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2;
-    const dashes = 36;
-    const sweep = 2 * math.pi / dashes;
-    for (var i = 0; i < dashes; i++) {
-      canvas.drawArc(Rect.fromCircle(center: center, radius: r), i * sweep, sweep * 0.55, false, paint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(_DashedCirclePainter old) => old.fill != fill || old.stroke != stroke;
 }
