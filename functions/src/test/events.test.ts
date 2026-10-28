@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { claimCreated, claimUpdated, messageCreated } from "../events";
+import { claimCreated, claimUpdated, messageCreated, reminders } from "../events";
 import { multicast } from "../payload";
 import { langOf, pushText, shorten } from "../texts";
 
@@ -110,5 +110,27 @@ describe("payload", () => {
   it("no thread id when there is no chat", () => {
     const m = multicast(["t"], { title: "A", body: "B" }, claimCreated(claim, listing)!);
     assert.equal("threadId" in (m.apns?.payload?.aps ?? {}), false);
+  });
+});
+
+describe("reminders", () => {
+  const w = (id: string, listingId: string, to: string) => ({ id, listingId, listingAuthorId: to, listingTitle: `T${listingId}` });
+
+  it("one push per author; one listing opens its claims", () => {
+    const ds = reminders([w("a", "l1", "u1"), w("b", "l1", "u1")]);
+    assert.equal(ds.length, 1);
+    assert.equal(ds[0].to, "u1");
+    assert.equal(ds[0].route, "/listing/l1/claims");
+    assert.deepEqual(ds[0].push, { kind: "reminder", count: 2, listingTitle: "Tl1" });
+    assert.equal(ds[0].record, undefined);
+  });
+
+  it("several listings go to the Profil tab", () => {
+    const ds = reminders([w("a", "l1", "u1"), w("b", "l2", "u1"), w("c", "l3", "u2")]);
+    assert.equal(ds.length, 2);
+    const u1 = ds.find((d) => d.to === "u1")!;
+    assert.equal(u1.route, "/profile");
+    assert.equal(pushText(u1.push, "uz_Latn").title, "Sizni 2 ta soʻrov kutyapti");
+    assert.equal(pushText(ds.find((d) => d.to === "u2")!.push, "ru").title, "Вас ждёт заявка");
   });
 });

@@ -80,6 +80,35 @@ export function claimUpdated(claimId: string, before: Doc, after: Doc, listing: 
   return null;
 }
 
+/** Claims left unanswered this long get one reminder to the author. */
+export const remindAfterMs = 24 * 60 * 60 * 1000;
+
+/** A pending claim that is due a reminder, with its listing's title. */
+export type WaitingClaim = { id: string; listingId: string; listingAuthorId: string; listingTitle: string };
+
+/**
+ * One reminder per author for all their waiting claims: to the claims of
+ * that listing when they are all on one, otherwise to the Profil tab
+ * (which lists claims waiting per listing). Not listed on the page: the
+ * "newClaim" notification is already there.
+ */
+export function reminders(waiting: WaitingClaim[]): Delivery[] {
+  const byAuthor = new Map<string, WaitingClaim[]>();
+  for (const c of waiting) {
+    if (!c.listingAuthorId || !c.listingId) continue;
+    byAuthor.set(c.listingAuthorId, [...(byAuthor.get(c.listingAuthorId) ?? []), c]);
+  }
+  return [...byAuthor].map(([to, claims]) => {
+    const listings = new Set(claims.map((c) => c.listingId));
+    const one = listings.size === 1 ? claims[0] : undefined;
+    return {
+      to,
+      push: { kind: "reminder", count: claims.length, listingTitle: one?.listingTitle },
+      route: one ? `/listing/${one.listingId}/claims` : "/profile",
+    };
+  });
+}
+
 /** A chat message reaches the other member; "returned" also goes on the page. */
 export function messageCreated(chatId: string, message: Doc, chat: Doc | undefined): Delivery | null {
   if (!chat) return null;

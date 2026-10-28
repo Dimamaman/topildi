@@ -428,10 +428,13 @@ class CreateGlassButton extends StatelessWidget {
 /// 56px primary capsule with an icon after the label. Null [onTap]:
 /// dimmed and not tappable.
 class CreatePrimaryButton extends StatelessWidget {
-  const CreatePrimaryButton({super.key, required this.label, this.icon, required this.onTap});
+  const CreatePrimaryButton({super.key, required this.label, this.icon, this.leadingIcon, required this.onTap});
 
   final String label;
   final IconData? icon;
+
+  /// Icon before the label instead ("Soʻrov yuborish").
+  final IconData? leadingIcon;
   final VoidCallback? onTap;
 
   @override
@@ -464,6 +467,7 @@ class CreatePrimaryButton extends StatelessWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  if (leadingIcon != null) ...[Icon(leadingIcon, size: 20, color: cs.onPrimary), const SizedBox(width: 8)],
                   Text(
                     label,
                     maxLines: 1,

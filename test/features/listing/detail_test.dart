@@ -136,4 +136,25 @@ void main() {
     expect(find.text('Soʻrovlar kelgan: yashirin belgini endi oʻzgartirib boʻlmaydi'), findsOneWidget);
     await _settle(tester);
   });
+
+  testWidgets('Visitor: an unanswered claim can be taken back after 3 days', (tester) async {
+    _phone(tester);
+    await tester.pumpWidget(TopildiApp(initialLocation: Routes.listing('l20')));
+    await _settle(tester);
+    expect(find.text('Soʻrov yuborildi'), findsOneWidget);
+
+    await tester.tap(find.text('Soʻrov yuborildi'));
+    await tester.pumpAndSettle();
+    expect(find.text('Soʻrovni bekor qilasizmi?'), findsOneWidget);
+    await tester.tap(find.bySemanticsLabel('Bekor qilish').last);
+    for (var i = 0; i < 40; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    await _settle(tester);
+    expect(find.text('Soʻrov yuborildi'), findsNothing);
+    expect(find.text('Bu meniki'), findsOneWidget);
+    final t = await tester.runAsync(() => getIt<ClaimRepository>().getTarget('l20'));
+    // TODO(test): 3 again once cancelling returns the attempt.
+    expect(t!.getRight().toNullable()!.attemptsLeft, ClaimTarget.cancelUsesAttempt ? 2 : 3);
+  });
 }

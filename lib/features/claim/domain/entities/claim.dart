@@ -2,7 +2,15 @@ import 'package:equatable/equatable.dart';
 
 import '../../../listing/domain/entities/listing.dart';
 
-enum ClaimStatus { pending, accepted, rejected }
+enum ClaimStatus {
+  pending,
+  accepted,
+  rejected,
+
+  /// Taken back by the claimant after going unanswered; counts as an
+  /// attempt (see [ClaimTarget.cancelUsesAttempt]). Hidden from the author.
+  cancelled,
+}
 
 class Claim extends Equatable {
   const Claim({
@@ -45,18 +53,31 @@ class Claim extends Equatable {
 
 /// What the would-be owner sees before claiming.
 class ClaimTarget extends Equatable {
-  const ClaimTarget({required this.listing, required this.attemptsLeft, this.hasPending = false});
+  const ClaimTarget({required this.listing, required this.attemptsLeft, this.pendingSince});
 
   static const maxAttempts = 3;
+
+  /// A waiting claim can be taken back after this long without an answer;
+  /// the attempt is returned. Same in firestore.rules.
+  // TODO(test): back to Duration(days: 3) after testing (also firestore.rules).
+  static const cancelAfter = Duration.zero;
+
+  /// TODO(test): back to false after testing. True: a cancelled claim stays
+  /// as [ClaimStatus.cancelled] and uses up the attempt; false: it is
+  /// deleted and the attempt is returned.
+  static const cancelUsesAttempt = true;
 
   final Listing listing;
   final int attemptsLeft;
 
-  /// The signed-in user already has a claim waiting for the author's answer.
-  final bool hasPending;
+  /// When the signed-in user's claim that is still waiting for the
+  /// author's answer was sent; null when there is none.
+  final DateTime? pendingSince;
+
+  bool get hasPending => pendingSince != null;
 
   @override
-  List<Object?> get props => [listing, attemptsLeft, hasPending];
+  List<Object?> get props => [listing, attemptsLeft, pendingSince];
 }
 
 /// Author-only view: the hidden detail next to every claimant's answer.

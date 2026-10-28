@@ -25,6 +25,12 @@ abstract interface class ClaimRemoteDataSource {
 
   Future<Claim> reject(String id);
 
+  /// Deletes the claimant's own waiting claim and its proof photo.
+  Future<void> remove(Claim claim);
+
+  /// Marks the claimant's own waiting claim cancelled (the attempt stays used).
+  Future<void> cancel(Claim claim);
+
   /// Marks the claim accepted and opens the chat between the listing's
   /// author and the claimant; returns the chat id.
   Future<String> accept(Claim claim, ListingModel listing);

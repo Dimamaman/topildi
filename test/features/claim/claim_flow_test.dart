@@ -12,10 +12,17 @@ Future<void> _settle(WidgetTester t) async {
   await t.pumpAndSettle();
 }
 
+void _phone(WidgetTester tester) {
+  tester.view.physicalSize = const Size(390 * 3, 844 * 3);
+  tester.view.devicePixelRatio = 3;
+  addTearDown(tester.view.reset);
+}
+
 void main() {
   setUpAll(() => configureDependencies(environment: Environment.test));
 
   testWidgets('Owner claims someone else’s found item', (tester) async {
+    _phone(tester);
     await tester.pumpWidget(const TopildiApp(initialLocation: Routes.home));
     await _settle(tester);
 
@@ -24,14 +31,18 @@ void main() {
     await _settle(tester);
     await tester.tap(find.text('Bu meniki'));
     await _settle(tester);
-    expect(find.text('Nega bu savol?'), findsOneWidget);
-    expect(find.text('3 ta urinishingiz bor · Javobni faqat topuvchi koʻradi'), findsOneWidget);
+    expect(find.text('Buyumingizda qanday belgi bor?'), findsOneWidget);
+    expect(find.text('3 ta kalit = 3 ta urinish · Javobni faqat topuvchi koʻradi'), findsOneWidget);
 
+    // Too short is refused with a reason.
+    await tester.enterText(find.byType(TextField), 'Ichida: ');
+    await tester.pump();
     await tester.tap(find.text('Soʻrov yuborish'));
     await tester.pump();
     expect(find.textContaining('Javobni batafsilroq yozing'), findsOneWidget);
 
     await tester.enterText(find.byType(TextField), 'Ichida rasm daftari bor, muqovasida mushuk');
+    await tester.pump();
     await tester.tap(find.text('Soʻrov yuborish'));
     await _settle(tester);
     expect(find.text('Soʻrovingiz yuborildi'), findsOneWidget);
@@ -40,16 +51,18 @@ void main() {
   });
 
   testWidgets('Finder answers someone else’s lost item: “Men topdim”', (tester) async {
+    _phone(tester);
     await tester.pumpWidget(const TopildiApp(initialLocation: '/listing/l6'));
     await _settle(tester);
 
     await tester.tap(find.text('Men topdim'));
     await _settle(tester);
-    expect(find.text('Buyum sizda ekanini tasdiqlang'), findsOneWidget);
+    expect(find.text('BUYUM SIZDA EKANINI TASDIQLANG'), findsOneWidget);
     expect(find.text('Buyumda qanday belgi bor?'), findsOneWidget);
-    expect(find.text('3 ta urinishingiz bor · Javobni faqat egasi koʻradi'), findsOneWidget);
+    expect(find.text('3 ta kalit = 3 ta urinish · Javobni faqat egasi koʻradi'), findsOneWidget);
 
     await tester.enterText(find.byType(TextField), 'Gʻilofida kichik tirnalgan joy bor');
+    await tester.pump();
     await tester.tap(find.text('Soʻrov yuborish'));
     await _settle(tester);
     expect(find.text('Soʻrovingiz yuborildi'), findsOneWidget);

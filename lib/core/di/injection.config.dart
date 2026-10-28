@@ -91,6 +91,8 @@ import 'package:topildi/features/claim/domain/repositories/claim_repository.dart
     as _i28;
 import 'package:topildi/features/claim/domain/usecases/accept_claim.dart'
     as _i546;
+import 'package:topildi/features/claim/domain/usecases/cancel_claim.dart'
+    as _i77;
 import 'package:topildi/features/claim/domain/usecases/get_claim_review.dart'
     as _i445;
 import 'package:topildi/features/claim/domain/usecases/get_claim_target.dart'
@@ -553,6 +555,9 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i546.AcceptClaim>(
       () => _i546.AcceptClaim(gh<_i28.ClaimRepository>()),
     );
+    gh.factory<_i77.CancelClaim>(
+      () => _i77.CancelClaim(gh<_i28.ClaimRepository>()),
+    );
     gh.factory<_i445.GetClaimReview>(
       () => _i445.GetClaimReview(gh<_i28.ClaimRepository>()),
     );
@@ -595,6 +600,7 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i164.GetClaimTarget>(),
         gh<_i487.DeleteListing>(),
         gh<_i487.MarkListingReturned>(),
+        gh<_i77.CancelClaim>(),
       ),
     );
     gh.factory<_i176.ClaimCubit>(

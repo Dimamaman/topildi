@@ -17,6 +17,8 @@
       {"fieldPath": "category", "order": "ASCENDING"}, {"fieldPath": "happenedAt", "order": "DESCENDING"}]},
     {"collectionGroup": "topildi_listings", "queryScope": "COLLECTION", "fields": [
       {"fieldPath": "authorId", "order": "ASCENDING"}, {"fieldPath": "happenedAt", "order": "DESCENDING"}]},
+    {"collectionGroup": "topildi_claims", "queryScope": "COLLECTION", "fields": [
+      {"fieldPath": "status", "order": "ASCENDING"}, {"fieldPath": "createdAt", "order": "ASCENDING"}]},
     {"collectionGroup": "topildi_chats", "queryScope": "COLLECTION", "fields": [
       {"fieldPath": "members", "arrayConfig": "CONTAINS"}, {"fieldPath": "lastAt", "order": "DESCENDING"}]}
   ],

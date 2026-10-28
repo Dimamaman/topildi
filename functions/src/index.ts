@@ -5,14 +5,15 @@
  * functions. Names are prefixed for the same reason (they are project-wide).
  */
 import { initializeApp } from "firebase-admin/app";
-import { getFirestore } from "firebase-admin/firestore";
+import { getFirestore, Timestamp } from "firebase-admin/firestore";
 import { logger } from "firebase-functions";
 import { defineSecret, defineString } from "firebase-functions/params";
 import { setGlobalOptions } from "firebase-functions/v2";
 import { onDocumentCreated, onDocumentUpdated } from "firebase-functions/v2/firestore";
 import { onCall, onRequest } from "firebase-functions/v2/https";
+import { onSchedule } from "firebase-functions/v2/scheduler";
 
-import { claimCreated, claimUpdated, Delivery, messageCreated } from "./events";
+import { claimCreated, claimUpdated, Delivery, messageCreated, remindAfterMs, reminders, WaitingClaim } from "./events";
 import { claimSession, handleUpdate, startSession } from "./login";
 import { deliver } from "./notify";
 import { parseUpdate, TgUpdate } from "./telegram";
@@ -55,6 +56,42 @@ export const topildiOnMessageCreated = onDocumentCreated(
     await send(event.id, messageCreated(event.params.chatId, message, chat));
   },
 );
+
+/**
+ * Hourly: claims pending for over a day get one reminder to the listing's
+ * author (`remindedAt` marks them; the app never reads it).
+ */
+export const topildiRemindPendingClaims = onSchedule("every 60 minutes", async (event) => {
+  const db = getFirestore();
+  const cutoff = Timestamp.fromMillis(Date.now() - remindAfterMs);
+  const snap = await db
+    .collection("topildi_claims")
+    .where("status", "==", "pending")
+    .where("createdAt", "<=", cutoff)
+    .get();
+  const due = snap.docs.filter((d) => d.get("remindedAt") === undefined);
+  if (due.length === 0) return;
+
+  const titles = new Map<string, string>();
+  const waiting: WaitingClaim[] = [];
+  for (const d of due) {
+    const listingId = d.get("listingId") as string;
+    if (!titles.has(listingId)) titles.set(listingId, String((await listing(listingId))?.title ?? ""));
+    waiting.push({
+      id: d.id,
+      listingId,
+      listingAuthorId: d.get("listingAuthorId") as string,
+      listingTitle: titles.get(listingId) ?? "",
+    });
+  }
+  // Marked first: a failed push is not retried every hour.
+  const batch = db.batch();
+  for (const d of due) batch.update(d.ref, { remindedAt: Timestamp.now() });
+  await batch.commit();
+  for (const d of reminders(waiting)) {
+    await send(`remind_${event.scheduleTime}_${d.to}`, d);
+  }
+});
 
 /** Bot username without "@" (functions/.env), for the t.me link. */
 const botUsername = defineString("TELEGRAM_BOT_USERNAME");

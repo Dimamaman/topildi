@@ -22,7 +22,8 @@ export type PushContent =
   | { kind: "claimAccepted"; actorName: string }
   | { kind: "claimRejected"; listingTitle: string; attemptsLeft: number }
   | { kind: "returned"; actorName: string }
-  | { kind: "message"; actorName: string; text: string };
+  | { kind: "message"; actorName: string; text: string }
+  | { kind: "reminder"; count: number; listingTitle?: string };
 
 /** Longest chat message shown in a push. */
 export const maxMessage = 80;
@@ -77,6 +78,30 @@ export function pushText(c: PushContent, lang: Lang): PushText {
         uz_Cyrl: { title: "Буюмингиз қайтди!", body: `${c.actorName} буюмингизни қайтарди. Унга раҳмат айтишни унутманг!` },
         ru: { title: "Ваша вещь вернулась!", body: `${c.actorName} вернул(а) вашу вещь. Не забудьте поблагодарить!` },
       }[lang];
+    case "reminder": {
+      const n = c.count;
+      const t = c.listingTitle;
+      return {
+        uz_Latn: {
+          title: n > 1 ? `Sizni ${n} ta soʻrov kutyapti` : "Sizni soʻrov kutyapti",
+          body: t
+            ? `“${t}” eʼloningizga kelgan soʻrovga hali javob bermadingiz. Javobni tekshiring.`
+            : "Eʼlonlaringizga kelgan soʻrovlarga hali javob bermadingiz. Javobni tekshiring.",
+        },
+        uz_Cyrl: {
+          title: n > 1 ? `Сизни ${n} та сўров кутяпти` : "Сизни сўров кутяпти",
+          body: t
+            ? `“${t}” эълонингизга келган сўровга ҳали жавоб бермадингиз. Жавобни текширинг.`
+            : "Эълонларингизга келган сўровларга ҳали жавоб бермадингиз. Жавобни текширинг.",
+        },
+        ru: {
+          title: n > 1 ? `Вас ждут заявки: ${n}` : "Вас ждёт заявка",
+          body: t
+            ? `Вы ещё не ответили на заявку по «${t}». Проверьте ответ.`
+            : "Вы ещё не ответили на заявки по вашим объявлениям. Проверьте ответы.",
+        },
+      }[lang];
+    }
     case "message":
       // Same in every language: who wrote, and what.
       return { title: c.actorName, body: shorten(c.text) };

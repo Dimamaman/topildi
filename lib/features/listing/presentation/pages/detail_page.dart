@@ -30,6 +30,7 @@ import '../widgets/area_map_page.dart';
 import '../widgets/photo_viewer.dart';
 import '../../../../core/l10n/tr.dart';
 import '../../../../core/widgets/topildi_loader.dart';
+import '../../../claim/domain/entities/claim.dart';
 
 class DetailPage extends StatelessWidget {
   const DetailPage({super.key, required this.listingId});
@@ -168,7 +169,7 @@ class _DetailViewState extends State<_DetailView> {
                     bottom: math.max(20, MediaQuery.paddingOf(context).bottom - 14),
                     child: state.isMine
                         ? _AuthorPanel(listing: data, pending: state.pendingClaims, busy: state.busy)
-                        : _VisitorPanel(listing: data, claimSent: state.claimSent),
+                        : _VisitorPanel(listing: data, claimSent: state.claimSent, sentAt: state.claimSentAt),
                   ),
                 ],
               ),
@@ -927,12 +928,48 @@ class _PillButton extends StatelessWidget {
 
 /// Visitor: glass capsule — privacy note left, "Bu meniki" right.
 class _VisitorPanel extends StatelessWidget {
-  const _VisitorPanel({required this.listing, required this.claimSent});
+  const _VisitorPanel({required this.listing, required this.claimSent, this.sentAt});
 
   static const height = 72.0;
 
   final Listing listing;
   final bool claimSent;
+  final DateTime? sentAt;
+
+  /// "Soʻrov yuborildi" tapped: take the claim back once it has waited
+  /// [ClaimTarget.cancelAfter], otherwise say when that becomes possible.
+  Future<void> _sent(BuildContext context) async {
+    final cubit = context.read<DetailCubit>();
+    final since = sentAt ?? DateTime.now();
+    final wait = ClaimTarget.cancelAfter - DateTime.now().difference(since);
+    final waiting = listing.isFound ? tr('Topuvchi hali javob bermadi.') : tr('Egasi hali javob bermadi.');
+    if (wait > Duration.zero) {
+      final days = (wait.inHours / 24).ceil().clamp(1, ClaimTarget.cancelAfter.inDays);
+      TFeedback.success(
+        context,
+        '$waiting ${tr('Javob boʻlmasa, {n} kundan keyin soʻrovni bekor qila olasiz.', {'n': days})}',
+      );
+      return;
+    }
+    final ok = await TFeedback.confirm(
+      context,
+      title: tr('Soʻrovni bekor qilasizmi?'),
+      body: '$waiting ${tr('Urinishingiz qaytariladi va yangi soʻrov yubora olasiz.')}',
+      confirmLabel: tr('Bekor qilish'),
+      cancelLabel: tr('Kutaman'),
+      destructive: true,
+    );
+    if (!ok || !context.mounted) return;
+    await TopildiLoader.run(
+      context,
+      task: cubit.cancelClaim,
+      failureOf: (f) => f,
+      icon: Symbols.undo_rounded,
+      label: tr('Soʻrov bekor qilinmoqda…'),
+      successLabel: tr('Soʻrov bekor qilindi'),
+      errorLabel: tr('Bekor qilib boʻlmadi'),
+    );
+  }
 
   Future<void> _claim(BuildContext context) async {
     final cubit = context.read<DetailCubit>();
@@ -944,7 +981,7 @@ class _VisitorPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     final tc = context.tc;
     final Widget action = claimSent
-        ? _PillButton(label: tr('Soʻrov yuborildi'), onTap: null, bg: tc.warningContainer, fg: tc.warning)
+        ? _PillButton(label: tr('Soʻrov yuborildi'), onTap: () => _sent(context), bg: tc.warningContainer, fg: tc.warning)
         : listing.isFound
         ? _PillButton(label: tr('Bu meniki'), onTap: () => _claim(context))
         : _PillButton(label: tr('Men topdim'), onTap: () => _claim(context));

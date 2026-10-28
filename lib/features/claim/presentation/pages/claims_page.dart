@@ -228,7 +228,8 @@ class _ClaimCard extends StatelessWidget {
     final (kind, tone) = switch (claim.status) {
       ClaimStatus.pending => (StatusKind.pending, AvatarTone.lost),
       ClaimStatus.accepted => (StatusKind.accepted, AvatarTone.primary),
-      ClaimStatus.rejected => (StatusKind.rejected, AvatarTone.neutral),
+      // Not listed (filtered out by the repository); here for completeness.
+      ClaimStatus.rejected || ClaimStatus.cancelled => (StatusKind.rejected, AvatarTone.neutral),
     };
 
     return Opacity(

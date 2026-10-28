@@ -136,12 +136,27 @@ service cloud.firestore {
         && listingOf(request.resource.data.listingId).status == 'active'
         && request.resource.data.listingAuthorId != request.auth.uid
         && (request.resource.data.attempt == 1
-            || get(claimPath(request.resource.data.listingId, request.resource.data.attempt - 1)).data.status == 'rejected');
+            || get(claimPath(request.resource.data.listingId, request.resource.data.attempt - 1)).data.status
+               in ['rejected', 'cancelled']);
       // The listing's author answers once: pending -> accepted | rejected.
       allow update: if isMe(resource.data.listingAuthorId)
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'decidedAt'])
         && resource.data.status == 'pending'
         && request.resource.data.status in ['accepted', 'rejected'];
+      // TODO(test): cancelling marks the claim and uses the attempt; drop this
+      // rule after testing if the attempt should come back (delete below).
+      allow update: if isMe(resource.data.claimantId)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'cancelledAt'])
+        && resource.data.status == 'pending'
+        && request.resource.data.status == 'cancelled'
+        // TODO(test): back to duration.value(3, 'd') after testing.
+        && request.time > resource.data.createdAt + duration.value(0, 's');
+      // The claimant may take back a claim left unanswered for 3 days
+      // (ClaimTarget.cancelAfter); the attempt number is free again.
+      allow delete: if isMe(resource.data.claimantId)
+        && resource.data.status == 'pending'
+        // TODO(test): back to duration.value(3, 'd') after testing.
+        && request.time > resource.data.createdAt + duration.value(0, 's');
     }
 
     // A chat has the id of the claim that opened it and exists only next to

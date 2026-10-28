@@ -1,18 +1,20 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
 import '../../../../app/routes.dart';
 import '../../../../core/di/injection.dart';
-import '../../../../core/theme/topildi_surfaces.dart';
-import '../../../../core/theme/topildi_theme.dart';
+import '../../../../core/theme/t_text.dart';
 import '../../../../core/view_state.dart';
 import '../../../../core/widgets/photo_placeholder.dart';
 import '../../../../core/widgets/photo_source_sheet.dart';
 import '../../../../core/widgets/state_views.dart';
-import '../../../../core/widgets/t_button.dart';
-import '../../../../core/widgets/t_top_bar.dart';
+import '../../../create_listing/presentation/widgets/create_ui.dart';
+import '../../../listing/domain/entities/listing.dart';
 import '../../../listing/presentation/category_ui.dart';
 import '../../domain/entities/claim.dart';
 import '../cubit/claim_cubit.dart';
@@ -34,6 +36,9 @@ class ClaimPage extends StatelessWidget {
   }
 }
 
+/// "Egaligingizni tasdiqlang", big question + 3 keys: the item with a lock
+/// badge, the question in large type, the answer field with hint chips,
+/// an optional proof photo, one key per attempt left, and "Soʻrov yuborish".
 class _ClaimView extends StatelessWidget {
   const _ClaimView({required this.listingId});
 
@@ -42,175 +47,248 @@ class _ClaimView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cubit = context.read<ClaimCubit>();
+    final mq = MediaQuery.of(context);
     return BlocConsumer<ClaimCubit, ClaimState>(
-      listenWhen: (a, b) => a.sent != b.sent || a.submitFailure != b.submitFailure,
+      listenWhen: (a, b) => a.sent != b.sent,
       listener: (context, state) {
-        if (state.sent) {
-          final target = state.view;
-          final listing = target is ViewLoaded<ClaimTarget> ? target.data.listing : null;
-          context.pushReplacement(
-            Routes.claimSent(listingId),
-            extra: ClaimSentArgs(authorName: listing?.author.displayName, lost: listing != null && !listing.isFound),
-          );
-        }
+        if (!state.sent) return;
+        final target = state.view;
+        final listing = target is ViewLoaded<ClaimTarget> ? target.data.listing : null;
+        context.pushReplacement(
+          Routes.claimSent(listingId),
+          extra: ClaimSentArgs(authorName: listing?.author.displayName, lost: listing != null && !listing.isFound),
+        );
         // Failures are shown by the loader capsule (see _Footer).
       },
       builder: (context, state) {
         final view = state.view;
         return Scaffold(
-          appBar: TTopBar(
-            title: view is ViewLoaded<ClaimTarget> && !view.data.listing.isFound
-                ? tr('Buyum sizda ekanini tasdiqlang')
-                : tr('Egaligingizni tasdiqlang'),
-            bordered: true,
+          body: Stack(
+            children: [
+              const Positioned.fill(child: CreateBackground()),
+              Positioned.fill(
+                child: switch (view) {
+                  ViewLoading() || ViewEmpty() => const Center(child: CircularProgressIndicator.adaptive()),
+                  ViewError(:final isOffline) => SafeArea(
+                    child: isOffline
+                        ? OfflineState(onRetry: () => cubit.load(listingId))
+                        : ErrorState(onRetry: () => cubit.load(listingId)),
+                  ),
+                  ViewLoaded(:final data) => _Form(target: data, state: state),
+                },
+              ),
+              Positioned(
+                left: 16,
+                top: math.max(58.0, mq.padding.top + 4),
+                child: CreateGlassButton(
+                  icon: Symbols.arrow_back_rounded,
+                  label: tr('Orqaga'),
+                  onTap: () => context.canPop() ? context.pop() : context.go(Routes.listing(listingId)),
+                ),
+              ),
+            ],
           ),
-          body: switch (view) {
-            ViewLoading() || ViewEmpty() => const Center(child: CircularProgressIndicator()),
-            ViewError(:final isOffline) => isOffline
-                ? OfflineState(onRetry: () => cubit.load(listingId))
-                : ErrorState(onRetry: () => cubit.load(listingId)),
-            ViewLoaded(:final data) => _Form(target: data, state: state),
-          },
-          bottomNavigationBar: view is ViewLoaded<ClaimTarget>
-              ? _Footer(attemptsLeft: view.data.attemptsLeft, lost: !view.data.listing.isFound, submitting: state.submitting)
-              : null,
         );
       },
     );
   }
 }
 
-class _Form extends StatelessWidget {
+class _Form extends StatefulWidget {
   const _Form({required this.target, required this.state});
 
   final ClaimTarget target;
   final ClaimState state;
 
-  static const _hints = ['Ichidagi narsalar', 'Rang yoki naqsh', 'Yozuv, stiker', 'Tirnalgan joy'];
+  @override
+  State<_Form> createState() => _FormState();
+}
+
+class _FormState extends State<_Form> {
+  late final _answer = TextEditingController(text: widget.state.answer);
+  final _focus = FocusNode();
+
+  @override
+  void dispose() {
+    _answer.dispose();
+    _focus.dispose();
+    super.dispose();
+  }
+
+  static const _maxAnswer = 200;
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final mq = MediaQuery.of(context);
     final cubit = context.read<ClaimCubit>();
-    final l = target.listing;
+    final state = widget.state;
+    final l = widget.target.listing;
+    final left = widget.target.attemptsLeft;
+    final none = left <= 0;
     // A "lost" listing is answered by someone who found the item: they prove
     // they hold it by naming the owner's hidden detail.
     final lost = !l.isFound;
     final error = state.answerError;
+    final top = math.max(58.0, mq.padding.top + 4) + 44 + 16;
 
-    return ListView(
-      padding: const EdgeInsets.symmetric(horizontal: TSpace.screen, vertical: TSpace.md),
+    return Stack(
       children: [
-        Container(
-          padding: const EdgeInsets.all(TSpace.xs),
-          decoration: BoxDecoration(
-            color: cs.surfaceContainerLowest,
-            borderRadius: BorderRadius.circular(TRadius.md),
-            border: Border.all(color: cs.outlineVariant),
-          ),
-          child: Row(
-            children: [
-              PhotoPlaceholder(icon: l.category.icon, tint: l.tint, width: 52, height: 52, iconSize: 24),
-              const SizedBox(width: TSpace.sm),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(l.title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
-                    const SizedBox(height: 3),
-                    Text(
-                      lost
-                          ? tr('Egasi: {name} · {area}', {'name': l.author.displayName, 'area': l.areaName.split(',').first})
-                          : tr('Topuvchi: {name} · {area}', {'name': l.author.displayName, 'area': l.areaName.split(',').first}),
-                      style: TextStyle(fontSize: 13, color: cs.onSurfaceVariant),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: TSpace.md),
-        Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(color: context.ts.primaryTint, borderRadius: BorderRadius.circular(TRadius.md)),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(color: cs.primary, shape: BoxShape.circle),
-                child: Icon(Symbols.shield_lock_rounded, size: 20, color: cs.onPrimary),
-              ),
-              const SizedBox(width: TSpace.sm),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(tr('Nega bu savol?'), style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
-                    const SizedBox(height: 4),
-                    Text(
-                      lost
-                          ? tr('Egasi buyumning faqat oʻzi biladigan bir belgisini yashirib qoʻygan. Buyumga qarab uni toʻgʻri aytsangiz, buyum haqiqatan sizda ekani tasdiqlanadi. Bu soxta xabarlarning oldini oladi.')
-                          : tr('Topuvchi buyumning faqat egasi biladigan bir belgisini yashirib qoʻygan. Uni toʻgʻri aytsangiz, buyum sizniki ekani tasdiqlanadi. Bu begonalar olib ketishining oldini oladi.'),
-                      style: TextStyle(fontSize: 14, height: 20 / 14, color: cs.secondary),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: TSpace.md),
-        Text(lost ? tr('Buyumda qanday belgi bor?') : tr('Buyumingizda qanday belgi bor?'),
-            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: error != null ? cs.error : null)),
-        const SizedBox(height: TSpace.xs),
-        TextField(
-          onChanged: cubit.setAnswer,
-          minLines: 4,
-          maxLines: 6,
-          maxLength: 300,
-          enabled: target.attemptsLeft > 0,
-          style: const TextStyle(fontSize: 15, height: 22 / 15),
-          decoration: InputDecoration(
-            hintText: lost ? tr('Masalan: brelokda qizil yulduzcha bor') : tr('Masalan: ichida koʻk rangli bank kartam bor'),
-            counterText: '',
-            errorText: error,
-            errorMaxLines: 2,
-          ),
-        ),
-        const SizedBox(height: TSpace.md),
-        Text(tr('Nimani yozish mumkin:'), style: TextStyle(fontSize: 13, color: cs.onSurfaceVariant)),
-        const SizedBox(height: TSpace.xs),
-        Wrap(
-          spacing: 6,
-          runSpacing: 6,
+        ListView(
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+          padding: EdgeInsets.fromLTRB(0, top, 0, 34 + 56 + 10 + 40 + 24),
           children: [
-            for (final h in _hints)
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                decoration: BoxDecoration(color: cs.surfaceContainerHigh, borderRadius: BorderRadius.circular(TRadius.sm)),
-                child: Text(tr(h), style: TextStyle(fontSize: 13, color: cs.secondary)),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _ItemRow(listing: l, lost: lost),
+                  const SizedBox(height: 22),
+                  Text(
+                    lost ? tr('Buyumda qanday belgi bor?') : tr('Buyumingizda qanday belgi bor?'),
+                    style: TextStyle(
+                      fontSize: 32,
+                      height: 38 / 32,
+                      letterSpacing: -0.8,
+                      color: cs.onSurface,
+                    ).inter(FontWeight.w800),
+                  ),
+                ],
               ),
+            ),
+            const SizedBox(height: 22),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (left < ClaimTarget.maxAttempts) ...[
+                    _Notice(
+                      text: none
+                          ? tr('Javob mos kelmadi. Urinishlar tugadi')
+                          : tr('Javob mos kelmadi. Yana {n} ta urinish qoldi', {'n': left}),
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+                  _AnswerField(
+                    controller: _answer,
+                    focus: _focus,
+                    enabled: !none,
+                    error: error,
+                    hint: lost
+                        ? tr('Masalan: brelokda qizil yulduzcha bor')
+                        : tr('Masalan: ichida koʻk rangli bank kartam bor'),
+                    maxLength: _maxAnswer,
+                    onChanged: cubit.setAnswer,
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Builder(
+                          builder: (anchor) => _Proof(
+                            path: state.proofPath,
+                            enabled: !none,
+                            onAdd: () async {
+                              final path = await pickPhoto(context, anchor: anchor, title: tr('Dalil rasm'));
+                              if (path != null) cubit.setProofPhoto(path);
+                            },
+                            onRemove: () => cubit.setProofPhoto(null),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      const Spacer(),
+                      _Keys(left: left, dark: dark),
+                    ],
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
-        const SizedBox(height: TSpace.md),
-        if (state.proofPath != null) ...[
-          ClipRRect(
-            borderRadius: BorderRadius.circular(TRadius.md),
-            child: PhotoPlaceholder(icon: Symbols.image_rounded, path: state.proofPath, height: 140, width: double.infinity),
+        Positioned(
+          left: 0,
+          right: 0,
+          bottom: 0,
+          child: _Footer(attemptsLeft: left, lost: lost, ready: state.answer.trim().length >= 3),
+        ),
+      ],
+    );
+  }
+}
+
+/// 72 thumbnail with the lock badge, then label, title and "Topuvchi: …".
+class _ItemRow extends StatelessWidget {
+  const _ItemRow({required this.listing, required this.lost});
+
+  final Listing listing;
+  final bool lost;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final l = listing;
+    final area = l.district.isNotEmpty ? tr(l.district) : l.areaName.split(',').first;
+    return Row(
+      children: [
+        SizedBox.square(
+          dimension: 72,
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              PhotoPlaceholder(
+                icon: l.category.icon,
+                tint: l.tint,
+                path: l.photos.isEmpty ? null : l.photos.first,
+                width: 72,
+                height: 72,
+                iconSize: 36,
+                radius: 24,
+              ),
+              Positioned(
+                right: -12,
+                bottom: -12,
+                child: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: cs.primary,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: cs.surface, width: 4),
+                  ),
+                  child: Icon(Symbols.lock_rounded, size: 16, fill: 1, color: cs.onPrimary),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: TSpace.xs),
-        ],
-        Builder(
-          builder: (anchor) => _ProofButton(
-            attached: state.hasProofPhoto,
-            onTap: () async {
-              if (state.hasProofPhoto) return cubit.setProofPhoto(null);
-              final path = await pickPhoto(context, anchor: anchor, title: tr('Dalil rasm'));
-              if (path != null) cubit.setProofPhoto(path);
-            },
+        ),
+        const SizedBox(width: 14),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                (lost ? tr('Buyum sizda ekanini tasdiqlang') : tr('Egaligingizni tasdiqlang')).toUpperCase(),
+                style: TextStyle(fontSize: 13, letterSpacing: 1, color: cs.primary).inter(FontWeight.w700),
+              ),
+              Text(
+                l.title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(fontSize: 15, color: cs.onSurface).inter(FontWeight.w600),
+              ),
+              Text(
+                lost
+                    ? tr('Egasi: {name} · {area}', {'name': l.author.displayName, 'area': area})
+                    : tr('Topuvchi: {name} · {area}', {'name': l.author.displayName, 'area': area}),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant).inter(FontWeight.w400),
+              ),
+            ],
           ),
         ),
       ],
@@ -218,50 +296,203 @@ class _Form extends StatelessWidget {
   }
 }
 
-class _ProofButton extends StatelessWidget {
-  const _ProofButton({required this.attached, required this.onTap});
+/// "Javob mos kelmadi…" over the field after a rejected answer.
+class _Notice extends StatelessWidget {
+  const _Notice({required this.text});
 
-  final bool attached;
-  final VoidCallback onTap;
+  final String text;
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final tc = context.tc;
-    return Material(
-      color: attached ? tc.successContainer : Colors.transparent,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(TRadius.md),
-        side: BorderSide(color: attached ? tc.success : cs.outline),
+    return Semantics(
+      liveRegion: true,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(color: cs.errorContainer, borderRadius: BorderRadius.circular(18)),
+        child: Row(
+          children: [
+            Icon(Symbols.error_rounded, size: 20, fill: 1, color: cs.error),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                text,
+                style: TextStyle(fontSize: 14, height: 20 / 14, color: cs.onErrorContainer).inter(FontWeight.w600),
+              ),
+            ),
+          ],
+        ),
       ),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: onTap,
-        child: SizedBox(
-          height: TSize.button,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(attached ? Symbols.check_circle_rounded : Symbols.add_photo_alternate_rounded,
-                  size: 20, color: attached ? tc.success : cs.onSurface),
-              const SizedBox(width: TSpace.xs),
-              Flexible(
-                child: Text.rich(
-                  TextSpan(
-                    text: attached ? tr('Dalil rasmni olib tashlash') : tr('Dalil rasm qoʻshish '),
-                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: attached ? tc.success : cs.onSurface),
-                    children: [
-                      if (!attached)
-                        TextSpan(
-                          text: tr('(ixtiyoriy)'),
-                          style: TextStyle(fontWeight: FontWeight.w400, color: cs.onSurfaceVariant),
+    );
+  }
+}
+
+/// White multi-line field, radius 26: 2px primary ring and a soft glow
+/// while focused, a 1px hairline otherwise.
+class _AnswerField extends StatelessWidget {
+  const _AnswerField({
+    required this.controller,
+    required this.focus,
+    required this.enabled,
+    required this.error,
+    required this.hint,
+    required this.maxLength,
+    required this.onChanged,
+  });
+
+  final TextEditingController controller;
+  final FocusNode focus;
+  final bool enabled;
+  final String? error, hint;
+  final int maxLength;
+  final ValueChanged<String> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final placeholder = dark ? const Color(0xFF6B778C) : const Color(0xFF8A94A6);
+    final text = TextStyle(fontSize: 17, height: 23 / 17, color: cs.onSurface).inter(FontWeight.w400);
+    return ListenableBuilder(
+      listenable: focus,
+      builder: (context, _) {
+        final on = focus.hasFocus;
+        final ring = error != null ? cs.error : (on ? cs.primary : cs.outlineVariant);
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 150),
+              constraints: const BoxConstraints(minHeight: 110),
+              decoration: BoxDecoration(
+                color: cs.surfaceContainerLowest,
+                borderRadius: BorderRadius.circular(26),
+                border: Border.all(color: ring, width: on || error != null ? 2 : 1),
+                boxShadow: on
+                    ? [
+                        BoxShadow(
+                          color: cs.primary.withValues(alpha: 0.10),
+                          blurRadius: 26,
+                          offset: const Offset(0, 10),
                         ),
-                    ],
-                  ),
-                  overflow: TextOverflow.ellipsis,
+                      ]
+                    : null,
+              ),
+              child: TextField(
+                controller: controller,
+                focusNode: focus,
+                autofocus: enabled,
+                enabled: enabled,
+                onChanged: onChanged,
+                minLines: 3,
+                maxLines: 6,
+                maxLength: maxLength,
+                textCapitalization: TextCapitalization.sentences,
+                cursorColor: cs.primary,
+                style: text,
+                decoration: InputDecoration(
+                  hintText: hint,
+                  hintStyle: text.copyWith(color: placeholder),
+                  counterText: '',
+                  filled: false,
+                  border: InputBorder.none,
+                  enabledBorder: InputBorder.none,
+                  focusedBorder: InputBorder.none,
+                  disabledBorder: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
                 ),
               ),
-            ],
+            ),
+            if (error != null)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(18, 6, 18, 0),
+                child: Text(
+                  error!,
+                  style: TextStyle(fontSize: 13, height: 18 / 13, color: cs.error).inter(FontWeight.w500),
+                ),
+              ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+/// "Dalil rasm · ixtiyoriy" capsule, or the attached photo with a close button.
+class _Proof extends StatelessWidget {
+  const _Proof({required this.path, required this.enabled, required this.onAdd, required this.onRemove});
+
+  final String? path;
+  final bool enabled;
+  final VoidCallback onAdd, onRemove;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final p = path;
+    if (p != null) {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          PhotoPlaceholder(icon: Symbols.image_rounded, path: p, width: 44, height: 44, iconSize: 20, radius: 14),
+          Semantics(
+            button: true,
+            label: tr('Dalil rasmni olib tashlash'),
+            excludeSemantics: true,
+            child: GestureDetector(
+              onTap: onRemove,
+              behavior: HitTestBehavior.opaque,
+              child: SizedBox.square(
+                dimension: 44,
+                child: Icon(Symbols.close_rounded, size: 20, color: cs.onSurfaceVariant),
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+    return Semantics(
+      button: true,
+      enabled: enabled,
+      label: tr('Dalil rasm qoʻshish (ixtiyoriy)'),
+      excludeSemantics: true,
+      child: GestureDetector(
+        onTap: enabled ? onAdd : null,
+        behavior: HitTestBehavior.opaque,
+        child: Opacity(
+          opacity: enabled ? 1 : 0.45,
+          child: Container(
+            height: 44,
+            padding: const EdgeInsets.fromLTRB(12, 0, 16, 0),
+            decoration: BoxDecoration(color: cs.primaryContainer, borderRadius: BorderRadius.circular(999)),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Symbols.add_photo_alternate_rounded, size: 20, color: cs.onPrimaryContainer),
+                const SizedBox(width: 6),
+                Flexible(
+                  child: Text.rich(
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    TextSpan(
+                      text: tr('Dalil rasm'),
+                      children: [
+                        TextSpan(
+                          text: ' · ${tr('ixtiyoriy')}',
+                          style: TextStyle(color: cs.onPrimaryContainer.withValues(alpha: 0.7)).inter(FontWeight.w500),
+                        ),
+                      ],
+                    ),
+                    style: TextStyle(
+                      fontSize: 14,
+                      height: 20 / 14,
+                      color: cs.onPrimaryContainer,
+                    ).inter(FontWeight.w600),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -269,8 +500,97 @@ class _ProofButton extends StatelessWidget {
   }
 }
 
+/// Three keys, one per attempt: −12°, 0°, +12°. Used ones are grey, flat
+/// and faded; the one lost last time drops into place when the page opens.
+class _Keys extends StatefulWidget {
+  const _Keys({required this.left, required this.dark});
+
+  final int left;
+  final bool dark;
+
+  @override
+  State<_Keys> createState() => _KeysState();
+}
+
+class _KeysState extends State<_Keys> with SingleTickerProviderStateMixin {
+  late final _drop = AnimationController(vsync: this, duration: const Duration(milliseconds: 300));
+
+  int get _used => ClaimTarget.maxAttempts - widget.left.clamp(0, ClaimTarget.maxAttempts);
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_drop.isDismissed) return;
+    if (_used == 0 || MediaQuery.disableAnimationsOf(context)) {
+      _drop.value = 1;
+      return;
+    }
+    Future.delayed(const Duration(milliseconds: 400), () {
+      if (!mounted) return;
+      HapticFeedback.mediumImpact();
+      _drop.forward();
+    });
+  }
+
+  @override
+  void dispose() {
+    _drop.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final usedColor = widget.dark ? const Color(0xFF3A4A6E) : const Color(0xFFB4BDCC);
+    const tilt = [-12.0, 0.0, 12.0];
+    // Keys are used up from the right.
+    final firstUsed = ClaimTarget.maxAttempts - _used;
+    return Semantics(
+      label: tr('{n} ta urinish qoldi', {'n': widget.left.clamp(0, ClaimTarget.maxAttempts)}),
+      excludeSemantics: true,
+      child: AnimatedBuilder(
+        animation: _drop,
+        builder: (context, _) => Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            for (var i = 0; i < ClaimTarget.maxAttempts; i++) ...[
+              if (i > 0) const SizedBox(width: 4),
+              () {
+                final used = i >= firstUsed;
+                // The most recently used key animates; older ones are already down.
+                final t = used ? (i == firstUsed ? Curves.easeIn.transform(_drop.value) : 1.0) : 0.0;
+                return Transform.translate(
+                  offset: Offset(0, 8 * t),
+                  child: Transform.rotate(
+                    angle: tilt[i] * (1 - t) * math.pi / 180,
+                    child: Opacity(
+                      opacity: 1 - 0.7 * t,
+                      child: Container(
+                        width: 34,
+                        height: 34,
+                        decoration: BoxDecoration(
+                          color: cs.surfaceContainerLowest,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: const [BoxShadow(color: Color(0x140F1420), blurRadius: 12, offset: Offset(0, 4))],
+                        ),
+                        child: Icon(Symbols.key_rounded, size: 20, color: Color.lerp(cs.primary, usedColor, t)),
+                      ),
+                    ),
+                  ),
+                );
+              }(),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Fade to the page colour, "3 ta kalit = 3 ta urinish · …" and the
+/// send button (or why there is none).
 class _Footer extends StatelessWidget {
-  const _Footer({required this.attemptsLeft, required this.lost, required this.submitting});
+  const _Footer({required this.attemptsLeft, required this.lost, required this.ready});
 
   static Future<void> _send(BuildContext context) async {
     final cubit = context.read<ClaimCubit>();
@@ -291,29 +611,63 @@ class _Footer extends StatelessWidget {
 
   final int attemptsLeft;
   final bool lost;
-  final bool submitting;
+
+  /// At least 3 characters typed.
+  final bool ready;
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final none = attemptsLeft <= 0;
-    return TBottomBar(
-      horizontal: TSpace.screen,
+    final bottom = math.max(34.0, MediaQuery.viewPaddingOf(context).bottom);
+    // The fade only paints: taps go through to the chips under it.
+    return Stack(
       children: [
-        Text(
-          none
-              ? tr('Urinishlar tugadi')
-              : lost
-              ? tr('{attemptsLeft} ta urinishingiz bor · Javobni faqat egasi koʻradi', {'attemptsLeft': attemptsLeft})
-              : tr('{attemptsLeft} ta urinishingiz bor · Javobni faqat topuvchi koʻradi', {'attemptsLeft': attemptsLeft}),
-          textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 12, color: none ? cs.error : cs.onSurfaceVariant),
+        Positioned.fill(
+          child: IgnorePointer(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [cs.surface.withValues(alpha: 0), cs.surface],
+                  stops: const [0, 0.35],
+                ),
+              ),
+            ),
+          ),
         ),
-        const SizedBox(height: TSpace.xs),
-        TButton.primary(
-          label: tr('Soʻrov yuborish'),
-          loading: submitting,
-          onPressed: none ? null : () => _send(context),
+        Padding(
+          padding: EdgeInsets.fromLTRB(20, 40, 20, MediaQuery.viewInsetsOf(context).bottom > 0 ? 12 : bottom),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                none
+                    ? (lost
+                          ? tr('Urinishlar tugadi. Egasi bilan bogʻlanib boʻlmaydi')
+                          : tr('Urinishlar tugadi. Topuvchi bilan bogʻlanib boʻlmaydi'))
+                    : lost
+                    ? tr('{n} ta kalit = {n} ta urinish · Javobni faqat egasi koʻradi', {'n': attemptsLeft})
+                    : tr('{n} ta kalit = {n} ta urinish · Javobni faqat topuvchi koʻradi', {'n': attemptsLeft}),
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: none ? 15 : 13,
+                  height: 18 / 13,
+                  color: none ? cs.error : cs.onSurfaceVariant,
+                ).inter(none ? FontWeight.w600 : FontWeight.w400),
+              ),
+              if (!none) ...[
+                const SizedBox(height: 10),
+                CreatePrimaryButton(
+                  label: tr('Soʻrov yuborish'),
+                  leadingIcon: Symbols.front_hand_rounded,
+                  onTap: ready ? () => _send(context) : null,
+                ),
+              ],
+            ],
+          ),
         ),
       ],
     );

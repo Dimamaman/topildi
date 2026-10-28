@@ -64,6 +64,19 @@ class FirestoreClaimDataSource implements ClaimRemoteDataSource {
   }
 
   @override
+  Future<void> cancel(Claim claim) =>
+      _col.doc(claim.id).update({'status': ClaimStatus.cancelled.name, 'cancelledAt': FieldValue.serverTimestamp()});
+
+  @override
+  Future<void> remove(Claim claim) async {
+    await _col.doc(claim.id).delete();
+    // The storage rules allow it only once the claim is gone.
+    if (claim.hasProofPhoto) {
+      await _storage.ref(FirePaths.claimProof(claim.id)).delete().catchError((_) {});
+    }
+  }
+
+  @override
   Future<Claim?> byId(String id) async {
     final doc = await _col.doc(id).get();
     final data = doc.data();

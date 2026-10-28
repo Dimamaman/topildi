@@ -59,7 +59,7 @@ class ClaimRepositoryImpl implements ClaimRepository {
         return ClaimTarget(
           listing: model.toEntity(),
           attemptsLeft: ClaimTarget.maxAttempts - mine.length,
-          hasPending: mine.any((c) => c.status == ClaimStatus.pending),
+          pendingSince: mine.where((c) => c.status == ClaimStatus.pending).firstOrNull?.createdAt,
         );
       });
 
@@ -77,6 +77,15 @@ class ClaimRepositoryImpl implements ClaimRepository {
       });
 
   @override
+  FutureEither<void> cancel(String listingId) => _guard(() async {
+        final mine = await _claims.byClaimant(_session.userId, listingId);
+        final pending = mine.where((c) => c.status == ClaimStatus.pending).firstOrNull;
+        if (pending == null) throw const NotFoundFailure();
+        if (DateTime.now().difference(pending.createdAt) < ClaimTarget.cancelAfter) throw const ForbiddenFailure();
+        ClaimTarget.cancelUsesAttempt ? await _claims.cancel(pending) : await _claims.remove(pending);
+      });
+
+  @override
   FutureEither<ClaimReview> getReview(String listingId) => _guard(() async {
         final model = await _listing(listingId);
         // The hidden detail leaves the data layer only for the author.
@@ -84,7 +93,8 @@ class ClaimRepositoryImpl implements ClaimRepository {
         return ClaimReview(
           listing: model.toEntity(),
           hiddenDetail: model.hiddenDetail,
-          claims: await _claims.forListing(listingId),
+          // Taken back by the claimant: not the author's to answer.
+          claims: (await _claims.forListing(listingId)).where((c) => c.status != ClaimStatus.cancelled).toList(),
         );
       });
 

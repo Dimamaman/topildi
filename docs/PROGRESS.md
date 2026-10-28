@@ -1,6 +1,6 @@
 # Topildi — loyiha holati
 
-> Oxirgi yangilanish: 2026-10-26
+> Oxirgi yangilanish: 2026-10-28
 
 Topildi — yo'qolgan va topilgan buyumlar uchun Flutter ilova.
 - **Arxitektura**: Clean Architecture — `flutter_bloc`, `get_it` + `injectable` (`@prod` / `@test`), `fpdart`.
@@ -15,14 +15,19 @@ Topildi — yo'qolgan va topilgan buyumlar uchun Flutter ilova.
 | Lokalizatsiya (uz-Latn, uz-Cyrl, ru) | ✅ tayyor |
 | Firebase 1-bosqich: kirish, profil, lenta, eʼlon | ✅ tayyor, simulatorda kirish va eʼlon joylash ishladi |
 | Firebase 2-bosqich: so'rovlar ("Bu meniki" / "Men topdim") va chat | ✅ kod va rules deploy qilingan, ikki akkaunt bilan to'liq sinov qolgan |
-| Push bildirishnomalar | 🟡 kod tayyor (`push-notifications` branch), emulatorda sinalgan; APNs kalit, Xcode va deploy qoldi |
-| Bildirishnomalar sahifasi | 🟡 Firestore'dan o'qiydi; Cloud Functions deploy qilingach to'ladi |
+| Push bildirishnomalar | 🟡 `topildi` functions deploy qilingan (2026-10-28); haqiqiy iPhone'da sinov qoldi |
+| Bildirishnomalar sahifasi | ✅ Firestore'dan o'qiydi, bo'sh holati yangi dizaynda |
+| Brend ("t." logo, ikonka, splash) | ✅ tayyor |
+| Eʼlonni tahrirlash | ✅ tayyor, rules deploy qilingan |
+| Javobsiz so'rov: eslatma va bekor qilish | 🟡 deploy qilingan; **3 kunlik kutish test uchun vaqtincha o'chirilgan** (pastda) |
 | Xarita | ⏸ `Features.map` bilan yashirilgan |
 | Android | ⏳ sozlanmagan |
 
 **Branchlar (2026-10-26):** hamma ish `main` ga birlashtirildi — PR #3 → `firebase-phase1` → `main` (fast-forward). Yangi ish `main` dan alohida branch'da boshlanadi.
 
-**Tekshiruv:** `flutter analyze` toza; `flutter test` — 88 ta test o'tadi; `functions`: `npm test` — 13 ta; `flutter build ios --simulator --debug` muvaffaqiyatli; Firestore va Storage rules deploy qilingan.
+**Tekshiruv (2026-10-28):** `flutter analyze` toza; `flutter test` — 92 ta test o'tadi; `functions`: `npm test` — 34 ta; `flutter build ios --simulator --debug` muvaffaqiyatli; Firestore rules, indekslar va `topildi` functions deploy qilingan.
+
+> ⚠️ **Test rejimi (2026-10-28):** javobsiz so'rovni bekor qilish uchun 3 kunlik kutish vaqtincha **0** qilingan — ilovada (`ClaimTarget.cancelAfter`, `lib/features/claim/domain/entities/claim.dart`) va `firestore.rules` da (`duration.value(0, 's')`), ikkalasi ham `TODO(test)` bilan belgilangan va rules deploy qilingan. Shuningdek, bekor qilingan so'rov **urinishni sarflaydi**: o'chirilmaydi, `cancelled` holatiga o'tadi (`ClaimTarget.cancelUsesAttempt = true`; rules'da claimant uchun `pending → cancelled` ruxsati, keyingi urinish `rejected` yoki `cancelled` dan keyin). Sinovdan keyin ikkalasini qaytarib, rules'ni qayta deploy qilish kerak.
 
 ---
 
@@ -32,7 +37,7 @@ Topildi — yo'qolgan va topilgan buyumlar uchun Flutter ilova.
 
 **Glass UI tizimi:** `GlassSurface` (blur, saturatsiya, chekka yorug'ligi, soya), `TGlass` tokenlari, glass header va sheet, `OverlayEntry` asosidagi pull-down menyu (bosib-sudrab tanlash).
 
-**Ekranlar:** Kirish, SMS kod, Tanishib olaylik (orbita avatar, emoji, rang), Lenta (2 ustunli grid, skeleton, tur tablari, bo'sh holatda glass ikonka + "+" ga strelka), Mening eʼlonlarim, Filtrlar sheeti, Hudud menyusi, Bildirishnomalar, Chatlar, Chat, Profil, barcha dialoglar (glass alert).
+**Ekranlar:** Kirish (Telegram bot orqali, bitta bosish), Tanishib olaylik (orbita avatar, emoji, rang), Lenta (2 ustunli grid, skeleton, tur tablari, bo'sh holatda glass ikonka + "+" ga strelka), Mening eʼlonlarim, Filtrlar sheeti, Hudud menyusi, Bildirishnomalar, Chatlar, Chat, Profil, barcha dialoglar (glass alert).
 
 ### 2. Lokalizatsiya
 
@@ -50,7 +55,7 @@ Loyiha **FoodZeen** ilovasi bilan umumiy, shuning uchun Topildi'ning hamma narsa
 | Ulash | `lib/firebase_options.dart`, `ios/Runner/GoogleService-Info.plist`, `main.dart` da `Firebase.initializeApp` |
 | iOS | deployment target 15.0, Google URL scheme'lar, Podfile'da oldindan kompilyatsiya qilingan Firestore (build ~1 daqiqa); `SceneDelegate.swift` reCAPTCHA URL'ini `Auth.auth().canHandle` ga uzatadi, `FlutterDeepLinkingEnabled = false` |
 | DI | `firebase_module.dart` — `FirebaseAuth`, `FirebaseFirestore`, `FirebaseStorage`, `GoogleSignIn` (`@prod`) |
-| Auth | `firebase_auth_repository.dart` — SMS kod (`+998…`) va Google; profil `topildi_users/{uid}` |
+| Auth | `firebase_auth_repository.dart` — Telegram bot orqali kirish (`topildiTgStart` / `topildiTgClaim` / `topildiTgWebhook`, SMS kod o'rniga) va Google; profil `topildi_users/{uid}` |
 | Session | `session.dart` — `FirebaseSession` (`@prod`), `LocalSession` (`@test`) |
 | Eʼlonlar | `listing_remote_datasource.dart` (interfeys), `firestore_listing_datasource.dart` (`@prod`), `listing_mock_datasource.dart` (`@test`), `listing_firestore.dart` |
 | Rasmlar | `photo_compress.dart` — 1600px, sifat 82, EXIF o'chiriladi |
@@ -111,6 +116,27 @@ Cloud Functions yo'q: chatni ilova yaratadi, xavfsizlikni Firestore rules taʼmi
 - **Sahifa:** `firestore_notification_datasource.dart` (oxirgi 50 ta, o'qilmaganlar soni real vaqtda), `notification_firestore.dart`.
 - **Testlar:** `functions/src/test/events.test.ts` (13 ta, `npm test`), `notification_firestore_test`, `push_settings_test`. Emulatorda to'liq tekshirilgan: 4 trigger to'g'ri hujjat yozadi, matnli xabar sahifaga tushmaydi, rules begonaga o'qitmaydi.
 
+### 7. 2026-10-28 sessiyasi
+
+**Ekranlar (dizayn bo'yicha qayta qilindi):**
+- **"Eʼlon joylandi!"** (`posted_page.dart`): "katta matn + suriladigan kartalar", Instagram uslubidagi tasdiq belgisi, "Faol" chip, 3 ta "Keyin nima boʻladi?" kartasi (faol karta ko'k, qolganlari oq; 3.5 s da o'zi aylanadi), Ulashish tugmasi (`share_plus`), kirish animatsiyasi.
+- **Ko'rib chiqish:** tayyorlik halqasi 99% da to'xtaydi (e'lon qilish oxirgi qadam); tahrirlashda 100%.
+- **Chatlar, Bildirishnomalar bo'sh holati:** Lenta bilan umumiy `GlassEmptyIcon` (`lib/core/widgets/glass_empty_icon.dart`); Chatlar'da qulf belgisi, blok ekran markazida; Bildirishnomalar'da 3 ta namuna qatori, tizimda o'chiq bo'lsa ogohlantirish va "Yoqish".
+- **"Egaligingizni tasdiqlang"** (`claim_page.dart`): katta savol, javob maydoni, chiplar maydonga so'z qo'shadi, dalil rasm kapsulasi, 3 ta kalit (urinishlar; rad etilgandan keyin bittasi "tushadi"), rad etilgan va urinishlar tugagan holatlar.
+- Chatlar tab ikonkasi uch chiziqli `chat`; profil statistikasida ruscha uzun yozuv faqat o'zi kichrayadi.
+
+**Brend:** yangi "t." logo — `lib/core/widgets/topildi_logo.dart` (`TopildiMark`, `TopildiAppIcon`, `TopildiWordmark`, belgi SVG path'idan chiziladi). Arxivdagi PNG'lar buzuq edi, `assets/brand/` dagi PNG'lar shu path'dan qayta yasalgan. iOS/Android launcher ikonkalari (`flutter_launcher_icons`, Android 13 monoxrom bilan) va native splash (`flutter_native_splash`, ko'k fon) — sozlamalar `pubspec.yaml` da. Flutter splash belgini native splash bilan bir joyda chizadi.
+
+**Umumiy loading kapsula** — `lib/core/widgets/topildi_loader.dart` (`TopildiLoader.run`): Dynamic Island ostidan tushadi, orqa fonni va "orqaga" ni bloklaydi, "tugadi" / xato + "Qayta". Ulangan: eʼlonni o'chirish, eʼlon joylash, profilni saqlash, chiqish, so'rov yuborish, eʼlonni saqlash (tahrir), so'rovni bekor qilish.
+
+**Eʼlonni tahrirlash:** "Tahrirlash" → `/create/edit/:id` — Ko'rib chiqish ekrani mavjud eʼlon bilan to'ldiriladi, qadamlar shu yerdan ochiladi, pastda "Saqlash". Tur o'zgarmaydi; so'rov kelgan bo'lsa yashirin belgi bloklanadi; saqlanmagan o'zgarish bilan chiqishda tasdiq. Rules: muallif faol eʼlonda faqat tahrirlanadigan maydonlarni va yashirin belgini o'zgartira oladi.
+
+**Javobsiz so'rovlar:**
+- **Eslatma:** `topildiRemindPendingClaims` (har soat) — 24 soatdan ko'p kutgan so'rov uchun muallifga bitta push (`remindedAt` bilan belgilanadi). Indeks: `topildi_claims` (`status`, `createdAt`).
+- **Bekor qilish:** so'rov yuborgan odam "Soʻrov yuborildi" ni bosib, 3 kundan keyin so'rovni qaytarib oladi; urinish qaytariladi, dalil rasm o'chadi. Rules faqat egasiga, faqat `pending` holatda ruxsat beradi.
+
+**Boshqa:** O'zbekistonning 14 ta hududi va ~190 tuman/shahar filtrlarda (`regions.dart`); Chatlar refresh'i endi qotib qolmaydi (`ChatListCubit.load`); "Saqlash" va boshqa tugmalar `CreatePrimaryButton` uslubida.
+
 ### Maxfiylik qoidalari (saqlanadi)
 
 - **Telefon raqami** Firestore'ga hech qachon yozilmaydi — na eʼlonda, na so'rovda, na chatda.
@@ -123,6 +149,13 @@ Cloud Functions yo'q: chatni ilova yaratadi, xavfsizlikni Firestore rules taʼmi
 
 ## ⏳ Qilinishi kerak
 
+### 0. Test rejimini qaytarish (sinovdan keyin darhol)
+
+1. `lib/features/claim/domain/entities/claim.dart`: `ClaimTarget.cancelAfter = Duration(days: 3)`.
+2. `firestore.rules`: `topildi_claims` dagi **ikkala** `duration.value(0, 's')` ni (claimant `update` va `delete` qoidalari) `duration.value(3, 'd')` ga, so'ng `firebase deploy --only firestore:rules --project foodai-73d66`.
+3. Bekor qilish urinishni qaytarsin desak: `ClaimTarget.cancelUsesAttempt = false` va `firestore.rules` dagi claimant `allow update` (`pending → cancelled`) qoidasini olib tashlash; `detail_test.dart` dagi kutilgan qiymat 3. `cancelled` holati enum'da va keyingi urinish shartida qolishi mumkin (zarari yo'q).
+4. `TODO(test)` izohlarini olib tashlash.
+
 ### 1. Sinov (eng avval)
 
 1. Firebase konsolida `topildi_chats` indeksi **Enabled** bo'lganini tekshirish.
@@ -133,14 +166,14 @@ Cloud Functions yo'q: chatni ilova yaratadi, xavfsizlikni Firestore rules taʼmi
    - Rad etish va 3 urinish chegarasi.
 4. Konsolda: claim/chat hujjatlarida telefon yo'q; Storage'dagi dalil rasmlar EXIF'siz.
 5. 1-bosqichdan qolgan sinovlar: profil saqlash, filtrlar, o'chirish, chiqish.
+6. 2026-10-28 ishlari haqiqiy qurilmada: eʼlonni tahrirlash (rasm qo'shish/olib tashlash, yashirin belgi bloki), so'rovni bekor qilish, eslatma push'i (24 soatdan keyin), loading kapsula, yangi ikonka va splash (Android ham), Bildirishnomalar'dagi "Yoqish" kartasi.
 
 ### 2. Push bildirishnomalarni ishga tushirish
 
-1. **Egasi qiladi:** Apple Developer → Keys → APNs `.p8` kalit → Firebase → Project settings → Cloud Messaging → Topildi iOS ilovasiga yuklash.
-2. **Egasi qiladi:** Xcode → Runner → Signing & Capabilities → **Push Notifications** (Background Modes → Remote notifications allaqachon yoqilgan).
-3. `functions/src/index.ts` dagi `region` ni Firestore joylashuviga moslash.
-4. Deploy: `cd functions && npm ci && cd .. && firebase deploy --only functions:topildi,firestore:rules --project foodai-73d66`.
-5. Haqiqiy iPhone'da ikki akkaunt bilan sinov (simulatorda push to'liq ishlamaydi): har bir hodisa, push bosilganda to'g'ri ekran (ilova yopiq / fonda / ochiq), chiqqandan keyin push kelmasligi, til almashganda push tili.
+`topildi` functions deploy qilingan (2026-10-28). Deploy uchun `cd functions && npm run deploy` ishlatiladi — global `firebase` CLI eski Node bilan qurilgan va funksiyalarni yuklay olmaydi.
+
+1. APNs `.p8` kalit Firebase'ga yuklanganini va Xcode'da **Push Notifications** yoqilganini tekshirish.
+2. Haqiqiy iPhone'da ikki akkaunt bilan sinov (simulatorda push to'liq ishlamaydi): har bir hodisa, push bosilganda to'g'ri ekran (ilova yopiq / fonda / ochiq), chiqqandan keyin push kelmasligi, til almashganda push tili.
 6. Keyin: ilova ikonkasidagi badge soni (hozir yuborilmaydi), o'xshash eʼlon topilganda bildirishnoma.
 
 ### 3. Bildirishnomalar sahifasi
@@ -149,8 +182,11 @@ Firestore'ga ulangan (yuqorida). Hozircha "o'xshash buyum topildi" va "eʼlon ar
 
 ### 4. Mayda kamchiliklar
 
-- SMS kod xato matnlari dizayn bilan bir xil emas: Firebase "Kod notoʻgʻri. Qayta tekshiring" / "Kod eskirdi. Yangisini oling", dizayn — "Qayta kiriting" / "Kod eskirgan. Yangisini soʻrang"; kod eskirganda "Qayta yuborish" darhol faollashishi kerak.
-- Eʼlonni tahrirlash oqimi yo'q ("tez orada" toast).
+- (SMS kirish olib tashlangan bo'lsa, bu band endi kerak emas) SMS kod xato matnlari dizayn bilan bir xil emas: Firebase "Kod notoʻgʻri. Qayta tekshiring" / "Kod eskirdi. Yangisini oling", dizayn — "Qayta kiriting" / "Kod eskirgan. Yangisini soʻrang"; kod eskirganda "Qayta yuborish" darhol faollashishi kerak.
+- So'rov bekor qilinganda muallifning bildirishnomalar ro'yxatida eski "Yangi so'rov" yozuvi qoladi (bosilsa, so'rov yo'q).
+- "So'rov kelgan bo'lsa yashirin belgi o'zgarmaydi" qoidasini faqat ilova tekshiradi; to'liq himoya uchun Cloud Function kerak.
+- Tumanlar ro'yxati xotiradan tuzilgan (2022 dan keyingi yangi tumanlar yo'q) — rasmiy ro'yxat bilan solishtirish kerak. Eʼlon yaratishda hozircha faqat Toshkent tumanlari.
+- Eski ishlatilmay qolgan tarjimalar (`ru.dart`): masalan "Eʼlonni tahrirlash tez orada qoʻshiladi".
 - Eʼlon sahifasidagi muallif uchun so'rovlar soni sahifa ochilganda yuklanadi (real vaqtda emas).
 - Simulator uchun reCAPTCHA'ni o'chirish (`appVerificationDisabledForTesting`, faqat test raqamlar bilan) — taklif qilingan, qilinmagan.
 

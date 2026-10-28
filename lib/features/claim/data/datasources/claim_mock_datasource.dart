@@ -17,6 +17,15 @@ class ClaimMockDataSource implements ClaimRemoteDataSource {
     final now = DateTime.now();
     // Claims on the signed-in user's wallet listing (l1).
     _claims.addAll([
+      // The signed-in user's own claim on someone else's glasses (l20),
+      // unanswered for 4 days: it can be taken back.
+      Claim(
+        id: 'cl_me_l20',
+        listingId: 'l20',
+        claimant: const PublicUser(id: 'u_me', displayName: 'Dilshod A.'),
+        answer: 'Ramkaning ichki tomonida kichik tirnalgan joy bor.',
+        createdAt: now.subtract(const Duration(days: 4)),
+      ),
       Claim(
         id: 'cl_malika',
         listingId: 'l1',
@@ -99,6 +108,16 @@ class ClaimMockDataSource implements ClaimRemoteDataSource {
   @override
   Future<List<Claim>> byClaimant(String claimantId, String listingId) async =>
       _claims.where((c) => c.listingId == listingId && c.claimant.id == claimantId).toList();
+
+  @override
+  Future<void> cancel(Claim claim) => _setStatus(claim.id, ClaimStatus.cancelled);
+
+  @override
+  Future<void> remove(Claim claim) async {
+    await Future<void>.delayed(_latency ~/ 2);
+    _claims.removeWhere((c) => c.id == claim.id);
+    _changes.add(null);
+  }
 
   @override
   Future<Claim?> byId(String id) async {
