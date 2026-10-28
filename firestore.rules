@@ -143,20 +143,11 @@ service cloud.firestore {
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'decidedAt'])
         && resource.data.status == 'pending'
         && request.resource.data.status in ['accepted', 'rejected'];
-      // TODO(test): cancelling marks the claim and uses the attempt; drop this
-      // rule after testing if the attempt should come back (delete below).
-      allow update: if isMe(resource.data.claimantId)
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'cancelledAt'])
-        && resource.data.status == 'pending'
-        && request.resource.data.status == 'cancelled'
-        // TODO(test): back to duration.value(3, 'd') after testing.
-        && request.time > resource.data.createdAt + duration.value(0, 's');
       // The claimant may take back a claim left unanswered for 3 days
       // (ClaimTarget.cancelAfter); the attempt number is free again.
       allow delete: if isMe(resource.data.claimantId)
         && resource.data.status == 'pending'
-        // TODO(test): back to duration.value(3, 'd') after testing.
-        && request.time > resource.data.createdAt + duration.value(0, 's');
+        && request.time > resource.data.createdAt + duration.value(3, 'd');
     }
 
     // A chat has the id of the claim that opened it and exists only next to

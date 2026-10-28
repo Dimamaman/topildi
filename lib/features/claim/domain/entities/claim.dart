@@ -59,13 +59,13 @@ class ClaimTarget extends Equatable {
 
   /// A waiting claim can be taken back after this long without an answer;
   /// the attempt is returned. Same in firestore.rules.
-  // TODO(test): back to Duration(days: 3) after testing (also firestore.rules).
-  static const cancelAfter = Duration.zero;
+  static const cancelAfter = Duration(days: 3);
 
-  /// TODO(test): back to false after testing. True: a cancelled claim stays
-  /// as [ClaimStatus.cancelled] and uses up the attempt; false: it is
-  /// deleted and the attempt is returned.
-  static const cancelUsesAttempt = true;
+  /// False: a cancelled claim is deleted and the attempt is returned. True
+  /// (was used while testing): it stays as [ClaimStatus.cancelled] and uses
+  /// up the attempt; that also needs the claimant's `pending → cancelled`
+  /// update rule back in firestore.rules.
+  static const cancelUsesAttempt = false;
 
   final Listing listing;
   final int attemptsLeft;

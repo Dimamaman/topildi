@@ -154,7 +154,6 @@ void main() {
     expect(find.text('Soʻrov yuborildi'), findsNothing);
     expect(find.text('Bu meniki'), findsOneWidget);
     final t = await tester.runAsync(() => getIt<ClaimRepository>().getTarget('l20'));
-    // TODO(test): 3 again once cancelling returns the attempt.
-    expect(t!.getRight().toNullable()!.attemptsLeft, ClaimTarget.cancelUsesAttempt ? 2 : 3);
+    expect(t!.getRight().toNullable()!.attemptsLeft, 3);
   });
 }

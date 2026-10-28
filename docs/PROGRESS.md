@@ -19,7 +19,7 @@ Topildi — yo'qolgan va topilgan buyumlar uchun Flutter ilova.
 | Bildirishnomalar sahifasi | ✅ Firestore'dan o'qiydi, bo'sh holati yangi dizaynda |
 | Brend ("t." logo, ikonka, splash) | ✅ tayyor |
 | Eʼlonni tahrirlash | ✅ tayyor, rules deploy qilingan |
-| Javobsiz so'rov: eslatma va bekor qilish | 🟡 deploy qilingan; **3 kunlik kutish test uchun vaqtincha o'chirilgan** (pastda) |
+| Javobsiz so'rov: eslatma va bekor qilish | ✅ deploy qilingan (24 soatda eslatma, 3 kundan keyin bekor qilish) |
 | Xarita | ⏸ `Features.map` bilan yashirilgan |
 | Android | ⏳ sozlanmagan |
 
@@ -27,7 +27,7 @@ Topildi — yo'qolgan va topilgan buyumlar uchun Flutter ilova.
 
 **Tekshiruv (2026-10-28):** `flutter analyze` toza; `flutter test` — 92 ta test o'tadi; `functions`: `npm test` — 34 ta; `flutter build ios --simulator --debug` muvaffaqiyatli; Firestore rules, indekslar va `topildi` functions deploy qilingan.
 
-> ⚠️ **Test rejimi (2026-10-28):** javobsiz so'rovni bekor qilish uchun 3 kunlik kutish vaqtincha **0** qilingan — ilovada (`ClaimTarget.cancelAfter`, `lib/features/claim/domain/entities/claim.dart`) va `firestore.rules` da (`duration.value(0, 's')`), ikkalasi ham `TODO(test)` bilan belgilangan va rules deploy qilingan. Shuningdek, bekor qilingan so'rov **urinishni sarflaydi**: o'chirilmaydi, `cancelled` holatiga o'tadi (`ClaimTarget.cancelUsesAttempt = true`; rules'da claimant uchun `pending → cancelled` ruxsati, keyingi urinish `rejected` yoki `cancelled` dan keyin). Sinovdan keyin ikkalasini qaytarib, rules'ni qayta deploy qilish kerak.
+> **Test rejimi** (bekor qilish kutishsiz va urinishni sarflagan holda) 2026-10-28 da sinovdan keyin qaytarildi: kutish yana 3 kun, bekor qilingan so'rov o'chiriladi va urinish qaytadi; rules deploy qilingan.
 
 ---
 
@@ -148,13 +148,6 @@ Cloud Functions yo'q: chatni ilova yaratadi, xavfsizlikni Firestore rules taʼmi
 ---
 
 ## ⏳ Qilinishi kerak
-
-### 0. Test rejimini qaytarish (sinovdan keyin darhol)
-
-1. `lib/features/claim/domain/entities/claim.dart`: `ClaimTarget.cancelAfter = Duration(days: 3)`.
-2. `firestore.rules`: `topildi_claims` dagi **ikkala** `duration.value(0, 's')` ni (claimant `update` va `delete` qoidalari) `duration.value(3, 'd')` ga, so'ng `firebase deploy --only firestore:rules --project foodai-73d66`.
-3. Bekor qilish urinishni qaytarsin desak: `ClaimTarget.cancelUsesAttempt = false` va `firestore.rules` dagi claimant `allow update` (`pending → cancelled`) qoidasini olib tashlash; `detail_test.dart` dagi kutilgan qiymat 3. `cancelled` holati enum'da va keyingi urinish shartida qolishi mumkin (zarari yo'q).
-4. `TODO(test)` izohlarini olib tashlash.
 
 ### 1. Sinov (eng avval)
 
