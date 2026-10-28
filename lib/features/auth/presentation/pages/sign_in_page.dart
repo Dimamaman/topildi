@@ -12,6 +12,7 @@ import '../../../../app/routes.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/theme/t_text.dart';
 import '../../../../core/theme/topildi_theme.dart';
+import '../../../../core/widgets/topildi_logo.dart';
 import '../cubit/sign_in_cubit.dart';
 import '../../../../core/l10n/tr.dart';
 
@@ -426,7 +427,7 @@ class _FlyingTile extends StatelessWidget {
   }
 }
 
-/// Primary rounded square with the pin-check, inside a 12px white ring and
+/// The "t." app icon, inside a 12px white ring and
 /// a 1px primary hairline, with a deep soft shadow.
 class _AppIcon extends StatelessWidget {
   const _AppIcon({required this.size, required this.dark});
@@ -477,12 +478,7 @@ class _AppIcon extends StatelessWidget {
                   color: dark ? const Color(0x1AFFFFFF) : const Color(0xE6FFFFFF),
                   borderRadius: BorderRadius.circular(radius + ring - 1),
                 ),
-                child: Container(
-                  width: size,
-                  height: size,
-                  decoration: BoxDecoration(color: cs.primary, borderRadius: BorderRadius.circular(radius)),
-                  child: Icon(Symbols.where_to_vote_rounded, size: 56 * k, fill: 1, color: cs.onPrimary),
-                ),
+                child: TopildiAppIcon(size: size, radius: radius),
               ),
             ),
           ],

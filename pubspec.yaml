@@ -79,6 +79,8 @@ dev_dependencies:
   injectable_generator: ^3.0.2
   bloc_test: ^10.0.0
   mocktail: ^1.0.5
+  flutter_launcher_icons: ^0.14.4
+  flutter_native_splash: ^2.4.7
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -121,3 +123,26 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+# App icons: `dart run flutter_launcher_icons`
+flutter_launcher_icons:
+  ios: true
+  image_path_ios: "assets/brand/ios/AppIcon-1024.png"
+  remove_alpha_ios: true
+  android: "ic_launcher"
+  image_path_android: "assets/brand/android/playstore-512.png"
+  adaptive_icon_foreground: "assets/brand/android/ic_launcher_foreground-432.png"
+  adaptive_icon_background: "assets/brand/android/ic_launcher_background-432.png"
+  adaptive_icon_monochrome: "assets/brand/android/ic_launcher_monochrome-432.png"
+  # The foreground already keeps the mark inside the safe zone.
+  adaptive_icon_foreground_inset: 0
+
+# Native launch screen: `dart run flutter_native_splash:create`
+# Brand blue in both themes; SplashPage draws the same mark in the same place.
+flutter_native_splash:
+  web: false
+  color: "#2b5fd9"
+  image: assets/brand/splash/splash-mark.png
+  android_12:
+    color: "#2b5fd9"
+    image: assets/brand/splash/splash-android12.png

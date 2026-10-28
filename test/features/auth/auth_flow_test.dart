@@ -6,6 +6,7 @@ import 'package:topildi/core/di/injection.dart';
 import 'package:topildi/core/links/link_launcher.dart';
 import 'package:topildi/features/auth/presentation/cubit/sign_in_cubit.dart';
 import 'package:topildi/core/session/session.dart';
+import 'package:topildi/core/widgets/topildi_logo.dart';
 
 Future<void> _settle(WidgetTester t) async {
   await t.pumpAndSettle();
@@ -22,7 +23,7 @@ void main() {
     addTearDown(tester.view.reset);
 
     await tester.pumpWidget(const TopildiApp());
-    expect(find.text('Topildi'), findsOneWidget);
+    expect(find.byType(TopildiWordmark), findsOneWidget);
     await _settle(tester);
 
     expect(find.text('Nimadir topdingizmi?'), findsOneWidget);
