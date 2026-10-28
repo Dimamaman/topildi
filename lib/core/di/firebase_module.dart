@@ -53,6 +53,10 @@ abstract final class FirePaths {
   static const chats = 'topildi_chats';
 
   static String listingPhoto(String listingId, int i) => 'topildi/listings/$listingId/$i.jpg';
+
+  /// Photos added while editing get a unique name so they never overwrite
+  /// one still in use.
+  static String listingPhotoNamed(String listingId, String name) => 'topildi/listings/$listingId/$name.jpg';
   static String listingPhotos(String listingId) => 'topildi/listings/$listingId';
   static String avatar(String uid) => 'topildi/users/$uid/avatar.jpg';
   static String claimProof(String claimId) => 'topildi/claims/$claimId/proof.jpg';

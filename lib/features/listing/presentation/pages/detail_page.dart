@@ -382,6 +382,12 @@ class _AuthorActions extends StatelessWidget {
     }
   }
 
+  Future<void> _edit(BuildContext context) async {
+    final cubit = context.read<DetailCubit>();
+    final saved = await context.push<bool>(Routes.editListing(listing.id));
+    if (saved == true) await cubit.load(listing.id);
+  }
+
   Future<void> _delete(BuildContext context) async {
     final cubit = context.read<DetailCubit>();
     final ok = await TFeedback.confirm(
@@ -427,11 +433,9 @@ class _AuthorActions extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            button(
-              Symbols.edit_rounded,
-              tr('Tahrirlash'),
-              (_) => TFeedback.success(context, tr('Eʼlonni tahrirlash tez orada qoʻshiladi')),
-            ),
+            // A returned listing is closed: nothing to edit.
+            if (listing.status != ListingStatus.returned)
+              button(Symbols.edit_rounded, tr('Tahrirlash'), (_) => _edit(context)),
             button(Symbols.more_horiz_rounded, tr('Yana'), (anchor) => _more(context, anchor)),
           ],
         ),

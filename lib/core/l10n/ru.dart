@@ -765,4 +765,11 @@ const ruStrings = <String, String>{
   'Oʻchirib boʻlmadi': 'Не удалось удалить',
   'Soʻrov yuborilmoqda…': 'Отправляем запрос…',
   'Yuborib boʻlmadi': 'Не удалось отправить',
+  'Eʼlonni ochib boʻlmadi': 'Не удалось открыть объявление',
+  'Oʻzgarishlar saqlanmasinmi?': 'Не сохранять изменения?',
+  'Kiritgan oʻzgarishlaringiz yoʻqoladi.': 'Внесённые изменения пропадут.',
+  'Saqlamasdan chiqish': 'Выйти без сохранения',
+  'Soʻrovlar kelgan · oʻzgartirib boʻlmaydi': 'Есть запросы · изменить нельзя',
+  'Eʼlonni tahrirlash': 'Редактирование объявления',
+  'Soʻrovlar kelgan: yashirin belgini endi oʻzgartirib boʻlmaydi': 'Уже есть запросы: скрытую примету больше нельзя изменить',
 };

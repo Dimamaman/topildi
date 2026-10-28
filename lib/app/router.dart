@@ -94,6 +94,7 @@ GoRouter createRouter({String initialLocation = Routes.splash}) => GoRouter(
         ),
         GoRoute(path: Routes.createReview, builder: (_, _) => const ReviewPage()),
         GoRoute(path: Routes.createPosted, builder: (_, _) => const PostedPage()),
+        GoRoute(path: '/create/edit/:id', builder: (_, s) => ReviewPage(editId: s.pathParameters['id'])),
       ],
     ),
     GoRoute(

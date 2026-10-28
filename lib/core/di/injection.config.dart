@@ -113,6 +113,8 @@ import 'package:topildi/features/create_listing/domain/repositories/create_listi
     as _i762;
 import 'package:topildi/features/create_listing/domain/usecases/post_listing.dart'
     as _i113;
+import 'package:topildi/features/create_listing/domain/usecases/update_listing.dart'
+    as _i384;
 import 'package:topildi/features/create_listing/presentation/cubit/create_flow_cubit.dart'
     as _i64;
 import 'package:topildi/features/listing/data/datasources/firestore_listing_datasource.dart'
@@ -491,6 +493,9 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i113.PostListing>(
       () => _i113.PostListing(gh<_i762.CreateListingRepository>()),
     );
+    gh.factory<_i384.UpdateListing>(
+      () => _i384.UpdateListing(gh<_i762.CreateListingRepository>()),
+    );
     gh.lazySingleton<_i749.ProfileRepository>(
       () => _i708.ProfileRepositoryImpl(
         gh<_i395.ListingRemoteDataSource>(),
@@ -534,9 +539,6 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i126.SignOut>(
       () => _i126.SignOut(gh<_i749.ProfileRepository>()),
     );
-    gh.factory<_i64.CreateFlowCubit>(
-      () => _i64.CreateFlowCubit(gh<_i113.PostListing>()),
-    );
     gh.factory<_i389.ChatListCubit>(
       () => _i389.ChatListCubit(gh<_i956.WatchChats>()),
     );
@@ -576,6 +578,13 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i354.MarkChatRead>(),
         gh<_i496.SendMessage>(),
         gh<_i905.MarkReturned>(),
+      ),
+    );
+    gh.factory<_i64.CreateFlowCubit>(
+      () => _i64.CreateFlowCubit(
+        gh<_i113.PostListing>(),
+        gh<_i384.UpdateListing>(),
+        gh<_i445.GetClaimReview>(),
       ),
     );
     gh.factory<_i64.DetailCubit>(

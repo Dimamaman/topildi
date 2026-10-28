@@ -20,34 +20,49 @@ class CreateListingRepositoryImpl implements CreateListingRepository {
   final NetworkInfo _network;
   final Session _session;
 
+  ListingModel _model(CreateDraft draft, String id) => ListingModel(
+    id: id,
+    type: draft.type,
+    category: draft.category!,
+    title: draft.title.trim(),
+    // Posting no longer asks for a description.
+    description: '',
+    areaName: draft.areaName!,
+    // Only the approximate cell centre is stored publicly.
+    lat: draft.point!.approximate().lat,
+    lng: draft.point!.approximate().lng,
+    district: draft.district!,
+    happenedAt: draft.happenedAt(DateTime.now()),
+    author: PublicUser(id: _session.userId, displayName: _session.displayName),
+    hiddenDetail: draft.hiddenDetail.trim(),
+    photoCount: draft.photos.isEmpty ? 1 : draft.photos.length,
+    photos: draft.photos,
+    // Placeholder colour when there is no photo: by category, as the
+    // live preview card shows it while posting.
+    tint: draft.category!.index,
+  );
+
   @override
   FutureEither<String> post(CreateDraft draft) async {
     if (!await _network.isConnected) return left(const NetworkFailure());
     try {
-      final model = ListingModel(
-        // The data source assigns the real id.
-        id: 'l${DateTime.now().microsecondsSinceEpoch}',
-        type: draft.type,
-        category: draft.category!,
-        title: draft.title.trim(),
-        // Posting no longer asks for a description.
-        description: '',
-        areaName: draft.areaName!,
-        // Only the approximate cell centre is stored publicly.
-        lat: draft.point!.approximate().lat,
-        lng: draft.point!.approximate().lng,
-        district: draft.district!,
-        happenedAt: draft.happenedAt(DateTime.now()),
-        author: PublicUser(id: _session.userId, displayName: _session.displayName),
-        hiddenDetail: draft.hiddenDetail.trim(),
-        photoCount: draft.photos.isEmpty ? 1 : draft.photos.length,
-        photos: draft.photos,
-        // Placeholder colour when there is no photo: by category, as the
-        // live preview card shows it while posting.
-        tint: draft.category!.index,
-      );
-      final saved = await _source.insert(model);
+      // The data source assigns the real id.
+      final saved = await _source.insert(_model(draft, 'l${DateTime.now().microsecondsSinceEpoch}'));
       return right(saved.id);
+    } catch (e) {
+      return left(failureOf(e));
+    }
+  }
+
+  @override
+  FutureEither<void> update(String id, CreateDraft draft, {required bool hiddenDetail}) async {
+    if (!await _network.isConnected) return left(const NetworkFailure());
+    try {
+      final current = await _source.fetchById(id);
+      if (current == null) return left(const NotFoundFailure());
+      if (current.author.id != _session.userId) return left(const ForbiddenFailure());
+      await _source.update(_model(draft, id), hiddenDetail: hiddenDetail ? draft.hiddenDetail.trim() : null);
+      return right(null);
     } catch (e) {
       return left(failureOf(e));
     }

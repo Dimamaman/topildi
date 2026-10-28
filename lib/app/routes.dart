@@ -19,6 +19,9 @@ abstract final class Routes {
   static const createReview = '/create/review';
   static const createPosted = '/create/posted';
 
+  /// Edit an own listing: Review of the loaded listing, steps open from it.
+  static String editListing(String id) => '/create/edit/$id';
+
   static String listing(String id) => '/listing/$id';
   static String claim(String listingId) => '/listing/$listingId/claim';
   static String claimSent(String listingId) => '/listing/$listingId/claim/sent';

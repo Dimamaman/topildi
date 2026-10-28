@@ -13,6 +13,7 @@ import '../cubit/create_flow_cubit.dart';
 import '../pages/create_flow_page.dart';
 import 'create_ui.dart';
 import '../../../../core/l10n/tr.dart';
+import '../../../../core/widgets/t_feedback.dart';
 
 /// Step 2: title, category and the hidden detail.
 class CreateDetailsStep extends StatefulWidget {
@@ -117,6 +118,10 @@ class _CreateDetailsStepState extends State<CreateDetailsStep> {
 
 /// Opens the "Yashirin belgi" sheet and saves what was written (step 2, Review).
 Future<void> editHiddenDetail(BuildContext context, CreateFlowCubit cubit) async {
+  if (cubit.state.hiddenLocked) {
+    TFeedback.error(context, tr('Soʻrovlar kelgan: yashirin belgini endi oʻzgartirib boʻlmaydi'));
+    return;
+  }
   final d = cubit.state.draft;
   final text = await showGlassSheet<String>(
     context,

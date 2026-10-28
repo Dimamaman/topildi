@@ -24,6 +24,12 @@ abstract interface class ListingRemoteDataSource {
   /// uploaded first; the returned model has the final id and photo URLs.
   Future<ListingModel> insert(ListingModel model);
 
+  /// Rewrites the author-editable fields of [model] (category, title,
+  /// place, time, photos). Local paths in [ListingModel.photos] are
+  /// uploaded, photos no longer listed are deleted. [hiddenDetail] null
+  /// leaves the secret as it is. Returns the model with final photo URLs.
+  Future<ListingModel> update(ListingModel model, {String? hiddenDetail});
+
   Future<void> setStatus(String id, ListingStatus status);
 
   Future<void> remove(String id);

@@ -125,6 +125,54 @@ class FirestoreListingDataSource implements ListingRemoteDataSource {
   }
 
   @override
+  Future<ListingModel> update(ListingModel model, {String? hiddenDetail}) async {
+    final ref = _col.doc(model.id);
+    final old = [for (final p in (((await ref.get()).data()?['photoUrls'] as List?) ?? const [])) p as String];
+    final uploaded = <Reference>[];
+    try {
+      final urls = <String>[];
+      for (final p in model.photos) {
+        if (p.startsWith('http')) {
+          urls.add(p);
+          continue;
+        }
+        final name = '${DateTime.now().microsecondsSinceEpoch}_${uploaded.length}';
+        final file = _storage.ref(FirePaths.listingPhotoNamed(model.id, name));
+        await file.putData(await compressForUpload(p), SettableMetadata(contentType: 'image/jpeg'));
+        uploaded.add(file);
+        urls.add(await file.getDownloadURL());
+      }
+      final batch = _db.batch()
+        ..update(ref, {
+          'category': model.category.name,
+          'title': model.title,
+          'areaName': model.areaName,
+          'city': model.city,
+          'district': model.district,
+          'lat': model.lat,
+          'lng': model.lng,
+          'happenedAt': Timestamp.fromDate(model.happenedAt),
+          'photoUrls': urls,
+          'tint': model.tint,
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
+      if (hiddenDetail != null) batch.update(_secret(model.id), {'hiddenDetail': hiddenDetail});
+      await batch.commit();
+      // Photos dropped in the edit; best-effort, the listing is saved.
+      for (final url in old.where((u) => !urls.contains(u))) {
+        unawaited(_storage.refFromURL(url).delete().catchError((_) {}));
+      }
+      _changes.add(null);
+      return model.copyWith(photos: urls);
+    } catch (_) {
+      for (final f in uploaded) {
+        unawaited(f.delete().catchError((_) {}));
+      }
+      rethrow;
+    }
+  }
+
+  @override
   Future<void> setStatus(String id, ListingStatus status) async {
     final batch = _db.batch()
       ..update(_col.doc(id), {'status': status.name, 'updatedAt': FieldValue.serverTimestamp()});

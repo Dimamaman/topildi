@@ -8,6 +8,8 @@ import '../../../listing/domain/entities/listing.dart';
 import '../../../listing/domain/entities/regions.dart';
 import '../../domain/entities/create_draft.dart';
 import '../../domain/usecases/post_listing.dart';
+import '../../domain/usecases/update_listing.dart';
+import '../../../claim/domain/usecases/get_claim_review.dart';
 
 enum SubmitStatus { idle, submitting, success, failure }
 
@@ -20,6 +22,9 @@ class CreateFlowState extends Equatable {
     this.status = SubmitStatus.idle,
     this.postedId,
     this.failure,
+    this.editingId,
+    this.original,
+    this.hiddenLocked = false,
   });
 
   final CreateDraft draft;
@@ -33,6 +38,19 @@ class CreateFlowState extends Equatable {
   final String? postedId;
   final Failure? failure;
 
+  /// Editing this existing listing instead of posting a new one.
+  final String? editingId;
+
+  /// The listing as loaded for editing: [draft] differs → unsaved changes.
+  final CreateDraft? original;
+
+  /// Requests already came in: the hidden detail can't change any more,
+  /// or their answers would be checked against a new one.
+  final bool hiddenLocked;
+
+  bool get isEditing => editingId != null;
+  bool get hasChanges => original != null && original != draft;
+
   CreateFlowState copyWith({
     CreateDraft? draft,
     bool? showDetailErrors,
@@ -41,6 +59,9 @@ class CreateFlowState extends Equatable {
     SubmitStatus? status,
     String? postedId,
     Failure? failure,
+    String? editingId,
+    CreateDraft? original,
+    bool? hiddenLocked,
   }) =>
       CreateFlowState(
         draft: draft ?? this.draft,
@@ -50,26 +71,92 @@ class CreateFlowState extends Equatable {
         status: status ?? this.status,
         postedId: postedId ?? this.postedId,
         failure: failure,
+        editingId: editingId ?? this.editingId,
+        original: original ?? this.original,
+        hiddenLocked: hiddenLocked ?? this.hiddenLocked,
       );
 
   @override
-  List<Object?> get props => [draft, showDetailErrors, showAreaError, attempt, status, postedId, failure];
+  List<Object?> get props =>
+      [draft, showDetailErrors, showAreaError, attempt, status, postedId, failure, editingId, original, hiddenLocked];
 }
 
 @injectable
 class CreateFlowCubit extends Cubit<CreateFlowState> {
-  CreateFlowCubit(this._postListing) : super(_initial(DateTime.now()));
+  CreateFlowCubit(this._postListing, this._updateListing, this._getReview) : super(_initial(DateTime.now()));
 
   /// The time defaults to now.
   static CreateFlowState _initial(DateTime now) =>
       CreateFlowState(draft: CreateDraft(hour: now.hour, minute: now.minute));
 
   final PostListing _postListing;
+  final UpdateListing _updateListing;
+  final GetClaimReview _getReview;
+
+  /// Loads listing [id] (with its hidden detail and requests) for editing.
+  /// Returns the failure, if any.
+  Future<Failure?> startEdit(String id) async {
+    final r = await _getReview(id);
+    if (isClosed) return null;
+    return r.match((f) => f, (review) {
+      final draft = draftOf(review.listing, review.hiddenDetail, DateTime.now());
+      emit(CreateFlowState(draft: draft, original: draft, editingId: id, hiddenLocked: review.claims.isNotEmpty));
+      return null;
+    });
+  }
+
+  /// The draft that an existing listing was posted from.
+  static CreateDraft draftOf(Listing l, String hiddenDetail, DateTime now) {
+    final at = l.happenedAt;
+    final today = DateTime(now.year, now.month, now.day);
+    final day = DateTime(at.year, at.month, at.day);
+    final prefix = '${l.district}, ';
+    return CreateDraft(
+      type: l.type,
+      photos: l.photos,
+      title: l.title,
+      category: l.category,
+      hiddenDetail: hiddenDetail,
+      landmark: l.areaName.startsWith(prefix) ? l.areaName.substring(prefix.length) : '',
+      point: GeoPoint(l.lat, l.lng),
+      district: l.district,
+      day: day == today
+          ? DraftDay.today
+          : day == today.subtract(const Duration(days: 1))
+          ? DraftDay.yesterday
+          : DraftDay.other,
+      date: day == today ? null : day,
+      hour: at.hour,
+      minute: at.minute,
+    );
+  }
+
+  /// Saves the edit. Returns the failure, if any.
+  Future<Failure?> save() async {
+    final id = state.editingId;
+    if (id == null || state.status == SubmitStatus.submitting) return null;
+    emit(state.copyWith(status: SubmitStatus.submitting));
+    final r = await _updateListing(UpdateListingParams(id: id, draft: state.draft, hiddenDetail: !state.hiddenLocked));
+    if (isClosed) return null;
+    return r.match(
+      (f) {
+        emit(state.copyWith(status: SubmitStatus.failure, failure: f));
+        return f;
+      },
+      (_) {
+        emit(state.copyWith(status: SubmitStatus.success, original: state.draft));
+        return null;
+      },
+    );
+  }
 
   void _draft(CreateDraft Function(CreateDraft d) update) => emit(state.copyWith(draft: update(state.draft)));
 
   // Step 1
-  void setType(ListingType type) => _draft((d) => d.copyWith(type: type));
+  /// Fixed once posted.
+  void setType(ListingType type) {
+    if (!state.isEditing) _draft((d) => d.copyWith(type: type));
+  }
 
   void addPhoto(String path) {
     if (state.draft.photos.length >= CreateDraft.maxPhotos) return;
@@ -88,7 +175,9 @@ class CreateFlowCubit extends Cubit<CreateFlowState> {
   // Step 2
   void setTitle(String v) => _draft((d) => d.copyWith(title: v));
   void setCategory(ItemCategory v) => _draft((d) => d.copyWith(category: v));
-  void setHiddenDetail(String v) => _draft((d) => d.copyWith(hiddenDetail: v));
+  void setHiddenDetail(String v) {
+    if (!state.hiddenLocked) _draft((d) => d.copyWith(hiddenDetail: v));
+  }
 
   /// Returns true when step 2 can be left.
   bool submitDetails() {

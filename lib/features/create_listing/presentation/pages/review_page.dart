@@ -22,12 +22,17 @@ import '../widgets/create_ui.dart';
 import 'create_flow_page.dart';
 import '../../../../core/l10n/tr.dart';
 import '../../../../core/widgets/topildi_loader.dart';
+import '../../../../core/widgets/t_feedback.dart';
 
 /// Koʻrib chiqish, "readiness ring + slide to post": a ring that fills with
 /// the required fields, a five-item checklist (each row opens its step),
 /// and a slider that both confirms the rules and posts.
 class ReviewPage extends StatefulWidget {
-  const ReviewPage({super.key});
+  const ReviewPage({super.key, this.editId});
+
+  /// Editing this own listing: it is loaded first, and "Saqlash" replaces
+  /// the slide to post.
+  final String? editId;
 
   @override
   State<ReviewPage> createState() => _ReviewPageState();
@@ -45,6 +50,55 @@ class _Item {
 class _ReviewPageState extends State<ReviewPage> with SingleTickerProviderStateMixin {
   /// The ring fills from 0 when the page opens.
   late final _fill = AnimationController(vsync: this, duration: const Duration(milliseconds: 600));
+
+  /// The listing to edit is still loading.
+  late bool _loading = widget.editId != null;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.editId case final id?) WidgetsBinding.instance.addPostFrameCallback((_) => _startEdit(id));
+  }
+
+  Future<void> _startEdit(String id) async {
+    final f = await context.read<CreateFlowCubit>().startEdit(id);
+    if (!mounted) return;
+    if (f != null) {
+      TFeedback.error(context, f is NetworkFailure ? tr('Internet yoʻq. Qayta urinib koʻring') : tr('Eʼlonni ochib boʻlmadi'));
+      context.pop();
+      return;
+    }
+    setState(() => _loading = false);
+  }
+
+  /// Back from an edit with unsaved changes asks first.
+  Future<void> _leave(CreateFlowCubit cubit) async {
+    if (cubit.state.hasChanges) {
+      final ok = await TFeedback.confirm(
+        context,
+        title: tr('Oʻzgarishlar saqlanmasinmi?'),
+        body: tr('Kiritgan oʻzgarishlaringiz yoʻqoladi.'),
+        confirmLabel: tr('Saqlamasdan chiqish'),
+        cancelLabel: tr('Bekor qilish'),
+        destructive: true,
+      );
+      if (!ok || !mounted) return;
+    }
+    context.pop(false);
+  }
+
+  Future<void> _save(CreateFlowCubit cubit) async {
+    final f = await TopildiLoader.run<Failure?>(
+      context,
+      task: cubit.save,
+      failureOf: (f) => f,
+      icon: Symbols.save_rounded,
+      label: tr('Saqlanmoqda…'),
+      successLabel: tr('Saqlandi'),
+      errorLabel: tr('Saqlab boʻlmadi'),
+    );
+    if (mounted && f == null && cubit.state.status == SubmitStatus.success) context.pop(true);
+  }
 
   @override
   void didChangeDependencies() {
@@ -109,7 +163,9 @@ class _ReviewPageState extends State<ReviewPage> with SingleTickerProviderStateM
       _Item(
         name: tr('Yashirin belgi'),
         // The text itself is never shown here.
-        value: d.hiddenDetail.trim().isNotEmpty
+        value: cubit.state.hiddenLocked
+            ? tr('Soʻrovlar kelgan · oʻzgartirib boʻlmaydi')
+            : d.hiddenDetail.trim().isNotEmpty
             ? tr('Qoʻshildi · faqat siz koʻrasiz')
             : d.isFound
             ? tr('Qoʻshilmagan')
@@ -130,12 +186,24 @@ class _ReviewPageState extends State<ReviewPage> with SingleTickerProviderStateM
     return BlocConsumer<CreateFlowCubit, CreateFlowState>(
       listenWhen: (a, b) => a.status != b.status,
       listener: (context, state) async {
+        // Editing saves through _save and returns to the listing.
+        if (state.isEditing) return;
         if (state.status == SubmitStatus.success) {
           await Future<void>.delayed(const Duration(milliseconds: 600));
           if (context.mounted) context.go(Routes.createPosted);
         }
       },
       builder: (context, state) {
+        if (_loading) {
+          return const Scaffold(
+            body: Stack(
+              children: [
+                Positioned.fill(child: CreateBackground()),
+                Center(child: CircularProgressIndicator.adaptive()),
+              ],
+            ),
+          );
+        }
         final d = state.draft;
         final items = _items(d, cubit);
         // The ring counts the required items only.
@@ -148,8 +216,12 @@ class _ReviewPageState extends State<ReviewPage> with SingleTickerProviderStateM
             : null;
         final bottom = math.max(34.0, mq.padding.bottom);
 
+        final editing = state.isEditing;
         return PopScope(
-          canPop: !busy,
+          canPop: !busy && !state.hasChanges,
+          onPopInvokedWithResult: (didPop, _) {
+            if (!didPop && !busy) _leave(cubit);
+          },
           child: Scaffold(
             body: Stack(
               children: [
@@ -166,7 +238,7 @@ class _ReviewPageState extends State<ReviewPage> with SingleTickerProviderStateM
                             child: CreateGlassButton(
                               icon: Symbols.arrow_back_rounded,
                               label: tr('Orqaga'),
-                              onTap: busy ? () {} : () => context.pop(),
+                              onTap: busy ? () {} : (editing ? () => _leave(cubit) : () => context.pop()),
                             ),
                           ),
                           const SizedBox(width: 12),
@@ -174,7 +246,7 @@ class _ReviewPageState extends State<ReviewPage> with SingleTickerProviderStateM
                             child: Semantics(
                               header: true,
                               child: Text(
-                                tr('Koʻrib chiqish'),
+                                editing ? tr('Eʼlonni tahrirlash') : tr('Koʻrib chiqish'),
                                 style: text.titleMedium!
                                     .copyWith(fontSize: 17, height: 22 / 17, color: cs.onSurface)
                                     .inter(FontWeight.w700),
@@ -189,7 +261,7 @@ class _ReviewPageState extends State<ReviewPage> with SingleTickerProviderStateM
                         physics: createScrollPhysics,
                         padding: EdgeInsets.fromLTRB(20, 18, 20, bottom + 64 + 100),
                         children: [
-                          _Readiness(draft: d, ready: ready, fill: _fill),
+                          _Readiness(draft: d, ready: ready, fill: _fill, capped: !editing),
                           const SizedBox(height: 32),
                           _Checklist(items: items),
                         ],
@@ -238,9 +310,20 @@ class _ReviewPageState extends State<ReviewPage> with SingleTickerProviderStateM
                             ),
                           ),
                         ),
-                      const Padding(padding: EdgeInsets.symmetric(horizontal: 8), child: _Consent()),
-                      const SizedBox(height: 12 - _Consent.pad),
-                      _SlideToPublish(enabled: missing == null, status: state.status, onPublish: () => _publish(cubit)),
+                      if (editing)
+                        CreatePrimaryButton(
+                          label: tr('Saqlash'),
+                          onTap: missing == null && state.hasChanges && !busy ? () => _save(cubit) : null,
+                        )
+                      else ...[
+                        const Padding(padding: EdgeInsets.symmetric(horizontal: 8), child: _Consent()),
+                        const SizedBox(height: 12 - _Consent.pad),
+                        _SlideToPublish(
+                          enabled: missing == null,
+                          status: state.status,
+                          onPublish: () => _publish(cubit),
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -256,13 +339,16 @@ class _ReviewPageState extends State<ReviewPage> with SingleTickerProviderStateM
 /// Ring with the item's photo, then "HAMMASI TAYYOR" / "{n}% TAYYOR", the
 /// title and the type and category chips.
 class _Readiness extends StatelessWidget {
-  const _Readiness({required this.draft, required this.ready, required this.fill});
+  const _Readiness({required this.draft, required this.ready, required this.fill, this.capped = true});
 
   final CreateDraft draft;
 
   /// Share of the required items filled, 0…1.
   final double ready;
   final Animation<double> fill;
+
+  /// Stop at 99% while posting is still ahead; an edit shows the full ring.
+  final bool capped;
 
   @override
   Widget build(BuildContext context) {
@@ -272,7 +358,7 @@ class _Readiness extends StatelessWidget {
     final d = draft;
     final category = d.category;
     // Capped at 99%: publishing is the last step, so the ring never closes here.
-    final shown = ready >= 1 ? 0.99 : ready;
+    final shown = ready >= 1 && capped ? 0.99 : ready;
     final percent = (shown * 100).round();
     return Row(
       children: [
@@ -314,7 +400,7 @@ class _Readiness extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                tr('{n}% tayyor', {'n': percent}).toUpperCase(),
+                shown >= 1 ? tr('Hammasi tayyor').toUpperCase() : tr('{n}% tayyor', {'n': percent}).toUpperCase(),
                 style: text.labelMedium!
                     .copyWith(fontSize: 13, height: 18 / 13, color: cs.primary)
                     .inter(FontWeight.w700),

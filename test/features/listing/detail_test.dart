@@ -92,4 +92,48 @@ void main() {
     final r = await tester.runAsync(() => getIt<ListingRepository>().getListing('l_mine_lost'));
     expect(r!.getLeft().toNullable(), isA<NotFoundFailure>());
   });
+
+  testWidgets('Author: edit the title from Tahrirlash and save', (tester) async {
+    _phone(tester);
+    await tester.pumpWidget(TopildiApp(initialLocation: Routes.listing('l_mine4')));
+    await _settle(tester);
+
+    await tester.tap(find.bySemanticsLabel('Tahrirlash'));
+    await _settle(tester);
+    expect(find.text('Eʼlonni tahrirlash'), findsOneWidget);
+    expect(find.text('HAMMASI TAYYOR'), findsOneWidget);
+    // Nothing changed yet: Saqlash does nothing.
+    await tester.tap(find.text('Saqlash'));
+    await tester.pump();
+    expect(find.text('Saqlanmoqda…'), findsNothing);
+
+    await tester.tap(find.text('Sarlavha va kategoriya'));
+    await _settle(tester);
+    await tester.enterText(find.byType(TextField).first, 'Yangi sarlavha, tahrirlangan');
+    await tester.tap(find.text('Tayyor'));
+    await _settle(tester);
+
+    await tester.tap(find.text('Saqlash'));
+    // The loader capsule spins while saving: pump instead of settling.
+    for (var i = 0; i < 50; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    await _settle(tester);
+    expect(find.text('Mening eʼlonim'), findsOneWidget);
+    expect(find.text('Yangi sarlavha, tahrirlangan'), findsWidgets);
+  });
+
+  testWidgets('Author: hidden detail is locked once requests came in', (tester) async {
+    _phone(tester);
+    await tester.pumpWidget(TopildiApp(initialLocation: Routes.listing('l_mine2')));
+    await _settle(tester);
+
+    await tester.tap(find.bySemanticsLabel('Tahrirlash'));
+    await _settle(tester);
+    expect(find.text('Soʻrovlar kelgan · oʻzgartirib boʻlmaydi'), findsOneWidget);
+    await tester.tap(find.text('Yashirin belgi'));
+    await tester.pump();
+    expect(find.text('Soʻrovlar kelgan: yashirin belgini endi oʻzgartirib boʻlmaydi'), findsOneWidget);
+    await _settle(tester);
+  });
 }

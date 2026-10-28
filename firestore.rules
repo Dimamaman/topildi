@@ -80,10 +80,17 @@ service cloud.firestore {
         && request.resource.data.authorId == request.auth.uid
         && request.resource.data.status == 'active'
         && validListing(request.resource.data);
-      // The author may only change the status (active -> returned).
+      // The author may change the status (active -> returned), or edit an
+      // active listing's content; type, author and dates stay as they are.
       allow update: if (isMe(resource.data.authorId)
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt'])
           && request.resource.data.status in ['active', 'returned'])
+        || (isMe(resource.data.authorId)
+          && resource.data.status == 'active'
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(
+               ['category', 'title', 'areaName', 'city', 'district', 'lat', 'lng', 'happenedAt',
+                'photoUrls', 'tint', 'updatedAt'])
+          && validListing(request.resource.data))
         || returnedViaChat();
       allow delete: if isMe(resource.data.authorId);
 
@@ -92,6 +99,11 @@ service cloud.firestore {
         allow read, delete: if isMe(resource.data.authorId);
         allow create: if isMe(request.resource.data.authorId)
           && request.resource.data.keys().hasOnly(['hiddenDetail', 'authorId'])
+          && request.resource.data.hiddenDetail is string
+          && request.resource.data.hiddenDetail.size() <= 200;
+        // Editing; the app locks it once requests came in.
+        allow update: if isMe(resource.data.authorId)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['hiddenDetail'])
           && request.resource.data.hiddenDetail is string
           && request.resource.data.hiddenDetail.size() <= 200;
       }

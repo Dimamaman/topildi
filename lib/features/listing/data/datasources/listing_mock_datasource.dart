@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:injectable/injectable.dart';
 
+import '../../../../core/error/failure.dart';
 import '../../domain/entities/listing.dart';
 import '../models/listing_model.dart';
 import 'listing_remote_datasource.dart';
@@ -615,6 +616,35 @@ class ListingMockDataSource implements ListingRemoteDataSource {
     _items.insert(0, model);
     _changes.add(null);
     return model;
+  }
+
+  @override
+  Future<ListingModel> update(ListingModel model, {String? hiddenDetail}) async {
+    await Future<void>.delayed(_latency);
+    final i = _items.indexWhere((e) => e.id == model.id);
+    if (i < 0) throw const NotFoundFailure();
+    final old = _items[i];
+    _items[i] = ListingModel(
+      id: old.id,
+      type: old.type,
+      category: model.category,
+      title: model.title,
+      description: old.description,
+      areaName: model.areaName,
+      happenedAt: model.happenedAt,
+      author: old.author,
+      hiddenDetail: hiddenDetail ?? old.hiddenDetail,
+      photoCount: model.photoCount,
+      photos: model.photos,
+      tint: model.tint,
+      status: old.status,
+      city: model.city,
+      district: model.district,
+      lat: model.lat,
+      lng: model.lng,
+    );
+    _changes.add(null);
+    return _items[i];
   }
 
   @override

@@ -101,10 +101,14 @@ class _ChatListPageState extends State<ChatListPage> {
           ),
         ),
       ],
+      // Centred in the space between the title and the tab bar.
       ViewEmpty() => [
-        SliverPadding(
-          padding: EdgeInsets.fromLTRB(28, 44, 28, bottom),
-          sliver: const SliverToBoxAdapter(child: _Empty()),
+        SliverFillRemaining(
+          hasScrollBody: false,
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(28, 24, 28, bottom),
+            child: const Center(child: _Empty()),
+          ),
         ),
       ],
       ViewError(:final isOffline) => [
@@ -409,6 +413,7 @@ class _Empty extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     final text = Theme.of(context).textTheme;
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
         const GlassEmptyIcon(icon: Symbols.chat_rounded, iconSize: 60, iconFill: true, badge: GlassIconBadge.lock),
         const SizedBox(height: 30),

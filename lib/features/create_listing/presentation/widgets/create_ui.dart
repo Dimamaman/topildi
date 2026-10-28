@@ -425,49 +425,55 @@ class CreateGlassButton extends StatelessWidget {
   }
 }
 
-/// 56px primary capsule with an icon after the label.
+/// 56px primary capsule with an icon after the label. Null [onTap]:
+/// dimmed and not tappable.
 class CreatePrimaryButton extends StatelessWidget {
   const CreatePrimaryButton({super.key, required this.label, this.icon, required this.onTap});
 
   final String label;
   final IconData? icon;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     return Semantics(
       button: true,
+      enabled: onTap != null,
       label: label,
       excludeSemantics: true,
       child: GestureDetector(
         onTap: onTap,
         behavior: HitTestBehavior.opaque,
-        child: Container(
-          height: 56,
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          decoration: BoxDecoration(
-            color: cs.primary,
-            borderRadius: BorderRadius.circular(999),
-            boxShadow: [
-              BoxShadow(color: cs.primary.withValues(alpha: 0.28), offset: const Offset(0, 12), blurRadius: 28),
-            ],
-          ),
-          alignment: Alignment.center,
-          child: FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  label,
-                  maxLines: 1,
-                  style: Theme.of(context).textTheme.labelLarge!
-                      .copyWith(fontSize: 17, height: 22 / 17, color: cs.onPrimary)
-                      .inter(FontWeight.w600),
-                ),
-                if (icon != null) ...[const SizedBox(width: 8), Icon(icon, size: 20, color: cs.onPrimary)],
+        child: AnimatedOpacity(
+          duration: const Duration(milliseconds: 200),
+          opacity: onTap == null ? 0.45 : 1,
+          child: Container(
+            height: 56,
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            decoration: BoxDecoration(
+              color: cs.primary,
+              borderRadius: BorderRadius.circular(999),
+              boxShadow: [
+                BoxShadow(color: cs.primary.withValues(alpha: 0.28), offset: const Offset(0, 12), blurRadius: 28),
               ],
+            ),
+            alignment: Alignment.center,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    label,
+                    maxLines: 1,
+                    style: Theme.of(context).textTheme.labelLarge!
+                        .copyWith(fontSize: 17, height: 22 / 17, color: cs.onPrimary)
+                        .inter(FontWeight.w600),
+                  ),
+                  if (icon != null) ...[const SizedBox(width: 8), Icon(icon, size: 20, color: cs.onPrimary)],
+                ],
+              ),
             ),
           ),
         ),

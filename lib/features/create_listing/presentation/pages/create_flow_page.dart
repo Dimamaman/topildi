@@ -112,8 +112,9 @@ class _CreateFlowPageState extends State<CreateFlowPage> {
     final mq = MediaQuery.of(context);
     final keyboard = mq.viewInsets.bottom > 0;
     final last = _step == _count - 1;
+    // Editing a posted listing saves on Review; a step only returns to it.
     final (label, icon) = widget.editing
-        ? (tr('Saqlash'), null)
+        ? (context.read<CreateFlowCubit>().state.isEditing ? tr('Tayyor') : tr('Saqlash'), null)
         : last
         ? (tr('Koʻrib chiqish'), CreateIcons.review)
         : (tr('Keyingi'), CreateIcons.next);

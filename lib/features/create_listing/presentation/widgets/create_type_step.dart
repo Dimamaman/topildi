@@ -39,7 +39,7 @@ class CreateTypeStep extends StatelessWidget {
     final tc = context.tc;
 
     return BlocBuilder<CreateFlowCubit, CreateFlowState>(
-      buildWhen: (a, b) => a.draft.type != b.draft.type || a.draft.photos != b.draft.photos,
+      buildWhen: (a, b) => a.draft.type != b.draft.type || a.draft.photos != b.draft.photos || a.isEditing != b.isEditing,
       builder: (context, state) {
         final d = state.draft;
         final full = d.photos.length >= CreateDraft.maxPhotos;
@@ -49,7 +49,14 @@ class CreateTypeStep extends StatelessWidget {
           padding: EdgeInsets.fromLTRB(20, top, 20, createFormBottomPadding(context)),
           children: [
             CreateSectionLabel(label: tr('Nima boʻldi?')),
-            _TypeSegment(isFound: d.isFound, onChanged: cubit.setType),
+            // The type can't change once posted.
+            IgnorePointer(
+              ignoring: state.isEditing,
+              child: Opacity(
+                opacity: state.isEditing ? 0.5 : 1,
+                child: _TypeSegment(isFound: d.isFound, onChanged: cubit.setType),
+              ),
+            ),
             const SizedBox(height: 18),
             CreateSectionLabel(label: tr('Rasmlar'), value: '${d.photos.length} / ${CreateDraft.maxPhotos}'),
             SizedBox(
