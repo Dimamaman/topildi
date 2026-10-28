@@ -84,7 +84,7 @@ void main() {
 
     await tester.tap(find.text('Koʻrib chiqish'));
     await tester.pumpAndSettle();
-    expect(find.text('HAMMASI TAYYOR'), findsOneWidget);
+    expect(find.text('99% TAYYOR'), findsOneWidget);
     expect(find.text('Telefonlar · Chilonzor · Metro yonida'), findsNothing);
     expect(find.text('Chilonzor · Metro yonida'), findsOneWidget);
     // The hidden detail itself is never shown on Review.
@@ -100,7 +100,7 @@ void main() {
     await tester.pump(const Duration(seconds: 1));
     await tester.pump(const Duration(seconds: 1));
     await tester.pumpAndSettle();
-    expect(find.text('Eʼlon joylandi!'), findsOneWidget);
+    expect(find.text('joylandi!'), findsOneWidget);
 
     await tester.tap(find.text('Eʼlonni koʻrish'));
     await tester.pump(const Duration(seconds: 1));

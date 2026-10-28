@@ -261,7 +261,9 @@ class _Readiness extends StatelessWidget {
     final text = Theme.of(context).textTheme;
     final d = draft;
     final category = d.category;
-    final percent = (ready * 100).round();
+    // Capped at 99%: publishing is the last step, so the ring never closes here.
+    final shown = ready >= 1 ? 0.99 : ready;
+    final percent = (shown * 100).round();
     return Row(
       children: [
         SizedBox.square(
@@ -273,7 +275,7 @@ class _Readiness extends StatelessWidget {
                 animation: fill,
                 builder: (context, _) => CustomPaint(
                   painter: _RingPainter(
-                    value: ready * Curves.easeOutCubic.transform(fill.value),
+                    value: shown * Curves.easeOutCubic.transform(fill.value),
                     track: cs.outlineVariant,
                     color: cs.primary,
                   ),
@@ -302,7 +304,7 @@ class _Readiness extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                ready >= 1 ? tr('Hammasi tayyor').toUpperCase() : tr('{n}% tayyor', {'n': percent}).toUpperCase(),
+                tr('{n}% tayyor', {'n': percent}).toUpperCase(),
                 style: text.labelMedium!
                     .copyWith(fontSize: 13, height: 18 / 13, color: cs.primary)
                     .inter(FontWeight.w700),
@@ -353,10 +355,13 @@ class _RingPainter extends CustomPainter {
       ..strokeWidth = stroke;
     canvas.drawArc(rect, 0, 2 * math.pi, false, paint..color = track);
     if (value <= 0) return;
+    // Round caps stick out stroke/2 past each end; trim them off so a 99%
+    // ring shows its gap instead of looking closed.
+    final caps = value < 1 ? stroke / (rect.width / 2) : 0.0;
     canvas.drawArc(
       rect,
-      -math.pi / 2,
-      2 * math.pi * value,
+      -math.pi / 2 + caps / 2,
+      math.max(0.0, 2 * math.pi * value - caps),
       false,
       paint
         ..color = color
