@@ -18,6 +18,9 @@ abstract interface class ClaimRepository {
 
   FutureEither<Claim> reject(String claimId);
 
+  /// The claim [claimId], live; fails with NotFoundFailure once it is gone.
+  StreamEither<Claim> watchClaim(String claimId);
+
   /// Pending claims per listing of the signed-in user, live.
   StreamEither<Map<String, int>> watchPendingCounts();
 }

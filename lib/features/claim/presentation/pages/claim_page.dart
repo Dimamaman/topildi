@@ -54,10 +54,7 @@ class _ClaimView extends StatelessWidget {
         if (!state.sent) return;
         final target = state.view;
         final listing = target is ViewLoaded<ClaimTarget> ? target.data.listing : null;
-        context.pushReplacement(
-          Routes.claimSent(listingId),
-          extra: ClaimSentArgs(authorName: listing?.author.displayName, lost: listing != null && !listing.isFound),
-        );
+        context.pushReplacement(Routes.claimSent(listingId), extra: ClaimSentArgs(listing: listing, claim: state.sentClaim));
         // Failures are shown by the loader capsule (see _Footer).
       },
       builder: (context, state) {

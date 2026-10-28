@@ -101,10 +101,14 @@ import 'package:topildi/features/claim/domain/usecases/reject_claim.dart'
     as _i695;
 import 'package:topildi/features/claim/domain/usecases/submit_claim.dart'
     as _i774;
+import 'package:topildi/features/claim/domain/usecases/watch_claim.dart'
+    as _i857;
 import 'package:topildi/features/claim/domain/usecases/watch_pending_claims.dart'
     as _i843;
 import 'package:topildi/features/claim/presentation/cubit/claim_cubit.dart'
     as _i176;
+import 'package:topildi/features/claim/presentation/cubit/claim_sent_cubit.dart'
+    as _i511;
 import 'package:topildi/features/claim/presentation/cubit/claims_cubit.dart'
     as _i573;
 import 'package:topildi/features/claim/presentation/cubit/pending_claims_cubit.dart'
@@ -570,6 +574,9 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i774.SubmitClaim>(
       () => _i774.SubmitClaim(gh<_i28.ClaimRepository>()),
     );
+    gh.factory<_i857.WatchClaim>(
+      () => _i857.WatchClaim(gh<_i28.ClaimRepository>()),
+    );
     gh.factory<_i843.WatchPendingClaims>(
       () => _i843.WatchPendingClaims(gh<_i28.ClaimRepository>()),
     );
@@ -618,6 +625,9 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.factory<_i142.PendingClaimsCubit>(
       () => _i142.PendingClaimsCubit(gh<_i843.WatchPendingClaims>()),
+    );
+    gh.factory<_i511.ClaimSentCubit>(
+      () => _i511.ClaimSentCubit(gh<_i857.WatchClaim>()),
     );
     gh.factory<_i573.ClaimsCubit>(
       () => _i573.ClaimsCubit(

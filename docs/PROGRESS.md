@@ -25,7 +25,7 @@ Topildi — yo'qolgan va topilgan buyumlar uchun Flutter ilova.
 
 **Branchlar (2026-10-26):** hamma ish `main` ga birlashtirildi — PR #3 → `firebase-phase1` → `main` (fast-forward). Yangi ish `main` dan alohida branch'da boshlanadi.
 
-**Tekshiruv (2026-10-28):** `flutter analyze` toza; `flutter test` — 92 ta test o'tadi; `functions`: `npm test` — 34 ta; `flutter build ios --simulator --debug` muvaffaqiyatli; Firestore rules, indekslar va `topildi` functions deploy qilingan.
+**Tekshiruv (2026-10-28):** `flutter analyze` toza; `flutter test` — 95 ta test o'tadi; `functions`: `npm test` — 34 ta; `flutter build ios --simulator --debug` muvaffaqiyatli; Firestore rules, indekslar va `topildi` functions deploy qilingan.
 
 > **Test rejimi** (bekor qilish kutishsiz va urinishni sarflagan holda) 2026-10-28 da sinovdan keyin qaytarildi: kutish yana 3 kun, bekor qilingan so'rov o'chiriladi va urinish qaytadi; rules deploy qilingan.
 
@@ -124,6 +124,8 @@ Cloud Functions yo'q: chatni ilova yaratadi, xavfsizlikni Firestore rules taʼmi
 - **Chatlar, Bildirishnomalar bo'sh holati:** Lenta bilan umumiy `GlassEmptyIcon` (`lib/core/widgets/glass_empty_icon.dart`); Chatlar'da qulf belgisi, blok ekran markazida; Bildirishnomalar'da 3 ta namuna qatori, tizimda o'chiq bo'lsa ogohlantirish va "Yoqish".
 - **"Egaligingizni tasdiqlang"** (`claim_page.dart`): katta savol, javob maydoni, chiplar maydonga so'z qo'shadi, dalil rasm kapsulasi, 3 ta kalit (urinishlar; rad etilgandan keyin bittasi "tushadi"), rad etilgan va urinishlar tugagan holatlar.
 - Chatlar tab ikonkasi uch chiziqli `chat`; profil statistikasida ruscha uzun yozuv faqat o'zi kichrayadi.
+
+- **"Soʻrov yuborildi!"** (`claim_sent_page.dart`, SY1): "Eʼlon joylandi!" uslubida — ✕ (glass), buyum qatori (72 miniatyura + `send` nishoni, "Topuvchi/Egasi: {ism} · {tuman}", bosilsa eʼlon), katta ikki qatorli sarlavha, 3 qadamli vaqt chizigʻi (aylanuvchi halqa, "Kamroq harakat"da statik), "Lentaga qaytish"; kirish animatsiyasi S3 bilan bir xil. "Odatda bir necha soat" va sariq/yashil belgilar olib tashlandi; "Soʻrovlarimni koʻrish" havolasi qoʻyilmadi (ilovada bunday sahifa yoʻq). ✕ va "orqaga" Lentaga olib boradi. Ekran ochiq turganda soʻrov real vaqtda kuzatiladi (`WatchClaim`, `ClaimSentCubit`): qabul qilinsa "Qabul qilindi!" + "Chatga oʻtish", rad etilsa "Javob mos kelmadi. Yana {n} ta urinish qoldi" + "Qayta urinish" (urinish qolmasa "Lentaga qaytish").
 
 **Brend:** yangi "t." logo — `lib/core/widgets/topildi_logo.dart` (`TopildiMark`, `TopildiAppIcon`, `TopildiWordmark`, belgi SVG path'idan chiziladi). Arxivdagi PNG'lar buzuq edi, `assets/brand/` dagi PNG'lar shu path'dan qayta yasalgan. iOS/Android launcher ikonkalari (`flutter_launcher_icons`, Android 13 monoxrom bilan) va native splash (`flutter_native_splash`, ko'k fon) — sozlamalar `pubspec.yaml` da. Flutter splash belgini native splash bilan bir joyda chizadi.
 

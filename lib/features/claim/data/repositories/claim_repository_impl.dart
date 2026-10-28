@@ -115,5 +115,9 @@ class ClaimRepositoryImpl implements ClaimRepository {
       });
 
   @override
+  StreamEither<Claim> watchClaim(String claimId) =>
+      _live(() => _claims.watch(claimId).map((c) => c ?? (throw const NotFoundFailure())));
+
+  @override
   StreamEither<Map<String, int>> watchPendingCounts() => _live(() => _claims.watchPendingCounts(_session.userId));
 }

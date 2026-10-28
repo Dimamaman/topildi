@@ -17,13 +17,17 @@ class ClaimState extends Equatable {
     this.submitting = false,
     this.showError = false,
     this.submitFailure,
-    this.sent = false,
+    this.sentClaim,
   });
 
   final ViewState<ClaimTarget> view;
   final String answer;
   final String? proofPath;
-  final bool submitting, showError, sent;
+  final bool submitting, showError;
+
+  /// The claim just sent; the page then moves on to "Soʻrov yuborildi".
+  final Claim? sentClaim;
+  bool get sent => sentClaim != null;
 
   bool get hasProofPhoto => proofPath != null;
   final Failure? submitFailure;
@@ -39,7 +43,7 @@ class ClaimState extends Equatable {
     bool? submitting,
     bool? showError,
     Failure? submitFailure,
-    bool? sent,
+    Claim? sentClaim,
   }) =>
       ClaimState(
         view: view ?? this.view,
@@ -48,11 +52,11 @@ class ClaimState extends Equatable {
         submitting: submitting ?? this.submitting,
         showError: showError ?? this.showError,
         submitFailure: submitFailure,
-        sent: sent ?? this.sent,
+        sentClaim: sentClaim ?? this.sentClaim,
       );
 
   @override
-  List<Object?> get props => [view, answer, proofPath, submitting, showError, submitFailure, sent];
+  List<Object?> get props => [view, answer, proofPath, submitting, showError, submitFailure, sentClaim];
 }
 
 @injectable
@@ -86,7 +90,7 @@ class ClaimCubit extends Cubit<ClaimState> {
     if (isClosed) return;
     result.match(
       (f) => emit(state.copyWith(submitting: false, submitFailure: f)),
-      (_) => emit(state.copyWith(submitting: false, sent: true)),
+      (claim) => emit(state.copyWith(submitting: false, sentClaim: claim)),
     );
   }
 }

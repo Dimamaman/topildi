@@ -19,6 +19,10 @@ abstract interface class ClaimRemoteDataSource {
 
   Future<Claim?> byId(String id);
 
+  /// One claim, live (read by its claimant or the listing's author); null
+  /// once it no longer exists (taken back).
+  Stream<Claim?> watch(String id);
+
   /// Stores a new pending claim as the [claimant]'s next attempt; a local
   /// proof photo is uploaded first.
   Future<Claim> add({required ListingModel listing, required PublicUser claimant, required SubmitClaimParams params});
