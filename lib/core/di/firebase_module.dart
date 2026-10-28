@@ -52,11 +52,11 @@ abstract final class FirePaths {
   /// A chat's id is the id of the claim that opened it.
   static const chats = 'topildi_chats';
 
-  static String listingPhoto(String listingId, int i) => 'topildi/listings/$listingId/$i.jpg';
+  /// Listing photos: in the author's own folder, so the storage rules check
+  /// only the uid (no Firestore lookup). [name] is unique per photo.
+  static String listingPhoto(String uid, String name) => 'topildi/uploads/$uid/$name.jpg';
 
-  /// Photos added while editing get a unique name so they never overwrite
-  /// one still in use.
-  static String listingPhotoNamed(String listingId, String name) => 'topildi/listings/$listingId/$name.jpg';
+  /// Older listings kept their photos here; still cleaned up on delete.
   static String listingPhotos(String listingId) => 'topildi/listings/$listingId';
   static String avatar(String uid) => 'topildi/users/$uid/avatar.jpg';
   static String claimProof(String claimId) => 'topildi/claims/$claimId/proof.jpg';

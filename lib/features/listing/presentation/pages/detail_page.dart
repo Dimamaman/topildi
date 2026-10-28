@@ -679,7 +679,7 @@ class _Heading extends StatelessWidget {
   }
 }
 
-/// Author: "N ta yangi soʻrov" on warning-container; opens Claims.
+/// Author: "N ta yangi soʻrov" white card with a count badge; opens Claims.
 class _ClaimsCard extends StatelessWidget {
   const _ClaimsCard({required this.count, required this.lost, required this.onTap});
 
@@ -708,7 +708,6 @@ class _ClaimsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final tc = context.tc;
     final text = Theme.of(context).textTheme;
     final title = tr('{count} ta yangi soʻrov', {'count': count});
     return Padding(
@@ -718,15 +717,19 @@ class _ClaimsCard extends StatelessWidget {
         onTap: onTap,
         child: Container(
           constraints: const BoxConstraints(minHeight: 44),
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-          decoration: BoxDecoration(color: tc.warningContainer, borderRadius: BorderRadius.circular(26)),
+          padding: const EdgeInsets.fromLTRB(14, 14, 12, 14),
+          decoration: BoxDecoration(
+            color: cs.surfaceContainerLowest,
+            borderRadius: BorderRadius.circular(26),
+            boxShadow: const [BoxShadow(color: Color(0x0A0F1420), blurRadius: 14, offset: Offset(0, 4))],
+          ),
           child: Row(
             children: [
               Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(color: tc.warning, shape: BoxShape.circle),
-                child: Icon(Symbols.inbox_rounded, size: 20, fill: 1, color: cs.surfaceContainerLowest),
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(color: cs.primaryContainer, borderRadius: BorderRadius.circular(15)),
+                child: Icon(Symbols.front_hand_rounded, size: 22, color: cs.primary),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -736,21 +739,34 @@ class _ClaimsCard extends StatelessWidget {
                     Text(
                       title,
                       style: text.titleMedium!
-                          .copyWith(fontSize: 15, height: 20 / 15, color: tc.warning)
-                          .inter(FontWeight.w600),
+                          .copyWith(fontSize: 17, height: 22 / 17, color: cs.onSurface)
+                          .inter(FontWeight.w700),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       body(count, lost: lost),
                       style: text.bodySmall!
-                          .copyWith(fontSize: 13, height: 18 / 13, color: cs.secondary)
+                          .copyWith(fontSize: 13, height: 18 / 13, color: cs.onSurfaceVariant)
                           .inter(FontWeight.w400),
                     ),
                   ],
                 ),
               ),
               const SizedBox(width: 8),
-              Icon(Symbols.chevron_right_rounded, size: 22, color: tc.warning),
+              // Count badge, then the way in.
+              Container(
+                constraints: const BoxConstraints(minWidth: 24),
+                height: 24,
+                padding: const EdgeInsets.symmetric(horizontal: 7),
+                alignment: Alignment.center,
+                decoration: BoxDecoration(color: cs.primary, borderRadius: BorderRadius.circular(999)),
+                child: Text(
+                  '$count',
+                  style: TextStyle(fontSize: 13, height: 1, color: cs.onPrimary).inter(FontWeight.w700),
+                ),
+              ),
+              const SizedBox(width: 4),
+              Icon(Symbols.chevron_right_rounded, size: 22, color: cs.onSurfaceVariant),
             ],
           ),
         ),

@@ -178,9 +178,12 @@ class _LoaderController {
     }
   }
 
+  /// Only our own wording reaches the user: Firebase's messages are
+  /// English and technical ("User is not authorized…"); they stay in the log.
   static String? _reason(Object failure) => switch (failure) {
     NetworkFailure() => tr('Internetni tekshiring'),
-    Failure(:final message?) when message.isNotEmpty => message,
+    ForbiddenFailure() => tr('Ruxsat yoʻq. Qayta kirib koʻring'),
+    ValidationFailure(:final message?) when message.isNotEmpty => message,
     _ => null,
   };
 }

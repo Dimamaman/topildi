@@ -45,5 +45,6 @@ Claim claimFromFirestore(String id, Map<String, dynamic> d) {
     hasProofPhoto: proof != null,
     proofPath: proof,
     status: ClaimStatus.values.firstWhere((s) => s.name == d['status'], orElse: () => ClaimStatus.pending),
+    attempt: (d['attempt'] as num?)?.toInt() ?? 1,
   );
 }

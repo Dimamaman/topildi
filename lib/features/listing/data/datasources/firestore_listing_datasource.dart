@@ -104,7 +104,7 @@ class FirestoreListingDataSource implements ListingRemoteDataSource {
           urls.add(p);
           continue;
         }
-        final file = _storage.ref(FirePaths.listingPhoto(ref.id, i));
+        final file = _storage.ref(FirePaths.listingPhoto(_uid, '${ref.id}_$i'));
         await file.putData(await compressForUpload(p), SettableMetadata(contentType: 'image/jpeg'));
         uploaded.add(file);
         urls.add(await file.getDownloadURL());
@@ -136,8 +136,8 @@ class FirestoreListingDataSource implements ListingRemoteDataSource {
           urls.add(p);
           continue;
         }
-        final name = '${DateTime.now().microsecondsSinceEpoch}_${uploaded.length}';
-        final file = _storage.ref(FirePaths.listingPhotoNamed(model.id, name));
+        final name = '${model.id}_${DateTime.now().microsecondsSinceEpoch}_${uploaded.length}';
+        final file = _storage.ref(FirePaths.listingPhoto(_uid, name));
         await file.putData(await compressForUpload(p), SettableMetadata(contentType: 'image/jpeg'));
         uploaded.add(file);
         urls.add(await file.getDownloadURL());
@@ -185,13 +185,14 @@ class FirestoreListingDataSource implements ListingRemoteDataSource {
 
   @override
   Future<void> remove(String id) async {
-    // Photos first: the storage rules check the listing's author.
+    // Photos first, by their URLs (best-effort; the listing itself still goes).
+    final urls = [for (final p in ((await _col.doc(id).get()).data()?['photoUrls'] as List?) ?? const []) p as String];
+    await Future.wait(urls.map((u) => _storage.refFromURL(u).delete().catchError((_) {})));
+    // Older listings kept photos in a folder of their own.
     try {
       final files = await _storage.ref(FirePaths.listingPhotos(id)).listAll();
       await Future.wait(files.items.map((f) => f.delete()));
-    } catch (_) {
-      // Photos are best-effort; the listing itself still goes.
-    }
+    } catch (_) {}
     await _secret(id).delete();
     await _col.doc(id).delete();
     _changes.add(null);

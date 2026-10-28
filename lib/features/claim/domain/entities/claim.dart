@@ -22,7 +22,11 @@ class Claim extends Equatable {
     this.hasProofPhoto = false,
     this.proofPath,
     this.status = ClaimStatus.pending,
+    this.attempt = 1,
   });
+
+  /// Which of the claimant's attempts this is, 1..[ClaimTarget.maxAttempts].
+  final int attempt;
 
   /// Optional proof photo; visible to the listing author only.
   final String? proofPath;
@@ -43,12 +47,13 @@ class Claim extends Equatable {
         answer: answer,
         createdAt: createdAt,
         hasProofPhoto: hasProofPhoto,
+        attempt: attempt,
         proofPath: proofPath,
         status: status ?? this.status,
       );
 
   @override
-  List<Object?> get props => [id, listingId, claimant, answer, createdAt, hasProofPhoto, proofPath, status];
+  List<Object?> get props => [id, listingId, claimant, answer, createdAt, hasProofPhoto, proofPath, status, attempt];
 }
 
 /// What the would-be owner sees before claiming.

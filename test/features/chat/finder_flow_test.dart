@@ -31,24 +31,34 @@ void main() {
     await tester.tap(find.text('Soʻrovlarni koʻrish · 2'));
     await _settle(tester);
 
-    expect(find.text('Soʻrovlar · 2'), findsOneWidget);
-    expect(find.text('Siz yozgan yashirin belgi'), findsOneWidget);
-    expect(find.text('Ichida koʻk rangli bank kartasi va 2 ta suratli chipta bor'), findsOneWidget);
+    // Two requests page sideways; Malika's (newest) first.
+    expect(find.text('Soʻrovlar · 1 / 2'), findsOneWidget);
+    expect(find.text('SIZ YOZGAN BELGI'), findsWidgets);
+    expect(find.text('Ichida koʻk rangli bank kartasi va 2 ta suratli chipta bor'), findsWidgets);
+    expect(find.text('MALIKA K. JAVOBI'), findsOneWidget);
 
-    // Reject Anvar after confirming.
-    await tester.ensureVisible(find.text('Rad etish').last);
+    // "Mos emas" for Anvar: no dialog, sent after the 5 s undo window.
+    await tester.drag(find.byType(PageView), const Offset(-300, 0));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Rad etish').last);
-    await tester.pumpAndSettle();
-    expect(find.text('Soʻrovni rad etasizmi?'), findsOneWidget);
-    await tester.tap(find.bySemanticsLabel('Rad etish').last);
+    expect(find.text('Soʻrovlar · 2 / 2'), findsOneWidget);
+    expect(find.text('ANVAR T. JAVOBI'), findsOneWidget);
+    await tester.tap(find.text('Mos emas'));
+    await tester.pump();
+    expect(find.text('Rad etildi'), findsOneWidget);
+    await tester.pump(const Duration(seconds: 6));
     await _settle(tester);
     expect(find.text('Rad etildi'), findsOneWidget);
 
-    // Accept Malika → chat opens.
-    await tester.ensureVisible(find.text('Qabul qilish'));
+    // Accept Malika → confirm → chat opens.
+    await tester.drag(find.byType(PageView), const Offset(300, 0));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Qabul qilish'));
+    await tester.pumpAndSettle();
+    expect(find.text('Malika K.ni qabul qilasizmi?'), findsOneWidget);
+    await tester.tap(find.bySemanticsLabel('Qabul qilish').last);
+    for (var i = 0; i < 40; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
     await _settle(tester);
     expect(find.text('Egaligi tasdiqlangan'), findsOneWidget);
     expect(find.text('Javob yashirin belgiga mos keldi. Chat ochildi.'), findsOneWidget);

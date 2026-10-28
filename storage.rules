@@ -12,7 +12,16 @@ service firebase.storage {
         && request.resource.contentType.matches('image/.*');
     }
 
-    // Listing photos are uploaded before the listing document is written,
+    // Listing photos: each author's own folder ({name} starts with the
+    // listing id). No Firestore lookup, so posting never depends on
+    // cross-service rules.
+    match /topildi/uploads/{uid}/{name} {
+      allow read: if request.auth != null;
+      allow create, update: if request.auth != null && request.auth.uid == uid && isImage();
+      allow delete: if request.auth != null && request.auth.uid == uid;
+    }
+
+    // Older listings: photos were uploaded before the listing document was written,
     // so a missing document means "being created"; afterwards only its author.
     match /topildi/listings/{id}/{file} {
       function listing() { return /databases/(default)/documents/topildi_listings/$(id); }

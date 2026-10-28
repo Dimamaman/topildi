@@ -138,6 +138,7 @@ class ClaimMockDataSource implements ClaimRemoteDataSource {
       hasProofPhoto: params.hasProofPhoto,
       proofPath: params.proofPath,
       createdAt: DateTime.now(),
+      attempt: _claims.where((c) => c.listingId == listing.id && c.claimant.id == claimant.id).length + 1,
     );
     _claims.add(claim);
     _changes.add(null);
