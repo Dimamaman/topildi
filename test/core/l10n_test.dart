@@ -6,6 +6,7 @@ import 'package:topildi/core/l10n/cyrillic.dart';
 import 'package:topildi/core/l10n/ru.dart';
 import 'package:topildi/core/l10n/tr.dart';
 import 'package:topildi/core/utils/date_format.dart';
+import 'package:topildi/features/listing/domain/entities/regions.dart';
 
 /// Strings passed to tr() through a variable (constant lists) rather than
 /// as a literal, so the source scan below cannot see them.
@@ -14,7 +15,8 @@ const _indirect = [
   'Tirnalgan joy', 'rasm va tur', 'maʼlumotlar', 'joy va sana', 'Bir', 'Ikki', 'Uch', 'Toʻrt', 'Besh', 'Olti', //
   'Yetti', 'Sakkiz', 'Toʻqqiz', 'Oʻn', 'Barcha tumanlar', 'Bugun', '7 kun', '30 kun', 'Tanlash', 'Tizim', //
   'Yorugʻ', 'Qorongʻi', 'Yashirin belgi', 'Buni faqat siz koʻrasiz', 'Toshkent', 'Samarqand', 'Buxoro', //
-  'Andijon', 'Namangan', 'Fargʻona', 'Nukus', 'Qarshi', 'Bektemir', 'Chilonzor', 'Mirobod', 'Mirzo Ulugʻbek', //
+  'Andijon', 'Namangan', 'Fargʻona', 'Toshkent viloyati', 'Jizzax', 'Navoiy', 'Qashqadaryo', 'Qoraqalpogʻiston', //
+  'Sirdaryo', 'Surxondaryo', 'Xorazm', 'Bektemir', 'Chilonzor', 'Mirobod', 'Mirzo Ulugʻbek', //
   'Olmazor', 'Sergeli', 'Shayxontohur', 'Uchtepa', 'Yakkasaroy', 'Yangihayot', 'Yashnobod', 'Yunusobod', //
   'Dushanba', 'Seshanba', 'Chorshanba', 'Payshanba', 'Juma', 'Shanba', 'Yakshanba',
 ];
@@ -23,7 +25,11 @@ void main() {
   tearDown(() => AppLanguage.current = AppLanguage.uzLatn);
 
   test('every tr() string in lib/ has a Russian translation', () {
-    final keys = <String>{..._indirect};
+    final keys = <String>{
+      ..._indirect,
+      ...Regions.cities,
+      for (final c in Regions.cities) ...Regions.districtsOf(c),
+    };
     final literal = RegExp(r"\btr\(\s*'((?:[^'\\]|\\.)*)'");
     for (final f in Directory('lib').listSync(recursive: true).whereType<File>()) {
       if (!f.path.endsWith('.dart') || f.path.contains('core/l10n/')) continue;

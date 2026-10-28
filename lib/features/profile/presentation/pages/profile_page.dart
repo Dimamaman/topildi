@@ -257,28 +257,30 @@ class _Stat extends StatelessWidget {
         radius: 22,
         color: context.glass.tile,
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        // Scales down instead of wrapping on narrow screens / large text.
-        child: FittedBox(
-          fit: BoxFit.scaleDown,
-          alignment: Alignment.topLeft,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                '$n',
-                style: text.titleLarge!
-                    .copyWith(fontSize: 22, height: 28 / 22, color: color ?? cs.onSurface)
-                    .inter(FontWeight.w700),
-              ),
-              Text(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '$n',
+              maxLines: 1,
+              style: text.titleLarge!
+                  .copyWith(fontSize: 22, height: 28 / 22, color: color ?? cs.onSurface)
+                  .inter(FontWeight.w700),
+            ),
+            // Only the label scales down when it doesn't fit (long Russian
+            // words, large text); the number keeps its size in every tile.
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text(
                 label,
                 maxLines: 1,
                 style: text.bodySmall!
                     .copyWith(fontSize: 13, height: 18 / 13, color: cs.secondary)
                     .inter(FontWeight.w400),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

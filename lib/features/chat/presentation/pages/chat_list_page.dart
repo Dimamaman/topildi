@@ -11,6 +11,7 @@ import '../../../../core/theme/topildi_surfaces.dart';
 import '../../../../core/theme/topildi_theme.dart';
 import '../../../../core/utils/date_format.dart';
 import '../../../../core/view_state.dart';
+import '../../../../core/widgets/glass_empty_icon.dart';
 import '../../../../core/widgets/glass_header.dart';
 import '../../../../core/widgets/state_views.dart';
 import '../../../../core/widgets/t_avatar.dart';
@@ -101,18 +102,9 @@ class _ChatListPageState extends State<ChatListPage> {
         ),
       ],
       ViewEmpty() => [
-        padded(
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              EmptyState(
-                icon: Symbols.chat_bubble_rounded,
-                title: tr('Hali chat yoʻq'),
-                body: tr('Soʻrovingiz qabul qilinsa yoki siz soʻrovni qabul qilsangiz, chat shu yerda paydo boʻladi.'),
-              ),
-              _PrivacyNote(),
-            ],
-          ),
+        SliverPadding(
+          padding: EdgeInsets.fromLTRB(28, 44, 28, bottom),
+          sliver: const SliverToBoxAdapter(child: _Empty()),
         ),
       ],
       ViewError(:final isOffline) => [
@@ -403,6 +395,42 @@ class _PrivacyNote extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// No chats and no requests: glass icon (same as Lentaʼs), title and hint,
+/// centred.
+class _Empty extends StatelessWidget {
+  const _Empty();
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final text = Theme.of(context).textTheme;
+    return Column(
+      children: [
+        const GlassEmptyIcon(icon: Symbols.chat_rounded, iconSize: 60, iconFill: true, badge: GlassIconBadge.lock),
+        const SizedBox(height: 30),
+        Semantics(
+          header: true,
+          child: Text(
+            tr('Hali chat yoʻq'),
+            textAlign: TextAlign.center,
+            style: text.headlineSmall!
+                .copyWith(fontSize: 24, height: 30 / 24, letterSpacing: -0.4, color: cs.onSurface)
+                .inter(FontWeight.w700),
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          tr('Soʻrovingiz qabul qilinsa yoki siz soʻrovni qabul qilsangiz, chat shu yerda paydo boʻladi.'),
+          textAlign: TextAlign.center,
+          style: text.bodyMedium!
+              .copyWith(fontSize: 15, height: 21 / 15, color: cs.onSurfaceVariant)
+              .inter(FontWeight.w400),
+        ),
+      ],
     );
   }
 }

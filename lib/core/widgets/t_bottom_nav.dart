@@ -48,7 +48,7 @@ class TBottomNav extends StatelessWidget {
   List<(int, IconData, String)> get _items => [
     (0, Symbols.home_rounded, tr('Lenta')),
     if (showMap) (1, Symbols.map_rounded, tr('Xarita')),
-    (_chatsBranch, Symbols.chat_bubble_rounded, tr('Chatlar')),
+    (_chatsBranch, Symbols.chat_rounded, tr('Chatlar')),
     (_profileBranch, Symbols.account_circle_rounded, tr('Profil')),
   ];
 

@@ -65,10 +65,10 @@ void main() {
     await _openSheet(tester);
     await tester.tap(find.text('Toshkent').last);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Nukus').last);
+    await tester.tap(find.text('Andijon').last);
     await _settle(tester);
 
-    expect(find.text('Nukus'), findsOneWidget);
+    expect(find.text('Andijon'), findsOneWidget);
     expect(find.text('Natija topilmadi'), findsOneWidget);
     await tester.tap(find.text('Natija topilmadi'));
     await tester.pumpAndSettle();

@@ -27,15 +27,30 @@ class ChatListCubit extends Cubit<ViewState<List<ChatThread>>> {
   }
 
   /// (Re)subscribes to the live chat list; also the retry after an error.
+  /// Completes on the first result (or after 10 s), so pull-to-refresh
+  /// always settles. The old subscription is not awaited: cancelling a live
+  /// Firestore query can take long or never finish.
   Future<void> load({bool silent = false}) async {
-    await _sub?.cancel();
+    unawaited(_sub?.cancel());
     if (!silent) emit(const ViewLoading());
-    _sub = _watch().listen((result) {
-      if (isClosed) return;
-      emit(result.fold<ViewState<List<ChatThread>>>(
-        (f) => ViewError(f),
-        (list) => list.isEmpty ? const ViewEmpty() : ViewLoaded(list),
-      ));
-    });
+    final first = Completer<void>();
+    void settle() {
+      if (!first.isCompleted) first.complete();
+    }
+
+    _sub = _watch().listen(
+      (result) {
+        if (!isClosed) {
+          emit(result.fold<ViewState<List<ChatThread>>>(
+            (f) => ViewError(f),
+            (list) => list.isEmpty ? const ViewEmpty() : ViewLoaded(list),
+          ));
+        }
+        settle();
+      },
+      onError: (_) => settle(),
+      onDone: settle,
+    );
+    await first.future.timeout(const Duration(seconds: 10), onTimeout: () {});
   }
 }
