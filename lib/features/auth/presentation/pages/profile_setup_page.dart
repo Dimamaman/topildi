@@ -18,6 +18,8 @@ import '../../../../core/widgets/glass_surface.dart';
 import '../../../../core/widgets/pull_down_menu.dart';
 import '../cubit/profile_setup_cubit.dart';
 import '../../../../core/widgets/photo_placeholder.dart';
+import '../../../../core/widgets/topildi_loader.dart';
+import '../../../../core/error/failure.dart';
 
 const _anim = Duration(milliseconds: 200);
 
@@ -122,13 +124,23 @@ class _ProfileSetupViewState extends State<_ProfileSetupView> with SingleTickerP
     _cubit.setEmoji(picked.isEmpty ? null : picked);
   }
 
+  Future<void> _save() => TopildiLoader.run<Failure?>(
+    context,
+    task: () async {
+      await _cubit.submit();
+      final s = _cubit.state;
+      return s.offline ? const NetworkFailure() : (s.failed ? const ServerFailure() : null);
+    },
+    failureOf: (f) => f,
+    icon: Symbols.save_rounded,
+    label: tr('Saqlanmoqda…'),
+    successLabel: tr('Saqlandi'),
+    errorLabel: tr('Saqlab boʻlmadi'),
+  );
+
   void _onState(BuildContext context, ProfileSetupState state) {
-    if (state.done) {
-      HapticFeedback.lightImpact();
-      widget.editing && context.canPop() ? context.pop() : context.go(Routes.home);
-    } else {
-      HapticFeedback.heavyImpact();
-    }
+    // Haptics and failures come from the loader capsule.
+    if (state.done) widget.editing && context.canPop() ? context.pop() : context.go(Routes.home);
   }
 
   @override
@@ -142,7 +154,7 @@ class _ProfileSetupViewState extends State<_ProfileSetupView> with SingleTickerP
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: dark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
       child: BlocConsumer<ProfileSetupCubit, ProfileSetupState>(
-        listenWhen: (a, b) => (b.done && !a.done) || (b.failed && !a.failed) || (b.offline && !a.offline),
+        listenWhen: (a, b) => b.done && !a.done,
         listener: _onState,
         builder: (context, state) => Scaffold(
           body: DecoratedBox(
@@ -224,12 +236,11 @@ class _ProfileSetupViewState extends State<_ProfileSetupView> with SingleTickerP
                                   ),
                                   const Spacer(),
                                   const SizedBox(height: 20),
-                                  if (state.offline) ...[const _OfflineBanner(), const SizedBox(height: 12)],
-                                  if (state.failed || state.firstError != null) ...[
+                                  if (state.firstError != null) ...[
                                     Semantics(
                                       liveRegion: true,
                                       child: Text(
-                                        state.firstError ?? tr('Saqlab boʻlmadi. Qayta urinib koʻring'),
+                                        state.firstError!,
                                         textAlign: TextAlign.center,
                                         style: Theme.of(context).textTheme.bodyMedium!
                                             .copyWith(fontSize: 14, height: 20 / 14, color: cs.error)
@@ -242,7 +253,7 @@ class _ProfileSetupViewState extends State<_ProfileSetupView> with SingleTickerP
                                     label: widget.editing ? tr('Saqlash') : tr('Tayyor'),
                                     ready: state.canSubmit,
                                     loading: state.saving,
-                                    onTap: state.canSubmit ? _cubit.submit : null,
+                                    onTap: state.canSubmit ? _save : null,
                                   ),
                                 ],
                               ),
@@ -761,36 +772,6 @@ class _PrimaryButton extends StatelessWidget {
                     ),
                   ),
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _OfflineBanner extends StatelessWidget {
-  const _OfflineBanner();
-
-  @override
-  Widget build(BuildContext context) {
-    final tc = context.tc;
-    return Semantics(
-      liveRegion: true,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        decoration: BoxDecoration(color: tc.warningContainer, borderRadius: BorderRadius.circular(20)),
-        child: Row(
-          children: [
-            Icon(Symbols.wifi_off_rounded, size: 20, color: tc.warning),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                tr('Internet yoʻq. Qayta urinib koʻring'),
-                style: Theme.of(context).textTheme.bodyMedium!
-                    .copyWith(fontSize: 14, height: 20 / 14, color: tc.warning)
-                    .inter(FontWeight.w600),
-              ),
-            ),
-          ],
         ),
       ),
     );

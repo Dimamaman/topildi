@@ -5,7 +5,6 @@ import 'package:material_symbols_icons/symbols.dart';
 
 import '../../../../app/routes.dart';
 import '../../../../core/di/injection.dart';
-import '../../../../core/error/failure.dart';
 import '../../../../core/theme/topildi_surfaces.dart';
 import '../../../../core/theme/topildi_theme.dart';
 import '../../../../core/view_state.dart';
@@ -13,13 +12,13 @@ import '../../../../core/widgets/photo_placeholder.dart';
 import '../../../../core/widgets/photo_source_sheet.dart';
 import '../../../../core/widgets/state_views.dart';
 import '../../../../core/widgets/t_button.dart';
-import '../../../../core/widgets/t_feedback.dart';
 import '../../../../core/widgets/t_top_bar.dart';
 import '../../../listing/presentation/category_ui.dart';
 import '../../domain/entities/claim.dart';
 import '../cubit/claim_cubit.dart';
 import 'claim_sent_page.dart';
 import '../../../../core/l10n/tr.dart';
+import '../../../../core/widgets/topildi_loader.dart';
 
 class ClaimPage extends StatelessWidget {
   const ClaimPage({super.key, required this.listingId});
@@ -53,16 +52,8 @@ class _ClaimView extends StatelessWidget {
             Routes.claimSent(listingId),
             extra: ClaimSentArgs(authorName: listing?.author.displayName, lost: listing != null && !listing.isFound),
           );
-        } else if (state.submitFailure != null) {
-          TFeedback.error(
-            context,
-            switch (state.submitFailure) {
-              NetworkFailure() => tr('Internet yoʻq. Qayta urinib koʻring'),
-              ValidationFailure(:final message) => message ?? tr('Soʻrovni yuborib boʻlmadi'),
-              _ => tr('Soʻrovni yuborib boʻlmadi'),
-            },
-          );
         }
+        // Failures are shown by the loader capsule (see _Footer).
       },
       builder: (context, state) {
         final view = state.view;
@@ -281,6 +272,23 @@ class _ProofButton extends StatelessWidget {
 class _Footer extends StatelessWidget {
   const _Footer({required this.attemptsLeft, required this.lost, required this.submitting});
 
+  static Future<void> _send(BuildContext context) async {
+    final cubit = context.read<ClaimCubit>();
+    await TopildiLoader.run(
+      context,
+      task: () async {
+        await cubit.submit();
+        final s = cubit.state;
+        return s.sent ? null : s.submitFailure;
+      },
+      failureOf: (f) => f,
+      icon: Symbols.front_hand_rounded,
+      label: tr('Soʻrov yuborilmoqda…'),
+      successLabel: tr('Soʻrov yuborildi'),
+      errorLabel: tr('Yuborib boʻlmadi'),
+    );
+  }
+
   final int attemptsLeft;
   final bool lost;
   final bool submitting;
@@ -305,7 +313,7 @@ class _Footer extends StatelessWidget {
         TButton.primary(
           label: tr('Soʻrov yuborish'),
           loading: submitting,
-          onPressed: none ? null : context.read<ClaimCubit>().submit,
+          onPressed: none ? null : () => _send(context),
         ),
       ],
     );

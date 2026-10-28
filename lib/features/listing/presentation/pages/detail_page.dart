@@ -29,6 +29,7 @@ import '../cubit/detail_cubit.dart';
 import '../widgets/area_map_page.dart';
 import '../widgets/photo_viewer.dart';
 import '../../../../core/l10n/tr.dart';
+import '../../../../core/widgets/topildi_loader.dart';
 
 class DetailPage extends StatelessWidget {
   const DetailPage({super.key, required this.listingId});
@@ -85,10 +86,8 @@ class _DetailViewState extends State<_DetailView> {
       value: dark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
       child: BlocConsumer<DetailCubit, DetailState>(
         listenWhen: (a, b) => b.deleted && !a.deleted,
-        listener: (context, _) {
-          TFeedback.success(context, tr('Eʼlon oʻchirildi'));
-          _close();
-        },
+        // "Eʼlon oʻchirildi" is shown by the loader capsule.
+        listener: (context, _) => _close(),
         builder: (context, state) {
           final view = state.view;
           final listing = view is ViewLoaded<Listing> ? view.data : null;
@@ -393,9 +392,18 @@ class _AuthorActions extends StatelessWidget {
       cancelLabel: tr('Bekor qilish'),
       destructive: true,
     );
-    if (!ok) return;
-    final f = await cubit.delete();
-    if (f != null && context.mounted) TFeedback.error(context, tr('Eʼlonni oʻchirib boʻlmadi'));
+    if (!ok || !context.mounted) return;
+    await TopildiLoader.run(
+      context,
+      task: cubit.delete,
+      failureOf: (f) => f,
+      icon: Symbols.delete_rounded,
+      label: tr('Eʼlon oʻchirilmoqda…'),
+      subtitle: tr('Bir necha soniya'),
+      tone: LoaderTone.danger,
+      successLabel: tr('Eʼlon oʻchirildi'),
+      errorLabel: tr('Oʻchirib boʻlmadi'),
+    );
   }
 
   @override

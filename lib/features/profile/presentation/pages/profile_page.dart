@@ -30,6 +30,7 @@ import '../../../../core/utils/date_format.dart';
 import '../../../../core/l10n/app_language.dart';
 import '../../../../core/l10n/language_cubit.dart';
 import '../../../../core/widgets/avatar_tone.dart';
+import '../../../../core/widgets/topildi_loader.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -567,7 +568,15 @@ class _Settings extends StatelessWidget {
       cancelLabel: tr('Bekor qilish'),
       destructive: true,
     );
-    if (ok && context.mounted) context.read<ProfileCubit>().signOut();
+    if (!ok || !context.mounted) return;
+    // No "done" state: signing out lands on the sign-in screen.
+    await TopildiLoader.run(
+      context,
+      task: context.read<ProfileCubit>().signOut,
+      icon: Symbols.logout_rounded,
+      label: tr('Chiqilmoqda…'),
+      errorLabel: tr('Chiqib boʻlmadi'),
+    );
   }
 
   @override

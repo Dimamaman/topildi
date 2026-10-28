@@ -21,6 +21,7 @@ import '../widgets/create_details_step.dart';
 import '../widgets/create_ui.dart';
 import 'create_flow_page.dart';
 import '../../../../core/l10n/tr.dart';
+import '../../../../core/widgets/topildi_loader.dart';
 
 /// Koʻrib chiqish, "readiness ring + slide to post": a ring that fills with
 /// the required fields, a five-item checklist (each row opens its step),
@@ -60,6 +61,20 @@ class _ReviewPageState extends State<ReviewPage> with SingleTickerProviderStateM
   }
 
   void _edit(String route) => context.push('$route?edit=1');
+
+  /// No "done" state: success opens the "Eʼlon joylandi!" screen.
+  Future<void> _publish(CreateFlowCubit cubit) => TopildiLoader.run<Failure?>(
+    context,
+    task: () async {
+      await cubit.publish();
+      final s = cubit.state;
+      return s.status == SubmitStatus.failure ? s.failure : null;
+    },
+    failureOf: (f) => f,
+    icon: Symbols.send_rounded,
+    label: tr('Eʼlon joylanmoqda…'),
+    errorLabel: tr('Joylab boʻlmadi'),
+  );
 
   List<_Item> _items(CreateDraft d, CreateFlowCubit cubit) {
     final district = d.district;
@@ -119,7 +134,6 @@ class _ReviewPageState extends State<ReviewPage> with SingleTickerProviderStateM
           await Future<void>.delayed(const Duration(milliseconds: 600));
           if (context.mounted) context.go(Routes.createPosted);
         }
-        if (state.status == SubmitStatus.failure) HapticFeedback.heavyImpact();
       },
       builder: (context, state) {
         final d = state.draft;
@@ -131,10 +145,6 @@ class _ReviewPageState extends State<ReviewPage> with SingleTickerProviderStateM
         final busy = state.status == SubmitStatus.submitting || state.status == SubmitStatus.success;
         final String? problem = missing != null
             ? tr('Avval {name}ni toʻldiring', {'name': missing.name.toLowerCase()})
-            : state.status == SubmitStatus.failure
-            ? (state.failure is NetworkFailure
-                  ? tr('Internet yoʻq. Qayta urinib koʻring')
-                  : tr('Yuborib boʻlmadi. Qayta urinib koʻring'))
             : null;
         final bottom = math.max(34.0, mq.padding.bottom);
 
@@ -230,7 +240,7 @@ class _ReviewPageState extends State<ReviewPage> with SingleTickerProviderStateM
                         ),
                       const Padding(padding: EdgeInsets.symmetric(horizontal: 8), child: _Consent()),
                       const SizedBox(height: 12 - _Consent.pad),
-                      _SlideToPublish(enabled: missing == null, status: state.status, onPublish: cubit.publish),
+                      _SlideToPublish(enabled: missing == null, status: state.status, onPublish: () => _publish(cubit)),
                     ],
                   ),
                 ),
