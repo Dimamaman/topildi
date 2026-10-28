@@ -77,9 +77,13 @@ class GlassBarBackground extends StatelessWidget {
 
 /// 34px large title; scrolls under the glass bar.
 class GlassLargeTitle extends StatelessWidget {
-  const GlassLargeTitle(this.text, {super.key, this.padding});
+  const GlassLargeTitle(this.text, {super.key, this.padding, this.oneLine = false});
 
   final String text;
+
+  /// Keep a long title on one line, scaling it down (to ≈28 on a phone)
+  /// instead of wrapping.
+  final bool oneLine;
 
   /// Defaults to the standard spacing under a bar of buttons.
   final EdgeInsetsGeometry? padding;
@@ -97,17 +101,21 @@ class GlassLargeTitle extends StatelessWidget {
           ),
       child: Semantics(
         header: true,
-        child: Text(
-          text,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-          style: Theme.of(context).textTheme.headlineMedium!
-              .copyWith(fontSize: 34, height: GlassHeader.titleLine / 34, letterSpacing: -0.7)
-              .inter(FontWeight.w700),
-        ),
+        child: oneLine
+            ? FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.centerLeft, child: _text(context, 1))
+            : _text(context, 2),
       ),
     );
   }
+
+  Widget _text(BuildContext context, int lines) => Text(
+    text,
+    maxLines: lines,
+    overflow: lines > 1 ? TextOverflow.ellipsis : null,
+    style: Theme.of(context).textTheme.headlineMedium!
+        .copyWith(fontSize: 34, height: GlassHeader.titleLine / 34, letterSpacing: -0.7)
+        .inter(FontWeight.w700),
+  );
 }
 
 /// 17px inline title that fades in once the large title is gone.

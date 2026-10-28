@@ -28,6 +28,9 @@ abstract interface class PushService {
   /// Unregisters this device (switch turned off, before sign-out).
   Future<void> stop();
 
+  /// Notifications are turned off for the app in the system settings.
+  Future<bool> get blocked;
+
   /// App routes of tapped pushes, including the one that launched the app.
   Stream<String> get opened;
 
@@ -115,6 +118,17 @@ class FirebasePushService implements PushService {
     _token = null;
   }
 
+  @override
+  Future<bool> get blocked async {
+    try {
+      final settings = await _messaging.getNotificationSettings();
+      return settings.authorizationStatus == AuthorizationStatus.denied;
+    } catch (e) {
+      _log(e);
+      return false;
+    }
+  }
+
   static String? _route(RemoteMessage? m) {
     final r = m?.data['route'];
     return r is String && r.startsWith('/') ? r : null;
@@ -146,6 +160,9 @@ class FirebasePushService implements PushService {
 class NoopPushService implements PushService {
   @override
   Future<void> start() async {}
+
+  @override
+  Future<bool> get blocked async => false;
 
   @override
   Future<void> stop() async {}

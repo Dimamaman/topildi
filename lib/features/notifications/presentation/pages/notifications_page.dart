@@ -7,11 +7,14 @@ import 'package:material_symbols_icons/symbols.dart';
 
 import '../../../../app/routes.dart';
 import '../../../../core/di/injection.dart';
+import '../../../../core/location/location_service.dart';
+import '../../../../core/push/push_service.dart';
 import '../../../../core/theme/t_text.dart';
 import '../../../../core/theme/topildi_surfaces.dart';
 import '../../../../core/theme/topildi_theme.dart';
 import '../../../../core/utils/date_format.dart';
 import '../../../../core/view_state.dart';
+import '../../../../core/widgets/glass_empty_icon.dart';
 import '../../../../core/widgets/glass_header.dart';
 import '../../../../core/widgets/glass_surface.dart';
 import '../../../../core/widgets/state_views.dart';
@@ -75,7 +78,7 @@ class _NotificationsViewState extends State<_NotificationsView> {
                     pinned: true,
                     delegate: _Bar(top: top, offset: _offset, onReadAll: hasUnread ? cubit.markAllRead : null),
                   ),
-                  SliverToBoxAdapter(child: GlassLargeTitle(tr(_title))),
+                  SliverToBoxAdapter(child: GlassLargeTitle(tr(_title), oneLine: true)),
                   ..._body(context, state),
                 ],
               );
@@ -103,17 +106,7 @@ class _NotificationsViewState extends State<_NotificationsView> {
           sliver: const SliverToBoxAdapter(child: _GroupSkeleton()),
         ),
       ],
-      ViewEmpty() => [
-        fill(
-          EmptyState(
-            icon: Symbols.notifications_rounded,
-            title: tr('Yangi xabar yoʻq'),
-            body: tr('Mos eʼlon yoki yangi soʻrov chiqsa, shu yerda koʻrasiz.'),
-            cta: tr('Sozlamalar'),
-            onCta: () => context.go(Routes.profile),
-          ),
-        ),
-      ],
+      ViewEmpty() => [fill(const _Empty())],
       ViewError(:final isOffline) => [
         fill(isOffline ? OfflineState(onRetry: cubit.load) : ErrorState(onRetry: cubit.load)),
       ],
@@ -440,6 +433,256 @@ class _Row extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Nothing yet: the shared glass bell, a title, three sample rows of what
+/// will arrive here (fading out), and "Bildirishnoma sozlamalari" at the
+/// bottom. A warning card leads when notifications are off in the system.
+class _Empty extends StatefulWidget {
+  const _Empty();
+
+  @override
+  State<_Empty> createState() => _EmptyState();
+}
+
+class _EmptyState extends State<_Empty> with WidgetsBindingObserver {
+  bool _blocked = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _check();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  // Back from the system settings: the switch may have changed.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) _check();
+  }
+
+  Future<void> _check() async {
+    final blocked = await getIt<PushService>().blocked;
+    if (mounted && blocked != _blocked) setState(() => _blocked = blocked);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final tc = context.tc;
+    final text = Theme.of(context).textTheme;
+    // The app's real notification kinds; see _Row.
+    final samples = [
+      (
+        Symbols.front_hand_rounded,
+        cs.primary,
+        cs.primaryContainer,
+        tr('Yangi soʻrov'),
+        tr('Kimdir buyum oʻziniki ekanini aytdi'),
+      ),
+      (
+        Symbols.forum_rounded,
+        tc.success,
+        tc.successContainer,
+        tr('Soʻrov qabul qilindi'),
+        tr('Chatda uchrashuvni kelishasiz'),
+      ),
+      (
+        Symbols.favorite_rounded,
+        tc.lost,
+        tc.lostContainer,
+        tr('Buyum qaytarildi'),
+        tr('Topuvchi buyumingizni sizga qaytardi'),
+      ),
+    ];
+    return Column(
+      children: [
+        const SizedBox(height: 4),
+        const GlassEmptyIcon(icon: Symbols.notifications_rounded, iconSize: 60, badge: GlassIconBadge.none),
+        const SizedBox(height: 20),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 28),
+          child: Column(
+            children: [
+              Semantics(
+                header: true,
+                child: Text(
+                  tr('Yangi xabar yoʻq'),
+                  textAlign: TextAlign.center,
+                  style: text.headlineSmall!
+                      .copyWith(fontSize: 24, height: 30 / 24, letterSpacing: -0.4, color: cs.onSurface)
+                      .inter(FontWeight.w700),
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                tr('Bu yerda shunday xabarlar chiqadi:'),
+                textAlign: TextAlign.center,
+                style: text.bodyMedium!
+                    .copyWith(fontSize: 15, height: 21 / 15, color: cs.onSurfaceVariant)
+                    .inter(FontWeight.w400),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 24),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Column(
+            children: [
+              if (_blocked) ...[const _BlockedCard(), const SizedBox(height: 12)],
+              Semantics(
+                label: tr('Bu yerda chiqadigan xabarlar: {list}', {
+                  'list': [for (final s in samples) '${s.$4}. ${s.$5}'].join('; '),
+                }),
+                excludeSemantics: true,
+                child: IgnorePointer(
+                  child: Column(
+                    children: [
+                      for (var i = 0; i < samples.length; i++) ...[
+                        if (i > 0) const SizedBox(height: 8),
+                        Opacity(
+                          opacity: const [1.0, 0.75, 0.5][i],
+                          child: _SampleRow(
+                            icon: samples[i].$1,
+                            fg: samples[i].$2,
+                            bg: samples[i].$3,
+                            title: samples[i].$4,
+                            body: samples[i].$5,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const Spacer(),
+        const SizedBox(height: 24),
+        Semantics(
+          button: true,
+          child: GestureDetector(
+            onTap: () => context.go(Routes.profile),
+            child: Container(
+              height: 44,
+              padding: const EdgeInsets.fromLTRB(14, 0, 18, 0),
+              decoration: BoxDecoration(color: cs.primaryContainer, borderRadius: BorderRadius.circular(999)),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Symbols.tune_rounded, size: 20, color: cs.onPrimaryContainer),
+                  const SizedBox(width: 6),
+                  Flexible(
+                    child: Text(
+                      tr('Bildirishnoma sozlamalari'),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(fontSize: 15, color: cs.onPrimaryContainer).inter(FontWeight.w700),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+      ],
+    );
+  }
+}
+
+/// One sample of what will show up, white card with a tinted icon square.
+class _SampleRow extends StatelessWidget {
+  const _SampleRow({required this.icon, required this.fg, required this.bg, required this.title, required this.body});
+
+  final IconData icon;
+  final Color fg, bg;
+  final String title, body;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: cs.surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: const [BoxShadow(color: Color(0x0A0F1420), blurRadius: 14, offset: Offset(0, 4))],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(14)),
+            child: Icon(icon, size: 22, color: fg),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: TextStyle(fontSize: 14, color: cs.onSurface).inter(FontWeight.w700)),
+                Text(body, style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant).inter(FontWeight.w400)),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Notifications are off in the system: say so, with "Yoqish" to the
+/// app's settings page.
+class _BlockedCard extends StatelessWidget {
+  const _BlockedCard();
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final tc = context.tc;
+    return Container(
+      padding: const EdgeInsets.fromLTRB(14, 12, 8, 12),
+      decoration: BoxDecoration(color: tc.warningContainer, borderRadius: BorderRadius.circular(20)),
+      child: Row(
+        children: [
+          Icon(Symbols.notifications_off_rounded, size: 22, color: tc.warning),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              tr('Bildirishnomalar oʻchiq — yangi xabarlarni oʻtkazib yuborishingiz mumkin'),
+              style: TextStyle(fontSize: 13, height: 18 / 13, color: cs.onSurface).inter(FontWeight.w500),
+            ),
+          ),
+          Semantics(
+            button: true,
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () => getIt<LocationService>().openSettings(),
+              child: SizedBox(
+                height: 44,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Center(
+                    child: Text(tr('Yoqish'), style: TextStyle(fontSize: 14, color: cs.primary).inter(FontWeight.w700)),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

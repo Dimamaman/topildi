@@ -12,6 +12,9 @@ enum GlassIconBadge {
 
   /// White disc with a lock plus one dot (Chatlar).
   lock,
+
+  /// Just the one dot (Bildirishnomalar).
+  none,
 }
 
 /// Empty-state art shared by Lenta and Chatlar, 150×150: blurred glow, a
@@ -73,6 +76,7 @@ class _GlassEmptyIconState extends State<GlassEmptyIcon> with TickerProviderStat
     final dark = Theme.of(context).brightness == Brightness.dark;
     final glow = widget.glow ?? cs.primary.withValues(alpha: dark ? 0.25 : 0.35);
     final lock = widget.badge == GlassIconBadge.lock;
+    final sparkles = widget.badge == GlassIconBadge.sparkle;
     final sparkle = dark ? cs.primary : cs.inversePrimary;
     return ExcludeSemantics(
       child: SizedBox.square(
@@ -119,7 +123,7 @@ class _GlassEmptyIconState extends State<GlassEmptyIcon> with TickerProviderStat
                   child: Icon(Symbols.lock_rounded, size: 18, fill: 1, color: cs.primary),
                 ),
               )
-            else
+            else if (sparkles)
               Positioned(
                 right: -6,
                 top: 0,
@@ -129,7 +133,7 @@ class _GlassEmptyIconState extends State<GlassEmptyIcon> with TickerProviderStat
                 ),
               ),
             Positioned(left: 0, bottom: 18, child: _Dot(size: 10, color: TopildiColors.dark.lost)),
-            if (!lock) Positioned(right: 8, bottom: 0, child: _Dot(size: 7, color: TopildiColors.dark.found)),
+            if (sparkles) Positioned(right: 8, bottom: 0, child: _Dot(size: 7, color: TopildiColors.dark.found)),
           ],
         ),
       ),
