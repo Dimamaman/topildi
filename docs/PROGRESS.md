@@ -122,7 +122,9 @@ Cloud Functions yo'q: chatni ilova yaratadi, xavfsizlikni Firestore rules taʼmi
 - **"Eʼlon joylandi!"** (`posted_page.dart`): "katta matn + suriladigan kartalar", Instagram uslubidagi tasdiq belgisi, "Faol" chip, 3 ta "Keyin nima boʻladi?" kartasi (faol karta ko'k, qolganlari oq; 3.5 s da o'zi aylanadi), Ulashish tugmasi (`share_plus`), kirish animatsiyasi.
 - **Ko'rib chiqish:** tayyorlik halqasi 99% da to'xtaydi (e'lon qilish oxirgi qadam); tahrirlashda 100%.
 - **Chatlar, Bildirishnomalar bo'sh holati:** Lenta bilan umumiy `GlassEmptyIcon` (`lib/core/widgets/glass_empty_icon.dart`); Chatlar'da qulf belgisi, blok ekran markazida; Bildirishnomalar'da 3 ta namuna qatori, tizimda o'chiq bo'lsa ogohlantirish va "Yoqish".
-- **"Egaligingizni tasdiqlang"** (`claim_page.dart`): katta savol, javob maydoni, chiplar maydonga so'z qo'shadi, dalil rasm kapsulasi, 3 ta kalit (urinishlar; rad etilgandan keyin bittasi "tushadi"), rad etilgan va urinishlar tugagan holatlar.
+- **"Egaligingizni tasdiqlang"** (`claim_page.dart`): katta savol, javob maydoni, dalil rasm kapsulasi, 3 ta kalit (urinishlar; rad etilgandan keyin bittasi "tushadi"), rad etilgan va urinishlar tugagan holatlar. Savol ostidagi izoh va yordamchi chiplar keyinroq olib tashlangan.
+- **"Soʻrovlar"** (`claims_page.dart`, muallif uchun): tepada eʼlon nomi va miniatyura; har so'rov bitta kartada — "SIZ YOZGAN BELGI" (och ko'k, ilova uslubida) va "{ISM} JAVOBI" ustma-ust, orasida "VS"; "{vaqt} · {n}-urinish", holat chipi; pastda "✕ Mos emas" (tasdiqsiz, 5 s "Bekor qilish" snackbar'i) va "✓ Qabul qilish" (tasdiq + loading kapsula → chat); qabul qilinganda "Chatga oʻtish". 2+ so'rov yonma-yon suriladi ("Soʻrovlar · 1 / 3"). `Claim.attempt` qo'shildi (Firestore'dagi `attempt` maydoni).
+- **Eʼlon sahifasi (muallif):** "N ta yangi soʻrov" kartasi oq, ko'k ikonka kvadrati va son nishoni bilan.
 - Chatlar tab ikonkasi uch chiziqli `chat`; profil statistikasida ruscha uzun yozuv faqat o'zi kichrayadi.
 
 **Brend:** yangi "t." logo — `lib/core/widgets/topildi_logo.dart` (`TopildiMark`, `TopildiAppIcon`, `TopildiWordmark`, belgi SVG path'idan chiziladi). Arxivdagi PNG'lar buzuq edi, `assets/brand/` dagi PNG'lar shu path'dan qayta yasalgan. iOS/Android launcher ikonkalari (`flutter_launcher_icons`, Android 13 monoxrom bilan) va native splash (`flutter_native_splash`, ko'k fon) — sozlamalar `pubspec.yaml` da. Flutter splash belgini native splash bilan bir joyda chizadi.
@@ -134,6 +136,12 @@ Cloud Functions yo'q: chatni ilova yaratadi, xavfsizlikni Firestore rules taʼmi
 **Javobsiz so'rovlar:**
 - **Eslatma:** `topildiRemindPendingClaims` (har soat) — 24 soatdan ko'p kutgan so'rov uchun muallifga bitta push (`remindedAt` bilan belgilanadi). Indeks: `topildi_claims` (`status`, `createdAt`).
 - **Bekor qilish:** so'rov yuborgan odam "Soʻrov yuborildi" ni bosib, 3 kundan keyin so'rovni qaytarib oladi; urinish qaytariladi, dalil rasm o'chadi. Rules faqat egasiga, faqat `pending` holatda ruxsat beradi.
+
+**Loading kapsula xato matni:** Firebase'ning inglizcha texnik xabarlari ("User is not authorized…") endi ko'rsatilmaydi — faqat "Internetni tekshiring", "Ruxsat yoʻq. Qayta kirib koʻring" yoki validatsiya matni; asl sabab logda.
+
+**Eʼlon rasmlari yangi papkada:** rasmli eʼlon joylashda Storage `unauthorized` xatosi chiqardi (eski qoida Firestore'ni o'qiydigan `firestore.exists(...)` ga tayanardi). Endi rasmlar `topildi/uploads/{uid}/{eʼlonId}_{n}.jpg` ga yuklanadi; qoida faqat uid'ni tekshiradi. Eʼlon o'chirilganda rasmlar URL bo'yicha o'chiriladi; eski eʼlonlarning `topildi/listings/{id}/` dagi rasmlari ham tozalanadi. Kod commit qilingan; **`storage.rules` deploy qilinganini tekshirish kerak** (pastda).
+
+**Test rejimi** (bekor qilish kutishsiz, so'ng urinishni sarflagan holda — `ClaimTarget.cancelUsesAttempt`, `ClaimStatus.cancelled`) sinovdan keyin qaytarildi; bayroq `false` holda kodda qolgan.
 
 **Boshqa:** O'zbekistonning 14 ta hududi va ~190 tuman/shahar filtrlarda (`regions.dart`); Chatlar refresh'i endi qotib qolmaydi (`ChatListCubit.load`); "Saqlash" va boshqa tugmalar `CreatePrimaryButton` uslubida.
 
@@ -148,6 +156,12 @@ Cloud Functions yo'q: chatni ilova yaratadi, xavfsizlikni Firestore rules taʼmi
 ---
 
 ## ⏳ Qilinishi kerak
+
+### 0. Hozir
+
+1. **`storage.rules` deploy:** `npx -y firebase-tools@15 deploy --only storage --project foodai-73d66` — busiz rasmli eʼlon joylash xato beradi. (Deploy agent uchun bloklangan, egasi qiladi.)
+2. Shundan keyin rasmli eʼlonni haqiqiy qurilmada joylab ko'rish; dalil rasmli so'rovni ham sinash — u hali eski, Firestore'ni o'qiydigan Storage qoidasiga tayanadi; xato bersa, uni ham `uploads` usuliga o'tkazish.
+3. **So'rovni bekor qilish kutishi:** 3 kun ko'p deb muhokama qilindi; tavsiya — 24 soat (eslatma bilan bir vaqtda) yoki "muallif ko'rmagan bo'lsa darhol". Qaror kutilmoqda.
 
 ### 1. Sinov (eng avval)
 
@@ -182,6 +196,12 @@ Firestore'ga ulangan (yuqorida). Hozircha "o'xshash buyum topildi" va "eʼlon ar
 - Eski ishlatilmay qolgan tarjimalar (`ru.dart`): masalan "Eʼlonni tahrirlash tez orada qoʻshiladi".
 - Eʼlon sahifasidagi muallif uchun so'rovlar soni sahifa ochilganda yuklanadi (real vaqtda emas).
 - Simulator uchun reCAPTCHA'ni o'chirish (`appVerificationDisabledForTesting`, faqat test raqamlar bilan) — taklif qilingan, qilinmagan.
+
+### 4.1. iOS build eslatmalari
+
+- `objective_c` (`path_provider_foundation` orqali) native assets ishlatadi. Xcode'dan to'g'ridan-to'g'ri yoki eski kesh bilan yig'ilsa: simulyatorda `DOBJC_initializeApi … Failed to load`, qurilmada `objective_c.framework … invalid signature` (ad-hoc imzo, eski `_CodeSignature`).
+- Yechim: `rm -rf ~/Library/Developer/Xcode/DerivedData/Runner-*`, `flutter clean && flutter pub get`, so'ng `flutter run` (tavsiya) yoki Xcode → Clean Build Folder.
+- Cloud Functions deploy: `cd functions && npm run deploy` (global `firebase` CLI eski Node bilan qurilgan, funksiyalarni yuklay olmaydi). Firestore/Storage qoidalari: `firebase deploy --only firestore:rules` yoki `npx -y firebase-tools@15 deploy --only storage`.
 
 ### 5. Keyinroq
 
