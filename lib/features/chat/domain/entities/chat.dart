@@ -54,14 +54,32 @@ class ChatThread extends Equatable {
       );
 
   @override
-  List<Object?> get props =>
-      [id, listingId, listingTitle, listingCategory, listingTint, other, iAmFinder, lastMessage, lastAt, unread, returned, otherReadAt];
+  List<Object?> get props => [
+    id,
+    listingId,
+    listingTitle,
+    listingCategory,
+    listingTint,
+    other,
+    iAmFinder,
+    lastMessage,
+    lastAt,
+    unread,
+    returned,
+    otherReadAt,
+  ];
 }
 
 enum MessageKind { text, matched, safety, returned }
 
 class ChatMessage extends Equatable {
-  const ChatMessage({required this.id, required this.text, required this.sentAt, this.fromMe = false, this.kind = MessageKind.text});
+  const ChatMessage({
+    required this.id,
+    required this.text,
+    required this.sentAt,
+    this.fromMe = false,
+    this.kind = MessageKind.text,
+  });
 
   final String id, text;
   final DateTime sentAt;

@@ -84,8 +84,10 @@ class _SuccessViewState extends State<_SuccessView> with SingleTickerProviderSta
     super.dispose();
   }
 
-  Animation<double> _interval(int fromMs, int toMs, [Curve curve = Curves.easeOut]) =>
-      CurvedAnimation(parent: _intro, curve: Interval(fromMs / 700, toMs / 700, curve: curve));
+  Animation<double> _interval(int fromMs, int toMs, [Curve curve = Curves.easeOut]) => CurvedAnimation(
+    parent: _intro,
+    curve: Interval(fromMs / 700, toMs / 700, curve: curve),
+  );
 
   void _toFeed() => context.go(Routes.home);
 
@@ -157,7 +159,11 @@ class _SuccessViewState extends State<_SuccessView> with SingleTickerProviderSta
                               animation: _interval(280, 580),
                               child: Text(
                                 note,
-                                style: TextStyle(fontSize: 16, height: 23 / 16, color: cs.secondary).inter(FontWeight.w400),
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  height: 23 / 16,
+                                  color: cs.secondary,
+                                ).inter(FontWeight.w400),
                               ),
                             ),
                           ],
@@ -189,7 +195,9 @@ class _SuccessViewState extends State<_SuccessView> with SingleTickerProviderSta
                         padding: EdgeInsets.fromLTRB(20, 0, 20, math.max(34, mq.padding.bottom)),
                         child: Row(
                           children: [
-                            Expanded(child: CreatePrimaryButton(label: tr('Lentaga qaytish'), onTap: _toFeed)),
+                            Expanded(
+                              child: CreatePrimaryButton(label: tr('Lentaga qaytish'), onTap: _toFeed),
+                            ),
                             const SizedBox(width: 10),
                             _ShareButton(title: s.listingTitle),
                           ],
@@ -387,9 +395,7 @@ class _CounterCard extends StatelessWidget {
                             fontSize: 24,
                             height: 1,
                             letterSpacing: -0.5,
-                            color: Theme.of(context).brightness == Brightness.dark
-                                ? cs.onPrimaryContainer
-                                : cs.primary,
+                            color: Theme.of(context).brightness == Brightness.dark ? cs.onPrimaryContainer : cs.primary,
                           ).inter(FontWeight.w800),
                         ),
                       ),
@@ -443,8 +449,12 @@ class _NoteCard extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             '“$note”',
-            style: TextStyle(fontSize: 15, height: 22 / 15, fontStyle: FontStyle.italic, color: cs.onSurface)
-                .inter(FontWeight.w400),
+            style: TextStyle(
+              fontSize: 15,
+              height: 22 / 15,
+              fontStyle: FontStyle.italic,
+              color: cs.onSurface,
+            ).inter(FontWeight.w400),
           ),
         ],
       ),

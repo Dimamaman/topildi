@@ -590,6 +590,7 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i354.MarkChatRead>(),
         gh<_i496.SendMessage>(),
         gh<_i905.MarkReturned>(),
+        gh<_i445.GetListingDetail>(),
       ),
     );
     gh.factory<_i64.CreateFlowCubit>(

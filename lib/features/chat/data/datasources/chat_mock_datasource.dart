@@ -50,9 +50,18 @@ class ChatMockDataSource implements ChatRemoteDataSource {
       unread: 1,
     );
     _messages['c_sardor'] = [
-      ChatMessage(id: 'm1', text: matchedText, sentAt: ago(const Duration(days: 1, hours: 1)), kind: MessageKind.matched),
+      ChatMessage(
+        id: 'm1',
+        text: matchedText,
+        sentAt: ago(const Duration(days: 1, hours: 1)),
+        kind: MessageKind.matched,
+      ),
       ChatMessage(id: 'm2', text: safetyTip, sentAt: ago(const Duration(days: 1, hours: 1)), kind: MessageKind.safety),
-      ChatMessage(id: 'm3', text: 'Pasport rasmini koʻrdingizmi? Sizniki boʻlishi mumkin', sentAt: ago(const Duration(days: 1))),
+      ChatMessage(
+        id: 'm3',
+        text: 'Pasport rasmini koʻrdingizmi? Sizniki boʻlishi mumkin',
+        sentAt: ago(const Duration(days: 1)),
+      ),
     ];
 
     _threads['c_nilufar'] = ChatThread(
@@ -88,11 +97,36 @@ class ChatMockDataSource implements ChatRemoteDataSource {
       otherReadAt: ago(const Duration(minutes: 40)),
     );
     _messages['c_ozoda'] = [
-      ChatMessage(id: 'c_ozoda_m', text: matchedText, sentAt: ago(const Duration(minutes: 125)), kind: MessageKind.matched),
-      ChatMessage(id: 'c_ozoda_s', text: safetyTip, sentAt: ago(const Duration(minutes: 125)), kind: MessageKind.safety),
-      ChatMessage(id: 'c_ozoda_1', text: 'Assalomu alaykum! Buyum hali sizdami?', sentAt: ago(const Duration(minutes: 95)), fromMe: false),
-      ChatMessage(id: 'c_ozoda_2', text: 'Ha, menda. Qachon olib keta olasiz?', sentAt: ago(const Duration(minutes: 65)), fromMe: true),
-      ChatMessage(id: 'c_ozoda_3', text: 'Qachon va qayerda uchrashsak boʻladi?', sentAt: ago(const Duration(minutes: 35)), fromMe: false),
+      ChatMessage(
+        id: 'c_ozoda_m',
+        text: matchedText,
+        sentAt: ago(const Duration(minutes: 125)),
+        kind: MessageKind.matched,
+      ),
+      ChatMessage(
+        id: 'c_ozoda_s',
+        text: safetyTip,
+        sentAt: ago(const Duration(minutes: 125)),
+        kind: MessageKind.safety,
+      ),
+      ChatMessage(
+        id: 'c_ozoda_1',
+        text: 'Assalomu alaykum! Buyum hali sizdami?',
+        sentAt: ago(const Duration(minutes: 95)),
+        fromMe: false,
+      ),
+      ChatMessage(
+        id: 'c_ozoda_2',
+        text: 'Ha, menda. Qachon olib keta olasiz?',
+        sentAt: ago(const Duration(minutes: 65)),
+        fromMe: true,
+      ),
+      ChatMessage(
+        id: 'c_ozoda_3',
+        text: 'Qachon va qayerda uchrashsak boʻladi?',
+        sentAt: ago(const Duration(minutes: 35)),
+        fromMe: false,
+      ),
     ];
     _threads['c_jasur'] = ChatThread(
       id: 'c_jasur',
@@ -106,11 +140,36 @@ class ChatMockDataSource implements ChatRemoteDataSource {
       lastAt: ago(const Duration(minutes: 180)),
     );
     _messages['c_jasur'] = [
-      ChatMessage(id: 'c_jasur_m', text: matchedText, sentAt: ago(const Duration(minutes: 270)), kind: MessageKind.matched),
-      ChatMessage(id: 'c_jasur_s', text: safetyTip, sentAt: ago(const Duration(minutes: 270)), kind: MessageKind.safety),
-      ChatMessage(id: 'c_jasur_1', text: 'Assalomu alaykum! Buyum hali sizdami?', sentAt: ago(const Duration(minutes: 240)), fromMe: true),
-      ChatMessage(id: 'c_jasur_2', text: 'Ha, menda. Qachon olib keta olasiz?', sentAt: ago(const Duration(minutes: 210)), fromMe: false),
-      ChatMessage(id: 'c_jasur_3', text: 'Ertaga soat 10 da kutubxona oldida boʻlaman', sentAt: ago(const Duration(minutes: 180)), fromMe: false),
+      ChatMessage(
+        id: 'c_jasur_m',
+        text: matchedText,
+        sentAt: ago(const Duration(minutes: 270)),
+        kind: MessageKind.matched,
+      ),
+      ChatMessage(
+        id: 'c_jasur_s',
+        text: safetyTip,
+        sentAt: ago(const Duration(minutes: 270)),
+        kind: MessageKind.safety,
+      ),
+      ChatMessage(
+        id: 'c_jasur_1',
+        text: 'Assalomu alaykum! Buyum hali sizdami?',
+        sentAt: ago(const Duration(minutes: 240)),
+        fromMe: true,
+      ),
+      ChatMessage(
+        id: 'c_jasur_2',
+        text: 'Ha, menda. Qachon olib keta olasiz?',
+        sentAt: ago(const Duration(minutes: 210)),
+        fromMe: false,
+      ),
+      ChatMessage(
+        id: 'c_jasur_3',
+        text: 'Ertaga soat 10 da kutubxona oldida boʻlaman',
+        sentAt: ago(const Duration(minutes: 180)),
+        fromMe: false,
+      ),
     ];
     _threads['c_gulnora'] = ChatThread(
       id: 'c_gulnora',
@@ -125,11 +184,36 @@ class ChatMockDataSource implements ChatRemoteDataSource {
       unread: 1,
     );
     _messages['c_gulnora'] = [
-      ChatMessage(id: 'c_gulnora_m', text: matchedText, sentAt: ago(const Duration(minutes: 1290)), kind: MessageKind.matched),
-      ChatMessage(id: 'c_gulnora_s', text: safetyTip, sentAt: ago(const Duration(minutes: 1290)), kind: MessageKind.safety),
-      ChatMessage(id: 'c_gulnora_1', text: 'Assalomu alaykum! Buyum hali sizdami?', sentAt: ago(const Duration(minutes: 1260)), fromMe: true),
-      ChatMessage(id: 'c_gulnora_2', text: 'Ha, menda. Qachon olib keta olasiz?', sentAt: ago(const Duration(minutes: 1230)), fromMe: false),
-      ChatMessage(id: 'c_gulnora_3', text: 'Stiker rasmini yuboring, iltimos', sentAt: ago(const Duration(minutes: 1200)), fromMe: false),
+      ChatMessage(
+        id: 'c_gulnora_m',
+        text: matchedText,
+        sentAt: ago(const Duration(minutes: 1290)),
+        kind: MessageKind.matched,
+      ),
+      ChatMessage(
+        id: 'c_gulnora_s',
+        text: safetyTip,
+        sentAt: ago(const Duration(minutes: 1290)),
+        kind: MessageKind.safety,
+      ),
+      ChatMessage(
+        id: 'c_gulnora_1',
+        text: 'Assalomu alaykum! Buyum hali sizdami?',
+        sentAt: ago(const Duration(minutes: 1260)),
+        fromMe: true,
+      ),
+      ChatMessage(
+        id: 'c_gulnora_2',
+        text: 'Ha, menda. Qachon olib keta olasiz?',
+        sentAt: ago(const Duration(minutes: 1230)),
+        fromMe: false,
+      ),
+      ChatMessage(
+        id: 'c_gulnora_3',
+        text: 'Stiker rasmini yuboring, iltimos',
+        sentAt: ago(const Duration(minutes: 1200)),
+        fromMe: false,
+      ),
     ];
     _threads['c_shahlo'] = ChatThread(
       id: 'c_shahlo',
@@ -144,12 +228,42 @@ class ChatMockDataSource implements ChatRemoteDataSource {
       returned: true,
     );
     _messages['c_shahlo'] = [
-      ChatMessage(id: 'c_shahlo_m', text: matchedText, sentAt: ago(const Duration(minutes: 4410)), kind: MessageKind.matched),
-      ChatMessage(id: 'c_shahlo_s', text: safetyTip, sentAt: ago(const Duration(minutes: 4410)), kind: MessageKind.safety),
-      ChatMessage(id: 'c_shahlo_1', text: 'Assalomu alaykum! Buyum hali sizdami?', sentAt: ago(const Duration(minutes: 4380)), fromMe: true),
-      ChatMessage(id: 'c_shahlo_2', text: 'Ha, menda. Qachon olib keta olasiz?', sentAt: ago(const Duration(minutes: 4350)), fromMe: false),
-      ChatMessage(id: 'c_shahlo_r', text: ChatNotes.returned, sentAt: ago(const Duration(minutes: 4325)), kind: MessageKind.returned),
-      ChatMessage(id: 'c_shahlo_3', text: 'Qizim juda xursand boʻldi, rahmat!', sentAt: ago(const Duration(minutes: 4320)), fromMe: false),
+      ChatMessage(
+        id: 'c_shahlo_m',
+        text: matchedText,
+        sentAt: ago(const Duration(minutes: 4410)),
+        kind: MessageKind.matched,
+      ),
+      ChatMessage(
+        id: 'c_shahlo_s',
+        text: safetyTip,
+        sentAt: ago(const Duration(minutes: 4410)),
+        kind: MessageKind.safety,
+      ),
+      ChatMessage(
+        id: 'c_shahlo_1',
+        text: 'Assalomu alaykum! Buyum hali sizdami?',
+        sentAt: ago(const Duration(minutes: 4380)),
+        fromMe: true,
+      ),
+      ChatMessage(
+        id: 'c_shahlo_2',
+        text: 'Ha, menda. Qachon olib keta olasiz?',
+        sentAt: ago(const Duration(minutes: 4350)),
+        fromMe: false,
+      ),
+      ChatMessage(
+        id: 'c_shahlo_r',
+        text: ChatNotes.returned,
+        sentAt: ago(const Duration(minutes: 4325)),
+        kind: MessageKind.returned,
+      ),
+      ChatMessage(
+        id: 'c_shahlo_3',
+        text: 'Qizim juda xursand boʻldi, rahmat!',
+        sentAt: ago(const Duration(minutes: 4320)),
+        fromMe: false,
+      ),
     ];
     _ownerNotes['c_shahlo'] = 'Qizim juda xursand boʻldi, rahmat!';
     _threads['c_timur'] = ChatThread(
@@ -165,12 +279,42 @@ class ChatMockDataSource implements ChatRemoteDataSource {
       returned: true,
     );
     _messages['c_timur'] = [
-      ChatMessage(id: 'c_timur_m', text: matchedText, sentAt: ago(const Duration(minutes: 20250)), kind: MessageKind.matched),
-      ChatMessage(id: 'c_timur_s', text: safetyTip, sentAt: ago(const Duration(minutes: 20250)), kind: MessageKind.safety),
-      ChatMessage(id: 'c_timur_1', text: 'Assalomu alaykum! Buyum hali sizdami?', sentAt: ago(const Duration(minutes: 20220)), fromMe: false),
-      ChatMessage(id: 'c_timur_2', text: 'Ha, menda. Qachon olib keta olasiz?', sentAt: ago(const Duration(minutes: 20190)), fromMe: true),
-      ChatMessage(id: 'c_timur_r', text: ChatNotes.returned, sentAt: ago(const Duration(minutes: 20165)), kind: MessageKind.returned),
-      ChatMessage(id: 'c_timur_3', text: 'Hamyonni oldim, katta rahmat sizga', sentAt: ago(const Duration(minutes: 20160)), fromMe: false),
+      ChatMessage(
+        id: 'c_timur_m',
+        text: matchedText,
+        sentAt: ago(const Duration(minutes: 20250)),
+        kind: MessageKind.matched,
+      ),
+      ChatMessage(
+        id: 'c_timur_s',
+        text: safetyTip,
+        sentAt: ago(const Duration(minutes: 20250)),
+        kind: MessageKind.safety,
+      ),
+      ChatMessage(
+        id: 'c_timur_1',
+        text: 'Assalomu alaykum! Buyum hali sizdami?',
+        sentAt: ago(const Duration(minutes: 20220)),
+        fromMe: false,
+      ),
+      ChatMessage(
+        id: 'c_timur_2',
+        text: 'Ha, menda. Qachon olib keta olasiz?',
+        sentAt: ago(const Duration(minutes: 20190)),
+        fromMe: true,
+      ),
+      ChatMessage(
+        id: 'c_timur_r',
+        text: ChatNotes.returned,
+        sentAt: ago(const Duration(minutes: 20165)),
+        kind: MessageKind.returned,
+      ),
+      ChatMessage(
+        id: 'c_timur_3',
+        text: 'Hamyonni oldim, katta rahmat sizga',
+        sentAt: ago(const Duration(minutes: 20160)),
+        fromMe: false,
+      ),
     ];
     _ownerNotes['c_timur'] = 'Hamyonni oldim, katta rahmat sizga';
     _threads['c_bekzod'] = ChatThread(
@@ -185,11 +329,36 @@ class ChatMockDataSource implements ChatRemoteDataSource {
       lastAt: ago(const Duration(minutes: 5760)),
     );
     _messages['c_bekzod'] = [
-      ChatMessage(id: 'c_bekzod_m', text: matchedText, sentAt: ago(const Duration(minutes: 5850)), kind: MessageKind.matched),
-      ChatMessage(id: 'c_bekzod_s', text: safetyTip, sentAt: ago(const Duration(minutes: 5850)), kind: MessageKind.safety),
-      ChatMessage(id: 'c_bekzod_1', text: 'Assalomu alaykum! Buyum hali sizdami?', sentAt: ago(const Duration(minutes: 5820)), fromMe: true),
-      ChatMessage(id: 'c_bekzod_2', text: 'Ha, menda. Qachon olib keta olasiz?', sentAt: ago(const Duration(minutes: 5790)), fromMe: false),
-      ChatMessage(id: 'c_bekzod_3', text: 'Sochiq rangini toʻgʻri aytdingiz, chat ochildi', sentAt: ago(const Duration(minutes: 5760)), fromMe: false),
+      ChatMessage(
+        id: 'c_bekzod_m',
+        text: matchedText,
+        sentAt: ago(const Duration(minutes: 5850)),
+        kind: MessageKind.matched,
+      ),
+      ChatMessage(
+        id: 'c_bekzod_s',
+        text: safetyTip,
+        sentAt: ago(const Duration(minutes: 5850)),
+        kind: MessageKind.safety,
+      ),
+      ChatMessage(
+        id: 'c_bekzod_1',
+        text: 'Assalomu alaykum! Buyum hali sizdami?',
+        sentAt: ago(const Duration(minutes: 5820)),
+        fromMe: true,
+      ),
+      ChatMessage(
+        id: 'c_bekzod_2',
+        text: 'Ha, menda. Qachon olib keta olasiz?',
+        sentAt: ago(const Duration(minutes: 5790)),
+        fromMe: false,
+      ),
+      ChatMessage(
+        id: 'c_bekzod_3',
+        text: 'Sochiq rangini toʻgʻri aytdingiz, chat ochildi',
+        sentAt: ago(const Duration(minutes: 5760)),
+        fromMe: false,
+      ),
     ];
   }
 

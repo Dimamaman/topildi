@@ -119,7 +119,8 @@ const ruStrings = <String, String>{
   'ga rozilik bildirasiz.': '.',
   'Telegram orqali kirish': 'Войти через Telegram',
   'Telegram ochilmoqda…': 'Открываем Telegram…',
-  'Yoʻqotganingizni toping, topganingizni qaytaring. Kirish — bir bosishda.': 'Найдите потерянное, верните найденное. Вход — в одно касание.',
+  'Yoʻqotganingizni toping, topganingizni qaytaring. Kirish — bir bosishda.':
+      'Найдите потерянное, верните найденное. Вход — в одно касание.',
   'Telegramni ochib boʻlmadi. Qayta urinib koʻring': 'Не удалось открыть Telegram. Попробуйте ещё раз',
 
   // Profile setup
@@ -128,7 +129,8 @@ const ruStrings = <String, String>{
   'Oxirgi qadam': 'Последний шаг',
   'Profilni tahrirlash': 'Редактировать профиль',
   'Tanishib olaylik': 'Давайте познакомимся',
-  'Ismingiz va rasmingiz eʼlonlarda koʻrinadi. Bu ishonchni oshiradi.': 'Имя и фото видны в объявлениях. Это повышает доверие.',
+  'Ismingiz va rasmingiz eʼlonlarda koʻrinadi. Bu ishonchni oshiradi.':
+      'Имя и фото видны в объявлениях. Это повышает доверие.',
   'Rasmni olib tashlash': 'Удалить фото',
   'Rasm qoʻshish (ixtiyoriy)': 'Добавить фото (необязательно)',
   'Ism': 'Имя',
@@ -164,7 +166,8 @@ const ruStrings = <String, String>{
   'Chat faqat soʻrov qabul qilingandan keyin ochiladi. Telefon raqamlar yashirin.':
       'Чат открывается только после принятия заявки. Номера телефонов скрыты.',
   'Buyum qaytarildimi?': 'Вещь возвращена?',
-  'Buyumni egasiga topshirganingizni tasdiqlang. Eʼlon yopiladi.': 'Подтвердите, что передали вещь владельцу. Объявление закроется.',
+  'Buyumni egasiga topshirganingizni tasdiqlang. Eʼlon yopiladi.':
+      'Подтвердите, что передали вещь владельцу. Объявление закроется.',
   'Ha, qaytarildi': 'Да, возвращена',
   'Hali emas': 'Ещё нет',
   'Egaligi tasdiqlangan': 'Владелец подтверждён',
@@ -186,6 +189,11 @@ const ruStrings = <String, String>{
   'Buyum egasiga qaytarildi': 'Вещь возвращена владельцу',
   'Yuborish': 'Отправить',
   'Buyum egasiga qaytarildi. Chat yopilgan.': 'Вещь возвращена владельцу. Чат закрыт.',
+  'Faol chat': 'Активный чат',
+  'Javob yashirin belgiga mos keldi · Chat ochildi': 'Ответ совпал со скрытой приметой · Чат открыт',
+  'Buyum egasiga qaytarildi · {time}': 'Вещь возвращена владельцу · {time}',
+  'Chat yopildi.': 'Чат закрыт.',
+  'Yozishmalar saqlanadi.': 'Переписка сохранится.',
 
   // Success
   // Headline in two lines: "Buyum egasiga / qaytdi!", "Buyumingiz / qaytdi!".
@@ -196,7 +204,8 @@ const ruStrings = <String, String>{
   'Topuvchi: {name} · {time}': 'Нашёл: {name} · {time}',
   '{firstName}, bugun siz birovning kunini yaxshiladingiz. Halolligingiz uchun rahmat!':
       '{firstName}, сегодня вы кому-то сделали день лучше. Спасибо за честность!',
-  '{finderName} buyumingizni qaytardi. Unga rahmat aytishni unutmang!': '{finderName} вернул(а) вашу вещь. Не забудьте поблагодарить!',
+  '{finderName} buyumingizni qaytardi. Unga rahmat aytishni unutmang!':
+      '{finderName} вернул(а) вашу вещь. Не забудьте поблагодарить!',
   '{displayName} yozdi': '{displayName} пишет',
   // The bold part ('{n} ta buyumni', 'birinchi') must appear in the sentence as is.
   'Siz endi {n} ta buyumni egasiga qaytardingiz': 'Вещей, возвращённых владельцам: {n}',
@@ -262,7 +271,8 @@ const ruStrings = <String, String>{
   'Javoblarni belgi bilan solishtiring. Toʻgʻri javob bergan odamni qabul qiling.':
       'Сравните ответы с приметой. Примите того, кто ответил верно.',
   'Soʻrovni rad etasizmi?': 'Отклонить заявку?',
-  'Javob yashirin belgiga mos kelmadi. Foydalanuvchiga xabar beramiz.': 'Ответ не совпал со скрытой приметой. Мы сообщим пользователю.',
+  'Javob yashirin belgiga mos kelmadi. Foydalanuvchiga xabar beramiz.':
+      'Ответ не совпал со скрытой приметой. Мы сообщим пользователю.',
   'Rad etish': 'Отклонить',
   'Javobi': 'Ответ',
   'Qabul qilish': 'Принять',
@@ -286,7 +296,8 @@ const ruStrings = <String, String>{
   'Eʼlon qilish uchun suring': 'Сдвиньте, чтобы опубликовать',
   'Eʼloningiz shunday koʻrinadi': 'Так будет выглядеть объявление',
   'Eʼlon koʻrinishi: {title}, {category}': 'Предпросмотр объявления: {title}, {category}',
-  'Karta raqami, hujjat va ichidagi narsalar rasmda koʻrinmasin.': 'Номер карты, документы и содержимое не должны быть видны на фото.',
+  'Karta raqami, hujjat va ichidagi narsalar rasmda koʻrinmasin.':
+      'Номер карты, документы и содержимое не должны быть видны на фото.',
   '6 tagacha rasm': 'До 6 фото',
   '{n}-rasm': 'Фото {n}',
   'Chiqasizmi?': 'Выйти?',
@@ -296,14 +307,16 @@ const ruStrings = <String, String>{
   'Qayerda, qanday holatda yoʻqotdingiz?': 'Где и при каких обстоятельствах потеряли?',
   'Qoʻshildi': 'Добавлено',
   'Kartochkada koʻrinmaydi · faqat siz bilasiz': 'Не видно в карточке · знаете только вы',
-  'Faqat haqiqiy egasi biladigan bitta belgini yozing. Egasi shu belgini aytib, narsa oʻziniki ekanini isbotlaydi.': 'Напишите примету, которую знает только настоящий владелец. Назвав её, владелец докажет, что вещь его.',
+  'Faqat haqiqiy egasi biladigan bitta belgini yozing. Egasi shu belgini aytib, narsa oʻziniki ekanini isbotlaydi.':
+      'Напишите примету, которую знает только настоящий владелец. Назвав её, владелец докажет, что вещь его.',
   'Joylashuvga ruxsat yoʻq — tumanni oʻzingiz tanlang': 'Нет доступа к геопозиции — выберите район сами',
   'Siz Toshkentdan tashqaridasiz — tumanni oʻzingiz tanlang': 'Вы за пределами Ташкента — выберите район сами',
   'Qaysi tumanda topdingiz?': 'В каком районе нашли?',
   'Qaysi tumanda yoʻqotdingiz?': 'В каком районе потеряли?',
   'Moʻljal · ixtiyoriy': 'Ориентир · необязательно',
   'Masalan: metro bekati, doʻkon yonida': 'Например: у метро, возле магазина',
-  'Eʼlonda faqat tuman va moʻljal koʻrinadi, aniq manzil emas.': 'В объявлении видны только район и ориентир, а не точный адрес.',
+  'Eʼlonda faqat tuman va moʻljal koʻrinadi, aniq manzil emas.':
+      'В объявлении видны только район и ориентир, а не точный адрес.',
   'Aniqlash': 'Определить',
   'Sarlavhani kiriting (kamida 3 ta belgi)': 'Введите заголовок (минимум 3 символа)',
   'Kategoriyani tanlang': 'Выберите категорию',
@@ -343,10 +356,13 @@ const ruStrings = <String, String>{
   'Buyumimni qidiryapman': 'Ищу свою вещь',
   'Rasmda karta raqami, hujjat maʼlumotlari yoki ichidagi narsalar koʻrinmasin. Ular egasini tekshirish uchun kerak.':
       'На фото не должно быть видно номера карты, данных документа или содержимого. Это нужно, чтобы проверить владельца.',
-  'Soʻrov kelsa, javobni yashirin belgi bilan solishtirasiz.': 'Когда придёт заявка, сравните ответ со скрытой приметой.',
-  'Mos kelsa, qabul qilasiz va chatda uchrashuvni kelishasiz.': 'Если совпадёт — примите её и договоритесь о встрече в чате.',
+  'Soʻrov kelsa, javobni yashirin belgi bilan solishtirasiz.':
+      'Когда придёт заявка, сравните ответ со скрытой приметой.',
+  'Mos kelsa, qabul qilasiz va chatda uchrashuvni kelishasiz.':
+      'Если совпадёт — примите её и договоритесь о встрече в чате.',
   'Buyumni gavjum, xavfsiz joyda topshirasiz.': 'Передайте вещь в людном безопасном месте.',
-  'Mos eʼlon chiqsa yoki kimdir topsa, darhol xabar beramiz.': 'Если появится похожее объявление или кто-то найдёт вещь, мы сразу сообщим.',
+  'Mos eʼlon chiqsa yoki kimdir topsa, darhol xabar beramiz.':
+      'Если появится похожее объявление или кто-то найдёт вещь, мы сразу сообщим.',
   'Topuvchi bilan faqat ilova ichidagi chatda yozishasiz.': 'С нашедшим вы общаетесь только в чате приложения.',
   'Buyumni gavjum, xavfsiz joyda olasiz.': 'Заберите вещь в людном безопасном месте.',
   'Eʼlon joylandi!': 'Объявление опубликовано!',
@@ -363,8 +379,10 @@ const ruStrings = <String, String>{
   'Joy va sana': 'Место и дата',
   'Boshqalar shunday koʻradi': 'Так увидят другие',
   'Yashirin belgi · faqat siz': 'Скрытая примета · только вы',
-  'Buyumni egasiga bepul qaytaraman va eʼlon qoidalariga roziman.': 'Верну вещь владельцу бесплатно и согласен с правилами объявлений.',
-  'Maʼlumotlar toʻgʻri ekanini tasdiqlayman va eʼlon qoidalariga roziman.': 'Подтверждаю, что данные верны, и согласен с правилами объявлений.',
+  'Buyumni egasiga bepul qaytaraman va eʼlon qoidalariga roziman.':
+      'Верну вещь владельцу бесплатно и согласен с правилами объявлений.',
+  'Maʼlumotlar toʻgʻri ekanini tasdiqlayman va eʼlon qoidalariga roziman.':
+      'Подтверждаю, что данные верны, и согласен с правилами объявлений.',
   'Eʼlon qilish': 'Опубликовать',
   '{step}-qadam: {name}': 'Шаг {step}: {name}',
   'rasm va tur': 'фото и тип',
@@ -378,10 +396,12 @@ const ruStrings = <String, String>{
   'Eʼlon topilmadi': 'Объявление не найдено',
   'Bu eʼlon oʻchirilgan yoki yopilgan boʻlishi mumkin.': 'Возможно, объявление удалено или закрыто.',
   'Eʼlon yuklanmadi': 'Объявление не загрузилось',
-  '{type}: {title}\n{areaName}\n\nTopildi ilovasida koʻring.': '{type}: {title}\n{areaName}\n\nСмотрите в приложении Topildi.',
+  '{type}: {title}\n{areaName}\n\nTopildi ilovasida koʻring.':
+      '{type}: {title}\n{areaName}\n\nСмотрите в приложении Topildi.',
   'Eʼlonni oʻchirish': 'Удалить объявление',
   'Eʼlonni oʻchirasizmi?': 'Удалить объявление?',
-  'Eʼlon lentadan va xaritadan olib tashlanadi. Buni qaytarib boʻlmaydi.': 'Объявление исчезнет из ленты и с карты. Это нельзя отменить.',
+  'Eʼlon lentadan va xaritadan olib tashlanadi. Buni qaytarib boʻlmaydi.':
+      'Объявление исчезнет из ленты и с карты. Это нельзя отменить.',
   'Eʼlonni oʻchirib boʻlmadi': 'Не удалось удалить объявление',
   'Eʼlonni tahrirlash tez orada qoʻshiladi': 'Редактирование объявлений скоро появится',
   'Bir kishi bu buyum uniki ekanini aytmoqda.': 'Один человек считает эту вещь своей.',
@@ -394,7 +414,8 @@ const ruStrings = <String, String>{
       'Владелец скрыл примету, которую знает только он. Если по вещи вы назовёте её верно, подтвердится, что вещь действительно у вас. Это защищает от ложных сообщений.',
   'Buyumda qanday belgi bor?': 'Какая примета есть у вещи?',
   'Masalan: brelokda qizil yulduzcha bor': 'Например: на брелоке красная звёздочка',
-  '{attemptsLeft} ta urinishingiz bor · Javobni faqat egasi koʻradi': 'Осталось попыток: {attemptsLeft} · Ответ видит только владелец',
+  '{attemptsLeft} ta urinishingiz bor · Javobni faqat egasi koʻradi':
+      'Осталось попыток: {attemptsLeft} · Ответ видит только владелец',
   'Egasi': 'Владелец',
   '{count} ta yangi soʻrov': 'Новых заявок: {count}',
   'Topilgan vaqt': 'Когда найдено',
@@ -433,7 +454,8 @@ const ruStrings = <String, String>{
   'Hozircha eʼlon yoʻq': 'Объявлений пока нет',
   'Hozircha yoʻqolgan narsa yoʻq': 'Пока нет потерянных вещей',
   'Bu toifada eʼlon yoʻq': 'В этой категории нет объявлений',
-  'Bu hududda hali hech kim eʼlon bermagan. Birinchi boʻling — pastdagi ': 'В этом районе ещё нет объявлений. Будьте первым — нажмите ',
+  'Bu hududda hali hech kim eʼlon bermagan. Birinchi boʻling — pastdagi ':
+      'В этом районе ещё нет объявлений. Будьте первым — нажмите ',
   'Boshqa toifani tanlang yoki birinchi boʻling — pastdagi ': 'Выберите другую категорию или будьте первым — нажмите ',
   ' tugmasi orqali.': ' внизу.',
   'Bu hududda hali hech kim eʼlon bermagan. Birinchi boʻling!': 'В этом районе ещё нет объявлений. Будьте первым!',
@@ -748,8 +770,10 @@ const ruStrings = <String, String>{
   'Shanba': 'Суббота',
   'Yakshanba': 'Воскресенье',
   'joylandi!': 'опубликовано!',
-  'Eʼloningiz Lentada. Egasi topilsa, darhol xabar beramiz.': 'Объявление в ленте. Как только найдётся владелец, мы сразу сообщим.',
-  'Eʼloningiz Lentada. Kimdir buyumingizni topsa, darhol xabar beramiz.': 'Объявление в ленте. Если кто-то найдёт вашу вещь, мы сразу сообщим.',
+  'Eʼloningiz Lentada. Egasi topilsa, darhol xabar beramiz.':
+      'Объявление в ленте. Как только найдётся владелец, мы сразу сообщим.',
+  'Eʼloningiz Lentada. Kimdir buyumingizni topsa, darhol xabar beramiz.':
+      'Объявление в ленте. Если кто-то найдёт вашу вещь, мы сразу сообщим.',
   'Egasi yozsa, darhol xabar beramiz': 'Напишет владелец — сразу сообщим',
   'Yashirin belgini soʻrab, egasi ekanini tekshirasiz': 'Спросите скрытую примету и проверите, что это владелец',
   'Gavjum, xavfsiz joyda topshirasiz': 'Передадите вещь в людном, безопасном месте',
@@ -766,7 +790,8 @@ const ruStrings = <String, String>{
   'Bu yerda shunday xabarlar chiqadi:': 'Здесь будут такие уведомления:',
   'Bu yerda chiqadigan xabarlar: {list}': 'Здесь будут уведомления: {list}',
   'Bildirishnoma sozlamalari': 'Настройки уведомлений',
-  'Bildirishnomalar oʻchiq — yangi xabarlarni oʻtkazib yuborishingiz mumkin': 'Уведомления выключены — вы можете пропустить новые сообщения',
+  'Bildirishnomalar oʻchiq — yangi xabarlarni oʻtkazib yuborishingiz mumkin':
+      'Уведомления выключены — вы можете пропустить новые сообщения',
   'Yoqish': 'Включить',
   'Internetni tekshiring': 'Проверьте интернет',
   'Saqlanmoqda…': 'Сохраняем…',
@@ -787,9 +812,12 @@ const ruStrings = <String, String>{
   'Saqlamasdan chiqish': 'Выйти без сохранения',
   'Soʻrovlar kelgan · oʻzgartirib boʻlmaydi': 'Есть запросы · изменить нельзя',
   'Eʼlonni tahrirlash': 'Редактирование объявления',
-  'Soʻrovlar kelgan: yashirin belgini endi oʻzgartirib boʻlmaydi': 'Уже есть запросы: скрытую примету больше нельзя изменить',
-  'Egasi buyumning faqat oʻzi biladigan bir belgisini yashirib qoʻygan. Buyumga qarab uni toʻgʻri aytsangiz, buyum haqiqatan sizda ekani tasdiqlanadi.': 'Владелец скрыл примету, которую знает только он. Назовите её, глядя на вещь, — и подтвердится, что вещь действительно у вас.',
-  'Topuvchi buyumning faqat egasi biladigan bir belgisini yashirib qoʻygan. Uni toʻgʻri aytsangiz, buyum sizniki ekani tasdiqlanadi.': 'Нашедший скрыл примету, которую знает только владелец. Назовите её верно — и подтвердится, что вещь ваша.',
+  'Soʻrovlar kelgan: yashirin belgini endi oʻzgartirib boʻlmaydi':
+      'Уже есть запросы: скрытую примету больше нельзя изменить',
+  'Egasi buyumning faqat oʻzi biladigan bir belgisini yashirib qoʻygan. Buyumga qarab uni toʻgʻri aytsangiz, buyum haqiqatan sizda ekani tasdiqlanadi.':
+      'Владелец скрыл примету, которую знает только он. Назовите её, глядя на вещь, — и подтвердится, что вещь действительно у вас.',
+  'Topuvchi buyumning faqat egasi biladigan bir belgisini yashirib qoʻygan. Uni toʻgʻri aytsangiz, buyum sizniki ekani tasdiqlanadi.':
+      'Нашедший скрыл примету, которую знает только владелец. Назовите её верно — и подтвердится, что вещь ваша.',
   'Javob mos kelmadi. Urinishlar tugadi': 'Ответ не подошёл. Попытки закончились',
   'Javob mos kelmadi. Yana {n} ta urinish qoldi': 'Ответ не подошёл. Осталось попыток: {n}',
   'Dalil rasm qoʻshish (ixtiyoriy)': 'Добавить фото-доказательство (необязательно)',
@@ -797,11 +825,14 @@ const ruStrings = <String, String>{
   '{n} ta urinish qoldi': 'Осталось попыток: {n}',
   'Urinishlar tugadi. Egasi bilan bogʻlanib boʻlmaydi': 'Попытки закончились. Связаться с владельцем нельзя',
   'Urinishlar tugadi. Topuvchi bilan bogʻlanib boʻlmaydi': 'Попытки закончились. Связаться с нашедшим нельзя',
-  '{n} ta kalit = {n} ta urinish · Javobni faqat egasi koʻradi': '{n} ключа = {n} попытки · Ответ видит только владелец',
-  '{n} ta kalit = {n} ta urinish · Javobni faqat topuvchi koʻradi': '{n} ключа = {n} попытки · Ответ видит только нашедший',
+  '{n} ta kalit = {n} ta urinish · Javobni faqat egasi koʻradi':
+      '{n} ключа = {n} попытки · Ответ видит только владелец',
+  '{n} ta kalit = {n} ta urinish · Javobni faqat topuvchi koʻradi':
+      '{n} ключа = {n} попытки · Ответ видит только нашедший',
   'Topuvchi hali javob bermadi.': 'Нашедший ещё не ответил.',
   'Egasi hali javob bermadi.': 'Владелец ещё не ответил.',
-  'Javob boʻlmasa, {n} kundan keyin soʻrovni bekor qila olasiz.': 'Если ответа не будет, через {n} дн. заявку можно отменить.',
+  'Javob boʻlmasa, {n} kundan keyin soʻrovni bekor qila olasiz.':
+      'Если ответа не будет, через {n} дн. заявку можно отменить.',
   'Soʻrovni bekor qilasizmi?': 'Отменить заявку?',
   'Urinishingiz qaytariladi va yangi soʻrov yubora olasiz.': 'Попытка вернётся, и вы сможете отправить новую заявку.',
   'Kutaman': 'Подожду',
@@ -811,19 +842,24 @@ const ruStrings = <String, String>{
   'Ruxsat yoʻq. Qayta kirib koʻring': 'Нет доступа. Попробуйте войти заново',
   'Javob mos emas deb belgilandi': 'Ответ отмечен как неподходящий',
   '{name}ni qabul qilasizmi?': 'Принять заявку {name}?',
-  'Chat ochiladi. Uchrashuvni gavjum, xavfsiz joyda belgilang.': 'Откроется чат. Назначьте встречу в людном, безопасном месте.',
+  'Chat ochiladi. Uchrashuvni gavjum, xavfsiz joyda belgilang.':
+      'Откроется чат. Назначьте встречу в людном, безопасном месте.',
   'Bekor': 'Отмена',
   'Qabul qilinmoqda…': 'Принимаем…',
   'Qabul qilib boʻlmadi': 'Не удалось принять',
   'Soʻrovlar · {i} / {n}': 'Заявки · {i} / {n}',
-  'Egasi yashirin belgini aytsa, soʻrov shu yerda paydo boʻladi.': 'Когда владелец назовёт скрытую примету, заявка появится здесь.',
-  'Javobni oʻzingiz yozgan belgi bilan solishtiring. Mos kelsa — qabul qiling.': 'Сравните ответ с приметой, которую вы указали. Если совпадает — примите.',
+  'Egasi yashirin belgini aytsa, soʻrov shu yerda paydo boʻladi.':
+      'Когда владелец назовёт скрытую примету, заявка появится здесь.',
+  'Javobni oʻzingiz yozgan belgi bilan solishtiring. Mos kelsa — qabul qiling.':
+      'Сравните ответ с приметой, которую вы указали. Если совпадает — примите.',
   '{n}-urinish': 'попытка {n}',
   'Siz yozgan belgi': 'Ваша примета',
   '{name} javobi': 'Ответ: {name}',
   'Dalil rasm yoʻq · Qabul qilsangiz, chat ochiladi': 'Фото-доказательства нет · Если примете, откроется чат',
-  '“Mos emas” desangiz, unda yana {n} ta urinish qoladi. Ismingiz va raqamingiz koʻrsatilmaydi.': 'Если ответите «Не подходит», у него останется попыток: {n}. Ваше имя и номер не показываются.',
-  'Bu uning oxirgi urinishi. Ismingiz va raqamingiz koʻrsatilmaydi.': 'Это его последняя попытка. Ваше имя и номер не показываются.',
+  '“Mos emas” desangiz, unda yana {n} ta urinish qoladi. Ismingiz va raqamingiz koʻrsatilmaydi.':
+      'Если ответите «Не подходит», у него останется попыток: {n}. Ваше имя и номер не показываются.',
+  'Bu uning oxirgi urinishi. Ismingiz va raqamingiz koʻrsatilmaydi.':
+      'Это его последняя попытка. Ваше имя и номер не показываются.',
   'Chatga oʻtish': 'Перейти в чат',
   'Mos emas': 'Не подходит',
   'Soʻrovingiz allaqachon qabul qilingan': 'Ваша заявка уже принята',

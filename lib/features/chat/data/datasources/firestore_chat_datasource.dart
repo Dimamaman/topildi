@@ -48,10 +48,10 @@ class FirestoreChatDataSource implements ChatRemoteDataSource {
     if (!chat.exists) throw const NotFoundFailure();
     final createdAt = (chat.data()!['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now();
     final notes = openingNotes(id, createdAt);
-    yield* _messages(id).orderBy('createdAt').snapshots().map((snap) => [
-          ...notes,
-          for (final d in snap.docs) messageFromFirestore(d.id, d.data(), me: _uid),
-        ]);
+    yield* _messages(id)
+        .orderBy('createdAt')
+        .snapshots()
+        .map((snap) => [...notes, for (final d in snap.docs) messageFromFirestore(d.id, d.data(), me: _uid)]);
   }
 
   /// The other member of the chat, from its `members` list.
@@ -77,10 +77,8 @@ class FirestoreChatDataSource implements ChatRemoteDataSource {
   }
 
   @override
-  Future<void> markRead(String id) => _col.doc(id).update({
-        'unread.$_uid': 0,
-        'readAt.$_uid': FieldValue.serverTimestamp(),
-      });
+  Future<void> markRead(String id) =>
+      _col.doc(id).update({'unread.$_uid': 0, 'readAt.$_uid': FieldValue.serverTimestamp()});
 
   @override
   Future<void> markReturned(String id) async {
@@ -91,7 +89,10 @@ class FirestoreChatDataSource implements ChatRemoteDataSource {
     // The author may have closed the listing already from its own page.
     final listingOpen = (await listing.get()).data()?['status'] == ListingStatus.active.name;
     final batch = _db.batch()
-      ..set(_messages(id).doc(), messageToFirestore(senderId: _uid, text: ChatNotes.returned, kind: MessageKind.returned))
+      ..set(
+        _messages(id).doc(),
+        messageToFirestore(senderId: _uid, text: ChatNotes.returned, kind: MessageKind.returned),
+      )
       ..update(_col.doc(id), {
         'returned': true,
         'returnedAt': FieldValue.serverTimestamp(),
@@ -100,7 +101,9 @@ class FirestoreChatDataSource implements ChatRemoteDataSource {
         'lastSenderId': _uid,
         'unread.${t.other.id}': FieldValue.increment(1),
       })
-      ..set(_db.collection(FirePaths.users).doc(_uid), {'returnedCount': FieldValue.increment(1)}, SetOptions(merge: true));
+      ..set(_db.collection(FirePaths.users).doc(_uid), {
+        'returnedCount': FieldValue.increment(1),
+      }, SetOptions(merge: true));
     if (listingOpen) {
       // The finder may not be the listing's author ("lost" listings): the
       // rules accept the status change because this chat names them finder.
@@ -119,10 +122,7 @@ class FirestoreChatDataSource implements ChatRemoteDataSource {
     final returnedAt = doc.data()?['returnedAt'] as Timestamp?;
     if (returnedAt == null) return null;
     final owner = doc.data()!['finderId'] == _uid ? await _other(id) : _uid;
-    final snap = await _messages(id)
-        .orderBy('createdAt', descending: true)
-        .limit(20)
-        .get();
+    final snap = await _messages(id).orderBy('createdAt', descending: true).limit(20).get();
     for (final d in snap.docs) {
       final m = d.data();
       final at = m['createdAt'] as Timestamp?;

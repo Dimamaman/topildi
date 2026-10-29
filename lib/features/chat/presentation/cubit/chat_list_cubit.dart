@@ -16,9 +16,9 @@ class ChatListCubit extends Cubit<ViewState<List<ChatThread>>> {
 
   /// Unread messages across all chats, for the nav badge.
   int get unread => switch (state) {
-        ViewLoaded(:final data) => data.fold(0, (sum, t) => sum + t.unread),
-        _ => 0,
-      };
+    ViewLoaded(:final data) => data.fold(0, (sum, t) => sum + t.unread),
+    _ => 0,
+  };
 
   @override
   Future<void> close() {
@@ -41,10 +41,12 @@ class ChatListCubit extends Cubit<ViewState<List<ChatThread>>> {
     _sub = _watch().listen(
       (result) {
         if (!isClosed) {
-          emit(result.fold<ViewState<List<ChatThread>>>(
-            (f) => ViewError(f),
-            (list) => list.isEmpty ? const ViewEmpty() : ViewLoaded(list),
-          ));
+          emit(
+            result.fold<ViewState<List<ChatThread>>>(
+              (f) => ViewError(f),
+              (list) => list.isEmpty ? const ViewEmpty() : ViewLoaded(list),
+            ),
+          );
         }
         settle();
       },

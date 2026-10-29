@@ -97,7 +97,10 @@ class _ChatListPageState extends State<ChatListPage> {
         padded(
           const Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [_Group(children: [_RowSkeleton(), _RowSkeleton(), _RowSkeleton()]), _PrivacyNote()],
+            children: [
+              _Group(children: [_RowSkeleton(), _RowSkeleton(), _RowSkeleton()]),
+              _PrivacyNote(),
+            ],
           ),
         ),
       ],
@@ -323,11 +326,7 @@ class _ChatRow extends StatelessWidget {
                                 ? text.bodyMedium!
                                       .copyWith(fontSize: 14, height: 19 / 14, color: cs.primary)
                                       .inter(FontWeight.w600)
-                                : text.bodyMedium!.copyWith(
-                                    fontSize: 14,
-                                    height: 19 / 14,
-                                    color: cs.onSurfaceVariant,
-                                  ),
+                                : text.bodyMedium!.copyWith(fontSize: 14, height: 19 / 14, color: cs.onSurfaceVariant),
                           ),
                         ],
                       ),

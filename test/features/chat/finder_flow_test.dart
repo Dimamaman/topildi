@@ -60,15 +60,21 @@ void main() {
       await tester.pump(const Duration(milliseconds: 100));
     }
     await _settle(tester);
-    expect(find.text('Egaligi tasdiqlangan'), findsOneWidget);
-    expect(find.text('Javob yashirin belgiga mos keldi. Chat ochildi.'), findsOneWidget);
+    expect(find.text('Egasi'), findsOneWidget);
+    expect(find.text('Faol chat'), findsOneWidget);
+    expect(find.text('Javob yashirin belgiga mos keldi · Chat ochildi'), findsOneWidget);
+    // The safety tip is no longer shown in the chat.
+    expect(find.textContaining('Gavjum joyda'), findsNothing);
 
     await tester.enterText(find.byType(TextField), 'Soat 18:00 da metro yonida');
-    await tester.tap(find.byTooltip('Yuborish'));
+    await tester.tap(find.bySemanticsLabel('Yuborish'));
     await _settle(tester);
-    expect(find.text('Soat 18:00 da metro yonida'), findsOneWidget);
+    expect(find.textContaining('Soat 18:00 da metro yonida'), findsOneWidget);
 
-    await tester.tap(find.text('Qaytarildi'));
+    // Marking it returned lives in the "…" menu.
+    await tester.tap(find.bySemanticsLabel('Koʻproq'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Buyum qaytarildi'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Ha, qaytarildi'));
     await _settle(tester);

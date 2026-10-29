@@ -45,7 +45,10 @@ ChatThread threadFromFirestore(String id, Map<String, dynamic> d, {required Stri
     id: id,
     listingId: d['listingId'] as String? ?? '',
     listingTitle: d['listingTitle'] as String? ?? '',
-    listingCategory: ItemCategory.values.firstWhere((c) => c.name == d['listingCategory'], orElse: () => ItemCategory.other),
+    listingCategory: ItemCategory.values.firstWhere(
+      (c) => c.name == d['listingCategory'],
+      orElse: () => ItemCategory.other,
+    ),
     listingTint: (d['listingTint'] as num?)?.toInt() ?? 0,
     other: PublicUser(
       id: other,
@@ -69,12 +72,11 @@ List<ChatMessage> openingNotes(String chatId, DateTime createdAt) => [
 ];
 
 /// `topildi_chats/{id}/messages/{mid}`.
-Map<String, Object?> messageToFirestore({required String senderId, required String text, MessageKind kind = MessageKind.text}) => {
-  'senderId': senderId,
-  'text': text,
-  'kind': kind.name,
-  'createdAt': FieldValue.serverTimestamp(),
-};
+Map<String, Object?> messageToFirestore({
+  required String senderId,
+  required String text,
+  MessageKind kind = MessageKind.text,
+}) => {'senderId': senderId, 'text': text, 'kind': kind.name, 'createdAt': FieldValue.serverTimestamp()};
 
 ChatMessage messageFromFirestore(String id, Map<String, dynamic> d, {required String me}) => ChatMessage(
   id: id,

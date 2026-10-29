@@ -6,6 +6,8 @@ import 'package:injectable/injectable.dart';
 
 import '../../../../core/error/failure.dart';
 import '../../../../core/view_state.dart';
+import '../../../listing/domain/entities/listing.dart';
+import '../../../listing/domain/usecases/get_listing_detail.dart';
 import '../../domain/entities/chat.dart';
 import '../../domain/usecases/mark_chat_read.dart';
 import '../../domain/usecases/mark_returned.dart';
@@ -26,35 +28,52 @@ class ChatData extends Equatable {
 }
 
 class ChatState extends Equatable {
-  const ChatState({this.view = const ViewLoading(), this.returning = false, this.returnedSummary, this.failure});
+  const ChatState({
+    this.view = const ViewLoading(),
+    this.listing,
+    this.returning = false,
+    this.returnedSummary,
+    this.failure,
+  });
 
   final ViewState<ChatData> view;
+
+  /// The chat's listing (district, date, photo for the item card); null
+  /// until loaded or when it could not be read.
+  final Listing? listing;
   final bool returning;
 
   /// Set once "Qaytarildi" succeeds, so the page can open Success.
   final ReturnSummary? returnedSummary;
   final Failure? failure;
 
-  ChatState copyWith({ViewState<ChatData>? view, bool? returning, ReturnSummary? returnedSummary, Failure? failure}) =>
-      ChatState(
-        view: view ?? this.view,
-        returning: returning ?? this.returning,
-        returnedSummary: returnedSummary,
-        failure: failure,
-      );
+  ChatState copyWith({
+    ViewState<ChatData>? view,
+    Listing? listing,
+    bool? returning,
+    ReturnSummary? returnedSummary,
+    Failure? failure,
+  }) => ChatState(
+    view: view ?? this.view,
+    listing: listing ?? this.listing,
+    returning: returning ?? this.returning,
+    returnedSummary: returnedSummary,
+    failure: failure,
+  );
 
   @override
-  List<Object?> get props => [view, returning, returnedSummary, failure];
+  List<Object?> get props => [view, listing, returning, returnedSummary, failure];
 }
 
 @injectable
 class ChatCubit extends Cubit<ChatState> {
-  ChatCubit(this._watch, this._markRead, this._send, this._markReturned) : super(const ChatState());
+  ChatCubit(this._watch, this._markRead, this._send, this._markReturned, this._listing) : super(const ChatState());
 
   final WatchChat _watch;
   final MarkChatRead _markRead;
   final SendMessage _send;
   final MarkReturned _markReturned;
+  final GetListingDetail _listing;
   late String _chatId;
   final _subs = <StreamSubscription<void>>[];
   ChatThread? _thread;
@@ -64,9 +83,9 @@ class ChatCubit extends Cubit<ChatState> {
   String? _readUpTo;
 
   ChatData? get _data => switch (state.view) {
-        ViewLoaded(:final data) => data,
-        _ => null,
-      };
+    ViewLoaded(:final data) => data,
+    _ => null,
+  };
 
   @override
   Future<void> close() async {
@@ -90,15 +109,28 @@ class ChatCubit extends Cubit<ChatState> {
     _readUpTo = null;
     emit(state.copyWith(view: const ViewLoading()));
     _subs
-      ..add(_watch.thread(chatId).listen((r) => r.match(_fail, (t) {
-            _thread = t;
-            _publish();
-          })))
-      ..add(_watch.messages(chatId).listen((r) => r.match(_fail, (m) {
-            _messages = m;
-            _publish();
-            _reportRead(m);
-          })));
+      ..add(
+        _watch
+            .thread(chatId)
+            .listen(
+              (r) => r.match(_fail, (t) {
+                if (_thread == null) _loadListing(t.listingId);
+                _thread = t;
+                _publish();
+              }),
+            ),
+      )
+      ..add(
+        _watch
+            .messages(chatId)
+            .listen(
+              (r) => r.match(_fail, (m) {
+                _messages = m;
+                _publish();
+                _reportRead(m);
+              }),
+            ),
+      );
   }
 
   void _fail(Failure f) {
@@ -110,7 +142,19 @@ class ChatCubit extends Cubit<ChatState> {
   void _publish() {
     final t = _thread, m = _messages;
     if (isClosed || t == null || m == null) return;
-    emit(state.copyWith(view: ViewLoaded(ChatData(thread: t, messages: m))));
+    emit(
+      state.copyWith(
+        view: ViewLoaded(ChatData(thread: t, messages: m)),
+      ),
+    );
+  }
+
+  Future<void> _loadListing(String id) async {
+    if (state.listing != null) return;
+    final result = await _listing(id);
+    if (isClosed) return;
+    // The card falls back to title and icon without it.
+    result.match((_) {}, (l) => emit(state.copyWith(listing: l)));
   }
 
   /// Marks the chat read when it opens and whenever a new message arrives.
