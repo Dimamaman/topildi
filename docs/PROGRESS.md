@@ -233,4 +233,4 @@ Qarorlar: **Click va Payme ikkalasi**, tariflar **1 / 3 / 7 kun** (taxminan 10 0
 - Matnlar `tr()` orqali, yangi matnga `ru.dart` da tarjima shart (`l10n_test`).
 - Ripple yo'q, bosiladigan joy ≥44.
 - Yangi data manbalari: interfeys + `@prod` Firestore + `@test` mock (testlar Firebase'ga tegmaydi).
-- Rules o'zgarganda: avval `firebase deploy --only firestore,storage --project foodai-73d66 --dry-run`, deploy faqat ruxsat bilan. FoodZeen qoidalariga tegilmaydi.
+- Rules o'zgarganda: avval `firebase deploy --only firestore,storage --project foodai-73d66 --dry-run`, deploy faqat ruxsat bilan. FoodZeen qoidalariga tegilmaydi
