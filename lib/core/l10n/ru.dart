@@ -539,6 +539,7 @@ const ruStrings = <String, String>{
   'Eʼlonlar': 'Объявления',
   'Topib olgan': 'Нашли сами',
   'Hali eʼlon bermagansiz': 'Вы ещё не подавали объявлений',
+  'Birinchi eʼloningiz shu yerda turadi': 'Здесь появится ваше первое объявление',
   'Til': 'Язык',
   'Mavzu': 'Тема',
   'Mavzu, {label}': 'Тема, {label}',

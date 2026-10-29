@@ -16,6 +16,7 @@ import '../../../../core/theme/topildi_theme.dart';
 import '../../../../core/utils/date_format.dart';
 import '../../../../core/view_state.dart';
 import '../../../../core/widgets/feed_card.dart';
+import '../../../../core/widgets/ghost_listing_card.dart';
 import '../../../../core/widgets/glass_header.dart';
 import '../../../../core/widgets/glass_surface.dart';
 import '../../../../core/widgets/state_views.dart';
@@ -415,55 +416,9 @@ class _SampleCardState extends State<_SampleCard> with TickerProviderStateMixin 
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    final dark = Theme.of(context).brightness == Brightness.dark;
     final sway = CurvedAnimation(parent: _sway, curve: Curves.easeInOut);
-    final card = ExcludeSemantics(
-      child: CustomPaint(
-        painter: _DashedRRect(
-          color: dark ? const Color(0xFF2A3550) : const Color(0xFFC7D2E6),
-          fill: dark ? const Color(0x99182031) : const Color(0x99FFFFFF),
-          radius: 28,
-          width: 2,
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(28),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                margin: const EdgeInsets.all(10),
-                height: 120,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: dark ? const Color(0xFF182031) : const Color(0xFFEAEEF5),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Icon(
-                  widget.returned ? Symbols.account_balance_wallet_rounded : Symbols.add_a_photo_rounded,
-                  size: 44,
-                  color: dark ? const Color(0xFF3A4A6E) : const Color(0xFFB4BDCC),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(18, 4, 18, 4),
-                child: LayoutBuilder(
-                  builder: (context, c) => Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _bar(c.maxWidth * 0.72, 14, dark ? const Color(0xFF222C40) : const Color(0xFFE3E8F0)),
-                      const SizedBox(height: 9),
-                      _bar(c.maxWidth * 0.48, 10, dark ? const Color(0xFF1D2638) : const Color(0xFFECEFF5)),
-                      const SizedBox(height: 12),
-                      _bar(64, 22, cs.primaryContainer),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
+    final card = GhostListingCard(
+      icon: widget.returned ? Symbols.account_balance_wallet_rounded : Symbols.add_a_photo_rounded,
     );
     return AnimatedBuilder(
       animation: sway,
@@ -499,12 +454,6 @@ class _SampleCardState extends State<_SampleCard> with TickerProviderStateMixin 
       ),
     );
   }
-
-  static Widget _bar(double w, double h, Color c) => Container(
-    width: w,
-    height: h,
-    decoration: BoxDecoration(color: c, borderRadius: BorderRadius.circular(h / 2)),
-  );
 }
 
 /// 120 round dashed "QAYTARILDI" stamp with a handshake.
@@ -517,7 +466,7 @@ class _Stamp extends StatelessWidget {
     final dark = Theme.of(context).brightness == Brightness.dark;
     return ExcludeSemantics(
       child: CustomPaint(
-        painter: _DashedRRect(
+        painter: DashedRRectPainter(
           color: cs.primary,
           fill: dark ? const Color(0xE6233A72) : const Color(0xE6E3EBFC),
           radius: 60,
@@ -549,39 +498,6 @@ class _Stamp extends StatelessWidget {
       ),
     );
   }
-}
-
-/// Filled rounded rect with a dashed outline drawn inside its bounds.
-class _DashedRRect extends CustomPainter {
-  const _DashedRRect({required this.color, required this.fill, required this.radius, required this.width});
-
-  final Color color, fill;
-  final double radius, width;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final rrect = RRect.fromRectAndRadius(Offset.zero & size, Radius.circular(radius));
-    canvas.drawRRect(rrect, Paint()..color = fill);
-    final dash = width * 3, gap = width * 2;
-    final path = Path()..addRRect(rrect.deflate(width / 2));
-    final out = Path();
-    for (final m in path.computeMetrics()) {
-      for (var d = 0.0; d < m.length; d += dash + gap) {
-        out.addPath(m.extractPath(d, math.min(d + dash, m.length)), Offset.zero);
-      }
-    }
-    canvas.drawPath(
-      out,
-      Paint()
-        ..color = color
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = width,
-    );
-  }
-
-  @override
-  bool shouldRepaint(_DashedRRect old) =>
-      old.color != color || old.fill != fill || old.radius != radius || old.width != width;
 }
 
 class _MineCard extends StatelessWidget {

@@ -14,6 +14,7 @@ import '../../../../core/theme/theme_cubit.dart';
 import '../../../../core/theme/topildi_surfaces.dart';
 import '../../../../core/theme/topildi_theme.dart';
 import '../../../../core/view_state.dart';
+import '../../../../core/widgets/ghost_listing_card.dart';
 import '../../../../core/widgets/glass_surface.dart';
 import '../../../../core/widgets/pull_down_menu.dart';
 import '../../../../core/widgets/photo_placeholder.dart';
@@ -119,7 +120,6 @@ class _Header extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final tc = context.tc;
     final text = Theme.of(context).textTheme;
     // Own profile: first name only (the public "Ism F." form drops here).
     final name = p.displayName.trim().split(RegExp(r'\s+')).first;
@@ -187,7 +187,7 @@ class _Header extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: _Stat(n: p.returned.length, label: tr('Qaytarilgan'), color: tc.found),
+                  child: _Stat(n: p.returned.length, label: tr('Qaytarilgan')),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
@@ -241,11 +241,10 @@ class _Avatar extends StatelessWidget {
 }
 
 class _Stat extends StatelessWidget {
-  const _Stat({required this.n, required this.label, this.color});
+  const _Stat({required this.n, required this.label});
 
   final int n;
   final String label;
-  final Color? color;
 
   @override
   Widget build(BuildContext context) {
@@ -265,7 +264,7 @@ class _Stat extends StatelessWidget {
               '$n',
               maxLines: 1,
               style: text.titleLarge!
-                  .copyWith(fontSize: 22, height: 28 / 22, color: color ?? cs.onSurface)
+                  .copyWith(fontSize: 22, height: 28 / 22, color: cs.onSurface)
                   .inter(FontWeight.w700),
             ),
             // Only the label scales down when it doesn't fit (long Russian
@@ -494,32 +493,75 @@ class _MineCard extends StatelessWidget {
   }
 }
 
+/// No listings yet: a small tilted ghost card beside the title, hint and a
+/// compact "Eʼlon berish" button. Only the button is tappable.
 class _NoListings extends StatelessWidget {
   const _NoListings();
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final text = Theme.of(context).textTheme;
     return Container(
-      padding: const EdgeInsets.all(20),
+      constraints: const BoxConstraints(minHeight: 156),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(color: cs.surfaceContainerLowest, borderRadius: BorderRadius.circular(26)),
-      child: Column(
+      child: Row(
         children: [
-          Icon(Symbols.inventory_2_rounded, size: 40, weight: 300, color: context.ts.placeholderIcon),
-          const SizedBox(height: 10),
-          Text(
-            tr('Hali eʼlon bermagansiz'),
-            textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.titleMedium!.copyWith(fontSize: 16).inter(FontWeight.w600),
-          ),
-          const SizedBox(height: 14),
-          FilledButton(
-            style: FilledButton.styleFrom(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(TRadius.full)),
-              overlayColor: Colors.transparent,
+          Transform.rotate(angle: -4 * math.pi / 180, child: const GhostListingCard(size: GhostCardSize.small)),
+          const SizedBox(width: 18),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  tr('Hali eʼlon bermagansiz'),
+                  style: text.titleMedium!
+                      .copyWith(fontSize: 17, height: 22 / 17, color: cs.onSurface)
+                      .inter(FontWeight.w700),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  tr('Birinchi eʼloningiz shu yerda turadi'),
+                  style: text.bodySmall!
+                      .copyWith(fontSize: 13, height: 18 / 13, color: cs.onSurfaceVariant)
+                      .inter(FontWeight.w400),
+                ),
+                const SizedBox(height: 12),
+                _Tap(
+                  label: tr('Eʼlon berish'),
+                  onTap: () => context.push(Routes.create),
+                  child: Container(
+                    height: 44,
+                    padding: const EdgeInsets.only(left: 14, right: 18),
+                    decoration: BoxDecoration(
+                      color: cs.primary,
+                      borderRadius: BorderRadius.circular(999),
+                      boxShadow: [
+                        BoxShadow(color: cs.primary.withValues(alpha: 0.25), blurRadius: 18, offset: const Offset(0, 8)),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Symbols.add_rounded, size: 20, color: cs.onPrimary),
+                        const SizedBox(width: 6),
+                        Flexible(
+                          child: Text(
+                            tr('Eʼlon berish'),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            textScaler: MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.3),
+                            style: TextStyle(fontSize: 15, height: 20 / 15, color: cs.onPrimary)
+                                .inter(FontWeight.w600),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
-            onPressed: () => context.push(Routes.create),
-            child: Text(tr('Eʼlon berish')),
           ),
         ],
       ),
@@ -582,7 +624,6 @@ class _Settings extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final tc = context.tc;
     final cubit = context.read<ProfileCubit>();
     final body = Theme.of(context).textTheme.bodyLarge!.copyWith(fontSize: 16, height: 22 / 16).inter(FontWeight.w400);
     // Starts under the label, not under the icon: 16 + 22 + 12.
@@ -672,7 +713,7 @@ class _Settings extends StatelessWidget {
                     label: tr('Bildirishnomalar'),
                     trailing: CupertinoSwitch(
                       value: notificationsOn,
-                      activeTrackColor: tc.success,
+                      activeTrackColor: Theme.of(context).colorScheme.primary,
                       onChanged: cubit.setNotifications,
                     ),
                   ),
