@@ -27,7 +27,7 @@ Topildi — yo'qolgan va topilgan buyumlar uchun Flutter ilova.
 
 **Branchlar (2026-10-26):** hamma ish `main` ga birlashtirildi — PR #3 → `firebase-phase1` → `main` (fast-forward). Yangi ish `main` dan alohida branch'da boshlanadi.
 
-**Tekshiruv (2026-10-28):** `flutter analyze` toza; `flutter test` — 95 ta test o'tadi; `functions`: `npm test` — 34 ta; `flutter build ios --simulator --debug` muvaffaqiyatli; Firestore rules, indekslar va `topildi` functions deploy qilingan.
+**Tekshiruv (2026-10-29):** `flutter analyze` toza; `flutter test` — 96 ta test o'tadi; `functions`: `npm test` — 34 ta; `flutter build ios --simulator --debug` muvaffaqiyatli; Firestore rules, indekslar va `topildi` functions deploy qilingan.
 
 > **Test rejimi** (bekor qilish kutishsiz va urinishni sarflagan holda) 2026-10-28 da sinovdan keyin qaytarildi: kutish yana 3 kun, bekor qilingan so'rov o'chiriladi va urinish qaytadi; rules deploy qilingan.
 
@@ -140,6 +140,8 @@ Cloud Functions yo'q: chatni ilova yaratadi, xavfsizlikni Firestore rules taʼmi
 **Javobsiz so'rovlar:**
 - **Eslatma:** `topildiRemindPendingClaims` (har soat) — 24 soatdan ko'p kutgan so'rov uchun muallifga bitta push (`remindedAt` bilan belgilanadi). Indeks: `topildi_claims` (`status`, `createdAt`).
 - **Bekor qilish:** so'rov yuborgan odam "Soʻrov yuborildi" ni bosib, 3 kundan keyin so'rovni qaytarib oladi; urinish qaytariladi, dalil rasm o'chadi. Rules faqat egasiga, faqat `pending` holatda ruxsat beradi.
+
+**Qabul qilingan so'rovdan keyin "Bu meniki" qaytib chiqardi (tuzatildi, 2026-10-29):** ilova so'rovchining faqat `pending` so'rovini bilardi; qabul qilingach eʼlonda yana "Bu meniki" chiqar, forma noto'g'ri "Javob mos kelmadi" ko'rsatar, yangi so'rovni server rad etib "Ruxsat yoʻq" chiqardi. Endi `ClaimTarget.acceptedClaimId` va `rejected` bor: eʼlon sahifasida "Chatga oʻtish" (chat id = claim id), formada qabul qilingan/kutilayotgan holatda yuborish tugmasi yo'q ("Soʻrovingiz qabul qilindi…" / "…hali koʻrib chiqilmoqda"), "Javob mos kelmadi" faqat haqiqatan rad etilganda. `ClaimRepositoryImpl.submit` qabul qilingan yoki kutilayotgan so'rov bo'lsa `ValidationFailure` qaytaradi. Rules o'zgarmadi.
 
 **Loading kapsula xato matni:** Firebase'ning inglizcha texnik xabarlari ("User is not authorized…") endi ko'rsatilmaydi — faqat "Internetni tekshiring", "Ruxsat yoʻq. Qayta kirib koʻring" yoki validatsiya matni; asl sabab logda (`TopildiLoader._reason`).
 
