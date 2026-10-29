@@ -45,6 +45,13 @@ const _backStaggerMs = 40;
 
 const _flyCurve = Cubic(0.5, 0, 0.75, 0);
 
+/// Back from Telegram the radar runs for at least this long, then the
+/// wallet (tile 0, as on the splash) is "found" and the next screen opens.
+const _radarMinMs = 900;
+const _foundMs = 520;
+const _foundHoldMs = 380;
+const _foundTile = 0;
+
 /// One lost-and-found item around the app icon.
 class _Tile {
   const _Tile(this.icon, this.color, this.x, this.y, this.size, this.degrees, [this.opacity = 1]);
@@ -80,7 +87,9 @@ enum _Fly { rest, collect, back, fade }
 /// Kirish, "icon cloud": lost-and-found items float around the app icon;
 /// title, the Telegram button and the terms sit at the bottom. Tapping the
 /// button gathers the items into the icon, then opens the bot. Coming back
-/// before the number was shared sends them back to their places.
+/// before the number was shared sends them back to their places. While the
+/// result is checked a radar spreads from the icon; on success the wallet is
+/// "found" (white, blue icon, gold ring) and the next screen opens.
 class _SignInView extends StatefulWidget {
   const _SignInView();
 
@@ -100,6 +109,10 @@ class _SignInViewState extends State<_SignInView> with TickerProviderStateMixin 
     TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.12).chain(CurveTween(curve: Curves.easeOutBack)), weight: 1),
     TweenSequenceItem(tween: Tween(begin: 1.12, end: 1.0).chain(CurveTween(curve: Curves.easeOutBack)), weight: 1),
   ]).animate(_pulse);
+  /// Radar layer fade in/out, and its endless turn (sweep + pulses).
+  late final _radarIn = AnimationController(vsync: this, duration: const Duration(milliseconds: 300));
+  late final _radarTurn = AnimationController(vsync: this, duration: const Duration(milliseconds: 2400));
+  late final _found = AnimationController(vsync: this, duration: const Duration(milliseconds: _foundMs));
   late final AppLifecycleListener _lifecycle;
 
   _Fly _fly = _Fly.rest;
@@ -109,6 +122,11 @@ class _SignInViewState extends State<_SignInView> with TickerProviderStateMixin 
 
   /// The app went to the background (Telegram opened) since the tap.
   bool _left = false;
+
+  /// Signed in: the found tile plays, then the next screen opens.
+  bool _finishing = false;
+
+  DateTime? _radarSince;
 
   @override
   void initState() {
@@ -130,6 +148,9 @@ class _SignInViewState extends State<_SignInView> with TickerProviderStateMixin 
     _back.dispose();
     _fade.dispose();
     _pulse.dispose();
+    _radarIn.dispose();
+    _radarTurn.dispose();
+    _found.dispose();
     super.dispose();
   }
 
@@ -159,14 +180,62 @@ class _SignInViewState extends State<_SignInView> with TickerProviderStateMixin 
     if (!await cubit.open() && mounted) _bringBack();
   }
 
-  void _bringBack() {
+  /// Sends the tiles home; completes once they are there.
+  Future<void> _bringBack() async {
     setState(() => _opening = false);
-    if (_fly == _Fly.fade) {
-      _fade.reverse();
-    } else if (_fly == _Fly.collect) {
-      setState(() => _fly = _Fly.back);
-      _back.forward(from: 0);
+    try {
+      if (_fly == _Fly.fade) {
+        await _fade.reverse().orCancel;
+      } else if (_fly == _Fly.collect) {
+        setState(() => _fly = _Fly.back);
+        await _back.forward(from: 0).orCancel;
+      } else if (_fly == _Fly.back && _back.isAnimating) {
+        await _wait(((1 - _back.value) * _back.duration!.inMilliseconds).round());
+      }
+    } on TickerCanceled {
+      // Disposed.
     }
+  }
+
+  void _startRadar() {
+    if (_radarSince != null) return;
+    _radarSince = DateTime.now();
+    _radarIn.forward();
+    if (!MediaQuery.disableAnimationsOf(context)) _radarTurn.repeat();
+  }
+
+  Future<void> _stopRadar() async {
+    _radarSince = null;
+    await _radarIn.reverse();
+    if (_radarSince == null) _radarTurn.stop();
+  }
+
+  /// Back from Telegram: tiles come home under the radar.
+  void _checking() {
+    _startRadar();
+    _bringBack();
+  }
+
+  /// Signed in: tiles home, radar for at least [_radarMinMs], the wallet is
+  /// found, a beat, then [route].
+  Future<void> _finish(String route) async {
+    if (_finishing) return;
+    setState(() => _finishing = true);
+    final reduce = MediaQuery.disableAnimationsOf(context);
+    _startRadar();
+    final since = _radarSince!;
+    await _bringBack();
+    if (!mounted) return;
+    if (!reduce) {
+      final left = _radarMinMs - DateTime.now().difference(since).inMilliseconds;
+      if (left > 0) await _wait(left);
+      if (!mounted) return;
+    }
+    HapticFeedback.mediumImpact();
+    await _found.animateTo(1, duration: Duration(milliseconds: reduce ? 200 : _foundMs));
+    if (!mounted) return;
+    await _wait(reduce ? 200 : _foundHoldMs);
+    if (mounted) context.go(route);
   }
 
   /// 0 at home → 1 at the app icon, and the opacity factor, for tile [i].
@@ -189,6 +258,12 @@ class _SignInViewState extends State<_SignInView> with TickerProviderStateMixin 
     }
   }
 
+  /// Found progress of tile [i], and how much the others fade meanwhile.
+  (double, double) _foundOf(int i) {
+    final f = _found.value;
+    return i == _foundTile ? (f, 1) : (0, 1 - 0.45 * f);
+  }
+
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
@@ -199,20 +274,27 @@ class _SignInViewState extends State<_SignInView> with TickerProviderStateMixin 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: dark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
       child: BlocConsumer<SignInCubit, SignInState>(
-        listenWhen: (a, b) => a.next != b.next || (a.phase == SignInPhase.waiting && b.phase == SignInPhase.idle),
+        listenWhen: (a, b) =>
+            a.next != b.next ||
+            (a.phase != SignInPhase.checking && b.phase == SignInPhase.checking) ||
+            ((a.phase == SignInPhase.waiting || a.phase == SignInPhase.checking) && b.phase == SignInPhase.idle),
         listener: (context, state) {
           switch (state.next) {
             case SignInNext.profile:
-              context.go(Routes.profileSetup);
+              _finish(Routes.profileSetup);
             case SignInNext.home:
-              context.go(Routes.home);
+              _finish(Routes.home);
+            case SignInNext.none when state.phase == SignInPhase.checking:
+              _checking();
             case SignInNext.none:
               // Back from Telegram without sharing the number.
+              _stopRadar();
               _bringBack();
           }
         },
         builder: (context, state) {
-          final busy = state.phase != SignInPhase.idle;
+          final busy = state.phase != SignInPhase.idle || _finishing;
+          final checking = state.phase == SignInPhase.checking || _finishing;
           return Scaffold(
             backgroundColor: dark ? const Color(0xFF0F1420) : const Color(0xFFF4F6FA),
             body: LayoutBuilder(
@@ -232,16 +314,35 @@ class _SignInViewState extends State<_SignInView> with TickerProviderStateMixin 
                     Positioned.fill(child: _Background(dark: dark)),
                     Positioned.fill(
                       child: RepaintBoundary(
+                        child: CustomPaint(
+                          painter: _RadarPainter(
+                            centre: app,
+                            scale: appSize / _appSize,
+                            color: dark ? const Color(0xFF8DB0FF) : cs.primary,
+                            show: _radarIn,
+                            turn: _radarTurn,
+                          ),
+                        ),
+                      ),
+                    ),
+                    Positioned.fill(
+                      child: RepaintBoundary(
                         child: ExcludeSemantics(
                           child: AnimatedBuilder(
-                            animation: Listenable.merge([_collect, _back, _fade]),
+                            animation: Listenable.merge([_collect, _back, _fade, _found]),
                             builder: (context, _) => Stack(
                               children: [
                                 for (final (i, t, at) in tiles)
                                   Positioned(
                                     left: at.dx - t.size / 2,
                                     top: at.dy - t.size / 2,
-                                    child: _FlyingTile(tile: t, toApp: app - at, progress: _progress(i), dark: dark),
+                                    child: _FlyingTile(
+                                      tile: t,
+                                      toApp: app - at,
+                                      progress: _progress(i),
+                                      found: _foundOf(i),
+                                      dark: dark,
+                                    ),
                                   ),
                               ],
                             ),
@@ -295,7 +396,12 @@ class _SignInViewState extends State<_SignInView> with TickerProviderStateMixin 
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
-                                _TelegramButton(opening: _opening || state.phase == SignInPhase.waiting, onTap: busy ? null : _go),
+                                _TelegramButton(
+                                  label: checking
+                                      ? tr('Tekshirilmoqda…')
+                                      : (_opening || state.phase == SignInPhase.waiting ? tr('Telegram ochilmoqda…') : null),
+                                  onTap: busy ? null : _go,
+                                ),
                                 if (state.error != null)
                                   Padding(
                                     padding: const EdgeInsets.only(top: 8),
@@ -368,39 +474,58 @@ class _Background extends StatelessWidget {
 }
 
 /// A tile on its way to the app icon: [progress] is (0 home → 1 at the
-/// icon, opacity factor); it shrinks to 0.2 as it arrives.
+/// icon, opacity factor); it shrinks to 0.2 as it arrives. [found] is (0 → 1
+/// turning white with a blue icon and a gold ring, opacity factor while
+/// another tile is found).
 class _FlyingTile extends StatelessWidget {
-  const _FlyingTile({required this.tile, required this.toApp, required this.progress, required this.dark});
+  const _FlyingTile({
+    required this.tile,
+    required this.toApp,
+    required this.progress,
+    required this.found,
+    required this.dark,
+  });
 
   final _Tile tile;
   final Offset toApp;
-  final (double, double) progress;
+  final (double, double) progress, found;
   final bool dark;
 
   @override
   Widget build(BuildContext context) {
     final (p, fade) = progress;
+    final (f, dim) = found;
     final s = tile.size;
     final r = BorderRadius.circular(s * 0.34);
+    final base = dark ? const Color(0x14FFFFFF) : tile.color;
+    final ink = dark ? const Color(0xFF9FB3D9) : const Color(0xFF4F6288);
     return Opacity(
-      opacity: (tile.opacity * fade).clamp(0.0, 1.0),
+      opacity: (tile.opacity * fade * dim).clamp(0.0, 1.0),
       child: Transform.translate(
         offset: toApp * p,
         child: Transform.scale(
-          scale: 1 - 0.8 * p,
+          // Found: a 1 → 1.22 → 1.12 pop.
+          scale: (1 - 0.8 * p) * (1 + 0.12 * f + 0.1 * math.sin(f * math.pi)),
           child: Transform.rotate(
-            angle: tile.degrees * math.pi / 180,
+            // Found: straightens up.
+            angle: tile.degrees * (1 - f) * math.pi / 180,
             child: Container(
               width: s,
               height: s,
               decoration: BoxDecoration(
-                color: dark ? const Color(0x14FFFFFF) : tile.color,
+                color: Color.lerp(base, Colors.white, f),
                 borderRadius: r,
-                border: dark ? Border.all(color: const Color(0x1FFFFFFF)) : null,
-                boxShadow: const [BoxShadow(color: Color(0x1A0F1420), offset: Offset(0, 10), blurRadius: 22)],
+                border: dark ? Border.all(color: Color.lerp(const Color(0x1FFFFFFF), Colors.white, f)!) : null,
+                boxShadow: [
+                  if (f > 0) ...[
+                    BoxShadow(color: BrandColors.dotOnDark.withValues(alpha: f), spreadRadius: 3),
+                    BoxShadow(color: BrandColors.dotOnDark.withValues(alpha: 0.45 * f), spreadRadius: 3, blurRadius: 20),
+                  ],
+                  const BoxShadow(color: Color(0x1A0F1420), offset: Offset(0, 10), blurRadius: 22),
+                ],
               ),
               // 1px inner light along the top edge.
-              foregroundDecoration: dark
+              foregroundDecoration: dark || f > 0
                   ? null
                   : BoxDecoration(
                       borderRadius: r,
@@ -415,9 +540,9 @@ class _FlyingTile extends StatelessWidget {
               child: Icon(
                 tile.icon,
                 size: s * 0.48,
-                fill: 0,
-                weight: 300,
-                color: dark ? const Color(0xFF9FB3D9) : const Color(0xFF4F6288),
+                fill: f,
+                weight: 300 + 200 * f,
+                color: Color.lerp(ink, BrandColors.blue, f),
               ),
             ),
           ),
@@ -489,11 +614,12 @@ class _AppIcon extends StatelessWidget {
 }
 
 /// 58px primary capsule with the paper plane; scales to 0.97 while pressed.
-/// [opening]: spinner and "Telegram ochilmoqda…". Null [onTap]: not tappable.
+/// [label]: spinner and that text ("Telegram ochilmoqda…", "Tekshirilmoqda…")
+/// instead of the plane. Null [onTap]: not tappable.
 class _TelegramButton extends StatefulWidget {
-  const _TelegramButton({required this.opening, required this.onTap});
+  const _TelegramButton({required this.label, required this.onTap});
 
-  final bool opening;
+  final String? label;
   final VoidCallback? onTap;
 
   @override
@@ -511,11 +637,13 @@ class _TelegramButtonState extends State<_TelegramButton> {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final enabled = widget.onTap != null;
-    final label = widget.opening ? tr('Telegram ochilmoqda…') : tr('Telegram orqali kirish');
+    final busy = widget.label != null;
+    final label = widget.label ?? tr('Telegram orqali kirish');
     return Semantics(
       button: true,
       enabled: enabled,
       label: label,
+      liveRegion: busy,
       excludeSemantics: true,
       child: GestureDetector(
         onTapDown: enabled ? (_) => _press(true) : null,
@@ -550,7 +678,7 @@ class _TelegramButtonState extends State<_TelegramButton> {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  if (widget.opening)
+                  if (busy)
                     SizedBox.square(dimension: 22, child: CupertinoActivityIndicator(color: cs.onPrimary, radius: 10))
                   else
                     Icon(Symbols.send_rounded, size: 22, fill: 1, color: cs.onPrimary),
@@ -658,6 +786,69 @@ class _TermsState extends State<_Terms> {
       ),
     );
   }
+}
+
+/// Rings around the app icon, a turning sweep and two pulses spreading
+/// out, faded by [show]; with [turn] stopped (reduced motion) only the rings.
+class _RadarPainter extends CustomPainter {
+  _RadarPainter({required this.centre, required this.scale, required this.color, required this.show, required this.turn})
+      : super(repaint: Listenable.merge([show, turn]));
+
+  /// Radii and opacities, inner → outer (as on the splash).
+  static const _rings = [(90.0, 0.30), (150.0, 0.20), (220.0, 0.13), (300.0, 0.08)];
+
+  final Offset centre;
+  final double scale;
+  final Color color;
+  final Animation<double> show, turn;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final v = Curves.easeOut.transform(show.value);
+    if (v == 0) return;
+    final outer = 300 * scale;
+
+    if (turn.isAnimating) {
+      final angle = turn.value * 2 * math.pi - math.pi / 2;
+      canvas.drawCircle(
+        centre,
+        outer,
+        Paint()
+          ..shader = SweepGradient(
+            // Bright leading edge, the tail behind it.
+            colors: [color.withValues(alpha: 0), color.withValues(alpha: 0), color.withValues(alpha: 0.16 * v)],
+            stops: const [0, 1 - 70 / 360, 1],
+            transform: GradientRotation(angle),
+          ).createShader(Rect.fromCircle(center: centre, radius: outer)),
+      );
+      for (final k in const [0.0, 0.5]) {
+        final e = Curves.easeOut.transform((turn.value * 2 + k) % 1);
+        canvas.drawCircle(
+          centre,
+          (66 + (300 - 66) * e) * scale,
+          Paint()
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 2
+            ..color = color.withValues(alpha: 0.4 * (1 - e) * v),
+        );
+      }
+    }
+
+    for (final (r, a) in _rings) {
+      canvas.drawCircle(
+        centre,
+        r * scale * (0.85 + 0.15 * v),
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.5
+          ..color = color.withValues(alpha: a * v),
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(_RadarPainter old) =>
+      old.centre != centre || old.scale != scale || old.color != color || old.show != show || old.turn != turn;
 }
 
 class _OfflineBanner extends StatelessWidget {

@@ -120,6 +120,7 @@ const ruStrings = <String, String>{
   'ga rozilik bildirasiz.': '.',
   'Telegram orqali kirish': 'Войти через Telegram',
   'Telegram ochilmoqda…': 'Открываем Telegram…',
+  'Tekshirilmoqda…': 'Проверяем…',
   'Yoʻqotganingizni toping, topganingizni qaytaring. Kirish — bir bosishda.':
       'Найдите потерянное, верните найденное. Вход — в одно касание.',
   'Telegramni ochib boʻlmadi. Qayta urinib koʻring': 'Не удалось открыть Telegram. Попробуйте ещё раз',

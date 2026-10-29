@@ -17,8 +17,9 @@ import '../../domain/usecases/start_telegram_login.dart';
 
 /// [starting]: the button was tapped, the session is being made while the
 /// tiles fly in. [waiting]: Telegram is open; the result is checked in the
-/// background.
-enum SignInPhase { idle, starting, waiting }
+/// background. [checking]: back from Telegram, the result is being fetched
+/// (the radar runs on the page).
+enum SignInPhase { idle, starting, waiting, checking }
 
 /// After sign-in: profile setup (new user) or the feed.
 enum SignInNext { none, profile, home }
@@ -69,7 +70,9 @@ class SignInCubit extends Cubit<SignInState> {
   Future<Either<Failure, TelegramLogin>>? _session;
   TelegramLogin? _login;
   Timer? _poll, _deadline;
-  bool _checking = false;
+
+  /// The claim in flight, shared by the poll and [resumed].
+  Future<bool>? _claiming;
 
   /// False when offline or already busy: the page then leaves the tiles alone.
   Future<bool> begin() async {
@@ -110,17 +113,20 @@ class SignInCubit extends Cubit<SignInState> {
   /// Back from Telegram: check now; still unconfirmed → the tiles come back.
   Future<void> resumed() async {
     if (state.phase != SignInPhase.waiting) return;
+    emit(state.copyWith(phase: SignInPhase.checking));
     final signedIn = await check();
-    if (!signedIn && !isClosed && state.phase == SignInPhase.waiting) emit(state.copyWith(phase: SignInPhase.idle));
+    if (!signedIn && !isClosed && state.phase == SignInPhase.checking) emit(state.copyWith(phase: SignInPhase.idle));
   }
 
-  /// True once signed in.
-  Future<bool> check() async {
+  /// True once signed in. Joins a claim already in flight.
+  Future<bool> check() {
     final login = _login;
-    if (login == null || _checking) return false;
-    _checking = true;
+    if (login == null) return Future.value(false);
+    return _claiming ??= _claimOnce(login).whenComplete(() => _claiming = null);
+  }
+
+  Future<bool> _claimOnce(TelegramLogin login) async {
     final r = await _claim(login);
-    _checking = false;
     if (isClosed || _login != login) return false;
     return r.match(
       (f) {
