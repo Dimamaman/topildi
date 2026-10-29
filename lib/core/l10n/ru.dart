@@ -514,6 +514,10 @@ const ruStrings = <String, String>{
   'Lentadan qidiring yoki “Yoʻqolgan” eʼlonini bering. Yangi mos eʼlon chiqsa, sizga xabar beramiz.':
       'Ищите в ленте или подайте объявление «Потеряно». Когда появится похожее, мы сообщим.',
   'Xavfsiz qaytaring': 'Возвращайте безопасно',
+  'Topildi': 'Найдено',
+  'Mos eʼlon topildi': 'Найдено похожее объявление',
+  'YASHIRIN BELGI': 'СКРЫТАЯ ПРИМЕТА',
+  'Ichida koʻk karta': 'Внутри синяя карта',
   'Egasi faqat siz bilgan yashirin belgini toʻgʻri aytsa, buyumni topshirasiz. Firibgarlarga yoʻl yoʻq.':
       'Вы отдаёте вещь, только если владелец верно назовёт скрытую примету. Мошенникам не пройти.',
   '{i}-sahifa, jami {count}': 'Страница {i} из {count}',
@@ -528,6 +532,9 @@ const ruStrings = <String, String>{
   'Buyumni egasiga topshirganingizda shu yerda koʻrinadi.': 'Когда вы передадите вещь владельцу, она появится здесь.',
   'Faol eʼlon yoʻq': 'Активных объявлений нет',
   'Biror narsa topdingizmi yoki yoʻqotdingizmi? Eʼlon bering.': 'Что-то нашли или потеряли? Подайте объявление.',
+  'Yana biror narsa topdingizmi yoki yoʻqotdingizmi? Eʼlon bering.': 'Снова что-то нашли или потеряли? Подайте объявление.',
+  'Sizning birinchi eʼloningiz shu yerda turadi. Topgan yoki yoʻqotgan buyumingiz haqida yozing.': 'Здесь появится ваше первое объявление. Расскажите о найденной или потерянной вещи.',
+  'QAYTARILDI': 'ВОЗВРАЩЕНО',
   'Soʻrov bor · {pendingClaims}': 'Есть заявки · {pendingClaims}',
   'Eʼlonlar': 'Объявления',
   'Topib olgan': 'Нашли сами',

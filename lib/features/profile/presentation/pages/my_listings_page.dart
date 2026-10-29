@@ -290,7 +290,7 @@ class _CardList extends StatelessWidget {
         if (v > 300 && showReturned) onSwipe(false);
       },
       child: items.isEmpty
-          ? _Empty(returned: showReturned)
+          ? _Empty(returned: showReturned, hasReturned: data.returned.isNotEmpty)
           : Padding(
               padding: const EdgeInsets.symmetric(horizontal: _side),
               child: Column(
@@ -306,34 +306,282 @@ class _CardList extends StatelessWidget {
   }
 }
 
+/// Empty tab: a faint, tilted sample card showing where the user's listing
+/// will sit, plus a blue "QAYTARILDI" stamp on the Qaytarilgan tab.
 class _Empty extends StatelessWidget {
-  const _Empty({required this.returned});
+  const _Empty({required this.returned, required this.hasReturned});
 
   final bool returned;
+
+  /// The user has returned items before — Faol then invites them back.
+  final bool hasReturned;
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final tc = context.tc;
+    final text = Theme.of(context).textTheme;
+    // Small phones (iPhone SE): shrink the art so text and button still fit.
+    final scale = MediaQuery.sizeOf(context).height < 700 ? 0.85 : 1.0;
     return Padding(
-      padding: const EdgeInsets.only(top: 24),
-      child: returned
-          ? MessageState(
-              icon: Symbols.task_alt_rounded,
-              title: tr('Hali qaytarilgan buyum yoʻq'),
-              body: tr('Buyumni egasiga topshirganingizda shu yerda koʻrinadi.'),
-              circle: tc.successContainer,
-              fg: tc.success,
-            )
-          : MessageState(
-              icon: Symbols.campaign_rounded,
-              title: tr('Faol eʼlon yoʻq'),
-              body: tr('Biror narsa topdingizmi yoki yoʻqotdingizmi? Eʼlon bering.'),
-              circle: cs.primaryContainer,
-              fg: cs.onPrimaryContainer,
+      padding: const EdgeInsets.only(top: 18),
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 60),
+            child: SizedBox(
+              height: 236 * scale,
+              child: FittedBox(
+                child: SizedBox(width: 270, height: 236, child: _SampleCard(returned: returned)),
+              ),
             ),
+          ),
+          SizedBox(height: 42 * scale),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 28),
+            child: Column(
+              children: [
+                Text(
+                  returned ? tr('Hali qaytarilgan buyum yoʻq') : tr('Faol eʼlon yoʻq'),
+                  textAlign: TextAlign.center,
+                  style: text.headlineSmall!
+                      .copyWith(fontSize: 24, height: 30 / 24, letterSpacing: -0.4, color: cs.onSurface)
+                      .inter(FontWeight.w700),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  returned
+                      ? tr('Buyumni egasiga topshirganingizda shu yerda koʻrinadi.')
+                      : hasReturned
+                      ? tr('Yana biror narsa topdingizmi yoki yoʻqotdingizmi? Eʼlon bering.')
+                      : tr('Sizning birinchi eʼloningiz shu yerda turadi. Topgan yoki yoʻqotgan buyumingiz haqida yozing.'),
+                  textAlign: TextAlign.center,
+                  style: text.bodyLarge!
+                      .copyWith(fontSize: 15, height: 21 / 15, color: cs.onSurfaceVariant)
+                      .inter(FontWeight.w400),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
+}
+
+/// 270×236 decorative art: the dashed sample card (gently rocking −3° ↔ −1°
+/// and floating 4px) and, on Qaytarilgan, the stamp that lands on it.
+class _SampleCard extends StatefulWidget {
+  const _SampleCard({required this.returned});
+
+  final bool returned;
+
+  @override
+  State<_SampleCard> createState() => _SampleCardState();
+}
+
+class _SampleCardState extends State<_SampleCard> with TickerProviderStateMixin {
+  late final _sway = AnimationController(vsync: this, duration: const Duration(milliseconds: 1500));
+  late final _stamp = AnimationController(vsync: this, duration: const Duration(milliseconds: 300));
+  var _stamped = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final still = MediaQuery.disableAnimationsOf(context);
+    if (still) {
+      _sway
+        ..stop()
+        ..value = 0;
+    } else if (!_sway.isAnimating) {
+      _sway.repeat(reverse: true);
+    }
+    if (widget.returned && !_stamped) {
+      _stamped = true;
+      if (still) {
+        _stamp.value = 1;
+      } else {
+        _stamp.forward();
+      }
+      HapticFeedback.lightImpact();
+    }
+  }
+
+  @override
+  void dispose() {
+    _sway.dispose();
+    _stamp.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final sway = CurvedAnimation(parent: _sway, curve: Curves.easeInOut);
+    final card = ExcludeSemantics(
+      child: CustomPaint(
+        painter: _DashedRRect(
+          color: dark ? const Color(0xFF2A3550) : const Color(0xFFC7D2E6),
+          fill: dark ? const Color(0x99182031) : const Color(0x99FFFFFF),
+          radius: 28,
+          width: 2,
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(28),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                margin: const EdgeInsets.all(10),
+                height: 120,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: dark ? const Color(0xFF182031) : const Color(0xFFEAEEF5),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Icon(
+                  widget.returned ? Symbols.account_balance_wallet_rounded : Symbols.add_a_photo_rounded,
+                  size: 44,
+                  color: dark ? const Color(0xFF3A4A6E) : const Color(0xFFB4BDCC),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(18, 4, 18, 4),
+                child: LayoutBuilder(
+                  builder: (context, c) => Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _bar(c.maxWidth * 0.72, 14, dark ? const Color(0xFF222C40) : const Color(0xFFE3E8F0)),
+                      const SizedBox(height: 9),
+                      _bar(c.maxWidth * 0.48, 10, dark ? const Color(0xFF1D2638) : const Color(0xFFECEFF5)),
+                      const SizedBox(height: 12),
+                      _bar(64, 22, cs.primaryContainer),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    return AnimatedBuilder(
+      animation: sway,
+      builder: (context, child) => Transform.translate(offset: Offset(0, -4 * sway.value), child: child),
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Positioned.fill(
+            child: AnimatedBuilder(
+              animation: sway,
+              builder: (context, child) =>
+                  Transform.rotate(angle: (-3 + 2 * sway.value) * math.pi / 180, child: child),
+              child: card,
+            ),
+          ),
+          if (widget.returned)
+            Positioned(
+              right: -12,
+              top: 52,
+              child: AnimatedBuilder(
+                animation: _stamp,
+                builder: (context, child) => Opacity(
+                  opacity: _stamp.value,
+                  child: Transform.scale(
+                    scale: 1.4 - 0.4 * Curves.easeOutBack.transform(_stamp.value),
+                    child: child,
+                  ),
+                ),
+                child: Transform.rotate(angle: 12 * math.pi / 180, child: const _Stamp()),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  static Widget _bar(double w, double h, Color c) => Container(
+    width: w,
+    height: h,
+    decoration: BoxDecoration(color: c, borderRadius: BorderRadius.circular(h / 2)),
+  );
+}
+
+/// 120 round dashed "QAYTARILDI" stamp with a handshake.
+class _Stamp extends StatelessWidget {
+  const _Stamp();
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    return ExcludeSemantics(
+      child: CustomPaint(
+        painter: _DashedRRect(
+          color: cs.primary,
+          fill: dark ? const Color(0xE6233A72) : const Color(0xE6E3EBFC),
+          radius: 60,
+          width: 3,
+        ),
+        child: SizedBox.square(
+          dimension: 120,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Symbols.handshake_rounded, size: 32, color: cs.primary),
+                // Longer Cyrillic "ҚАЙТАРИЛДИ" shrinks to fit, down to ~10px.
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    tr('QAYTARILDI'),
+                    maxLines: 1,
+                    textScaler: TextScaler.noScaling,
+                    style: TextStyle(fontSize: 12, height: 16 / 12, letterSpacing: 1.2, color: cs.primary)
+                        .inter(FontWeight.w800),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Filled rounded rect with a dashed outline drawn inside its bounds.
+class _DashedRRect extends CustomPainter {
+  const _DashedRRect({required this.color, required this.fill, required this.radius, required this.width});
+
+  final Color color, fill;
+  final double radius, width;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rrect = RRect.fromRectAndRadius(Offset.zero & size, Radius.circular(radius));
+    canvas.drawRRect(rrect, Paint()..color = fill);
+    final dash = width * 3, gap = width * 2;
+    final path = Path()..addRRect(rrect.deflate(width / 2));
+    final out = Path();
+    for (final m in path.computeMetrics()) {
+      for (var d = 0.0; d < m.length; d += dash + gap) {
+        out.addPath(m.extractPath(d, math.min(d + dash, m.length)), Offset.zero);
+      }
+    }
+    canvas.drawPath(
+      out,
+      Paint()
+        ..color = color
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = width,
+    );
+  }
+
+  @override
+  bool shouldRepaint(_DashedRRect old) =>
+      old.color != color || old.fill != fill || old.radius != radius || old.width != width;
 }
 
 class _MineCard extends StatelessWidget {
