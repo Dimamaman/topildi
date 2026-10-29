@@ -84,6 +84,12 @@ class FirestoreClaimDataSource implements ClaimRemoteDataSource {
   }
 
   @override
+  Stream<Claim?> watch(String id) => _col.doc(id).snapshots().map((doc) {
+    final data = doc.data();
+    return data == null ? null : claimFromFirestore(doc.id, data);
+  });
+
+  @override
   Future<Claim> add({required ListingModel listing, required PublicUser claimant, required SubmitClaimParams params}) async {
     final attempt = (await byClaimant(claimant.id, listing.id)).length + 1;
     final id = claimDocId(listing.id, claimant.id, attempt);

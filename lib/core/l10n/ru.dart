@@ -223,15 +223,24 @@ const ruStrings = <String, String>{
   '{attemptsLeft} ta urinishingiz bor · Javobni faqat topuvchi koʻradi':
       'Осталось попыток: {attemptsLeft} · Ответ видит только нашедший',
   'Soʻrov yuborish': 'Отправить заявку',
-  'Soʻrovingiz yuborildi': 'Заявка отправлена',
   '{who} javobingizni yashirin belgi bilan solishtiradi. Natija haqida darhol xabar beramiz.':
       '{who} сравнит ваш ответ со скрытой приметой. Мы сразу сообщим о результате.',
   'Soʻrov yuborildi': 'Заявка отправлена',
-  'Topuvchi tekshirmoqda': 'Нашедший проверяет',
-  'Odatda bir necha soat': 'Обычно несколько часов',
-  'Chat ochiladi va uchrashasiz': 'Откроется чат, и вы договоритесь о встрече',
-  ', bajarildi': ', выполнено',
-  ', jarayonda': ', в процессе',
+  // "Soʻrov yuborildi!" screen
+  'Soʻrov': 'Заявка',
+  'yuborildi!': 'отправлена!',
+  'Qabul': 'Заявка',
+  'qilindi!': 'принята!',
+  '{who} javobingizni tasdiqladi. Chatda kelishib, xavfsiz joyda uchrashing.':
+      '{who} подтвердил(а) ваш ответ. Договоритесь в чате и встретьтесь в безопасном месте.',
+  '{name} tekshirmoqda': '{name} проверяет',
+  '{name} tasdiqladi': '{name} подтвердил(а)',
+  '{name} tekshirdi': '{name} проверил(а)',
+  'Javobingizni yashirin belgi bilan solishtiradi': 'Сравнивает ваш ответ со скрытой приметой',
+  'Javobingiz mos keldi': 'Ваш ответ совпал',
+  'Javobingiz mos kelmadi': 'Ваш ответ не совпал',
+  'Chat ochiladi': 'Откроется чат',
+  'Kelishib, xavfsiz joyda uchrashasiz': 'Договоритесь и встретитесь в безопасном месте',
 
   // Claims (author)
   'Soʻrovlar': 'Заявки',
@@ -379,7 +388,6 @@ const ruStrings = <String, String>{
   'Masalan: brelokda qizil yulduzcha bor': 'Например: на брелоке красная звёздочка',
   '{attemptsLeft} ta urinishingiz bor · Javobni faqat egasi koʻradi': 'Осталось попыток: {attemptsLeft} · Ответ видит только владелец',
   'Egasi': 'Владелец',
-  'Egasi tekshirmoqda': 'Владелец проверяет',
   '{count} ta yangi soʻrov': 'Новых заявок: {count}',
   'Topilgan vaqt': 'Когда найдено',
   'Yoʻqolgan vaqt': 'Когда потеряно',

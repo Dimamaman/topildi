@@ -120,6 +120,14 @@ class ClaimMockDataSource implements ClaimRemoteDataSource {
   }
 
   @override
+  Stream<Claim?> watch(String id) async* {
+    yield await byId(id);
+    await for (final _ in _changes.stream) {
+      yield await byId(id);
+    }
+  }
+
+  @override
   Future<Claim?> byId(String id) async {
     for (final c in _claims) {
       if (c.id == id) return c;

@@ -1,6 +1,6 @@
 # Topildi — loyiha holati
 
-> Oxirgi yangilanish: 2026-10-28
+> Oxirgi yangilanish: 2026-10-29
 
 Topildi — yo'qolgan va topilgan buyumlar uchun Flutter ilova.
 - **Arxitektura**: Clean Architecture — `flutter_bloc`, `get_it` + `injectable` (`@prod` / `@test`), `fpdart`.
@@ -20,12 +20,14 @@ Topildi — yo'qolgan va topilgan buyumlar uchun Flutter ilova.
 | Brend ("t." logo, ikonka, splash) | ✅ tayyor |
 | Eʼlonni tahrirlash | ✅ tayyor, rules deploy qilingan |
 | Javobsiz so'rov: eslatma va bekor qilish | ✅ deploy qilingan (24 soatda eslatma, 3 kundan keyin bekor qilish) |
+| Eʼlon rasmlari (`topildi/uploads/{uid}/`) | 🟡 kod commit qilingan; **`storage.rules` deploy qilinganini tekshirish kerak** |
+| Pul topish: eʼlonni tepaga ko'tarish (Click + Payme) | 📝 reja tayyor, kod yo'q (pastda) |
 | Xarita | ⏸ `Features.map` bilan yashirilgan |
 | Android | ⏳ sozlanmagan |
 
 **Branchlar (2026-10-26):** hamma ish `main` ga birlashtirildi — PR #3 → `firebase-phase1` → `main` (fast-forward). Yangi ish `main` dan alohida branch'da boshlanadi.
 
-**Tekshiruv (2026-10-28):** `flutter analyze` toza; `flutter test` — 92 ta test o'tadi; `functions`: `npm test` — 34 ta; `flutter build ios --simulator --debug` muvaffaqiyatli; Firestore rules, indekslar va `topildi` functions deploy qilingan.
+**Tekshiruv (2026-10-28):** `flutter analyze` toza; `flutter test` — 95 ta test o'tadi; `functions`: `npm test` — 34 ta; `flutter build ios --simulator --debug` muvaffaqiyatli; Firestore rules, indekslar va `topildi` functions deploy qilingan.
 
 > **Test rejimi** (bekor qilish kutishsiz va urinishni sarflagan holda) 2026-10-28 da sinovdan keyin qaytarildi: kutish yana 3 kun, bekor qilingan so'rov o'chiriladi va urinish qaytadi; rules deploy qilingan.
 
@@ -123,9 +125,11 @@ Cloud Functions yo'q: chatni ilova yaratadi, xavfsizlikni Firestore rules taʼmi
 - **Ko'rib chiqish:** tayyorlik halqasi 99% da to'xtaydi (e'lon qilish oxirgi qadam); tahrirlashda 100%.
 - **Chatlar, Bildirishnomalar bo'sh holati:** Lenta bilan umumiy `GlassEmptyIcon` (`lib/core/widgets/glass_empty_icon.dart`); Chatlar'da qulf belgisi, blok ekran markazida; Bildirishnomalar'da 3 ta namuna qatori, tizimda o'chiq bo'lsa ogohlantirish va "Yoqish".
 - **"Egaligingizni tasdiqlang"** (`claim_page.dart`): katta savol, javob maydoni, dalil rasm kapsulasi, 3 ta kalit (urinishlar; rad etilgandan keyin bittasi "tushadi"), rad etilgan va urinishlar tugagan holatlar. Savol ostidagi izoh va yordamchi chiplar keyinroq olib tashlangan.
-- **"Soʻrovlar"** (`claims_page.dart`, muallif uchun): tepada eʼlon nomi va miniatyura; har so'rov bitta kartada — "SIZ YOZGAN BELGI" (och ko'k, ilova uslubida) va "{ISM} JAVOBI" ustma-ust, orasida "VS"; "{vaqt} · {n}-urinish", holat chipi; pastda "✕ Mos emas" (tasdiqsiz, 5 s "Bekor qilish" snackbar'i) va "✓ Qabul qilish" (tasdiq + loading kapsula → chat); qabul qilinganda "Chatga oʻtish". 2+ so'rov yonma-yon suriladi ("Soʻrovlar · 1 / 3"). `Claim.attempt` qo'shildi (Firestore'dagi `attempt` maydoni).
-- **Eʼlon sahifasi (muallif):** "N ta yangi soʻrov" kartasi oq, ko'k ikonka kvadrati va son nishoni bilan.
+- **"Soʻrovlar"** (`claims_page.dart`, muallif uchun): tepada eʼlon nomi va miniatyura; har so'rov bitta kartada — "SIZ YOZGAN BELGI" (och ko'k, ilova uslubida) va "{ISM} JAVOBI" ustma-ust, orasida "VS"; "{vaqt} · {n}-urinish", holat chipi; pastda "✕ Mos emas" (tasdiqsiz, 5 s "Bekor qilish" snackbar'i, keyin rad etish yuboriladi; sahifadan chiqilsa ham) va "✓ Qabul qilish" (tasdiq + loading kapsula → chat); qabul qilinganda "Chatga oʻtish". 2+ so'rov yonma-yon suriladi ("Soʻrovlar · 1 / 3"). `Claim.attempt` qo'shildi (Firestore'dagi `attempt` maydoni). Tugmali snackbar o'zi yopilmaydi — 5 s tugaganda kod yopadi.
+- **Eʼlon sahifasi (muallif):** "N ta yangi soʻrov" kartasi oq, ko'k `front_hand` ikonka kvadrati va ko'k son nishoni bilan.
 - Chatlar tab ikonkasi uch chiziqli `chat`; profil statistikasida ruscha uzun yozuv faqat o'zi kichrayadi.
+
+- **"Soʻrov yuborildi!"** (`claim_sent_page.dart`, SY1): "Eʼlon joylandi!" uslubida — ✕ (glass), buyum qatori (72 miniatyura + `send` nishoni, "Topuvchi/Egasi: {ism} · {tuman}", bosilsa eʼlon), katta ikki qatorli sarlavha, 3 qadamli vaqt chizigʻi (aylanuvchi halqa, "Kamroq harakat"da statik), "Lentaga qaytish"; kirish animatsiyasi S3 bilan bir xil. "Odatda bir necha soat" va sariq/yashil belgilar olib tashlandi; "Soʻrovlarimni koʻrish" havolasi qoʻyilmadi (ilovada bunday sahifa yoʻq). ✕ va "orqaga" Lentaga olib boradi. Ekran ochiq turganda soʻrov real vaqtda kuzatiladi (`WatchClaim`, `ClaimSentCubit`): qabul qilinsa "Qabul qilindi!" + "Chatga oʻtish", rad etilsa "Javob mos kelmadi. Yana {n} ta urinish qoldi" + "Qayta urinish" (urinish qolmasa "Lentaga qaytish").
 
 **Brend:** yangi "t." logo — `lib/core/widgets/topildi_logo.dart` (`TopildiMark`, `TopildiAppIcon`, `TopildiWordmark`, belgi SVG path'idan chiziladi). Arxivdagi PNG'lar buzuq edi, `assets/brand/` dagi PNG'lar shu path'dan qayta yasalgan. iOS/Android launcher ikonkalari (`flutter_launcher_icons`, Android 13 monoxrom bilan) va native splash (`flutter_native_splash`, ko'k fon) — sozlamalar `pubspec.yaml` da. Flutter splash belgini native splash bilan bir joyda chizadi.
 
@@ -137,11 +141,11 @@ Cloud Functions yo'q: chatni ilova yaratadi, xavfsizlikni Firestore rules taʼmi
 - **Eslatma:** `topildiRemindPendingClaims` (har soat) — 24 soatdan ko'p kutgan so'rov uchun muallifga bitta push (`remindedAt` bilan belgilanadi). Indeks: `topildi_claims` (`status`, `createdAt`).
 - **Bekor qilish:** so'rov yuborgan odam "Soʻrov yuborildi" ni bosib, 3 kundan keyin so'rovni qaytarib oladi; urinish qaytariladi, dalil rasm o'chadi. Rules faqat egasiga, faqat `pending` holatda ruxsat beradi.
 
-**Loading kapsula xato matni:** Firebase'ning inglizcha texnik xabarlari ("User is not authorized…") endi ko'rsatilmaydi — faqat "Internetni tekshiring", "Ruxsat yoʻq. Qayta kirib koʻring" yoki validatsiya matni; asl sabab logda.
+**Loading kapsula xato matni:** Firebase'ning inglizcha texnik xabarlari ("User is not authorized…") endi ko'rsatilmaydi — faqat "Internetni tekshiring", "Ruxsat yoʻq. Qayta kirib koʻring" yoki validatsiya matni; asl sabab logda (`TopildiLoader._reason`).
 
-**Eʼlon rasmlari yangi papkada:** rasmli eʼlon joylashda Storage `unauthorized` xatosi chiqardi (eski qoida Firestore'ni o'qiydigan `firestore.exists(...)` ga tayanardi). Endi rasmlar `topildi/uploads/{uid}/{eʼlonId}_{n}.jpg` ga yuklanadi; qoida faqat uid'ni tekshiradi. Eʼlon o'chirilganda rasmlar URL bo'yicha o'chiriladi; eski eʼlonlarning `topildi/listings/{id}/` dagi rasmlari ham tozalanadi. Kod commit qilingan; **`storage.rules` deploy qilinganini tekshirish kerak** (pastda).
+**Eʼlon rasmlari yangi papkada:** rasmli eʼlon joylashda Storage `unauthorized` xatosi chiqardi (eski qoida Firestore'ni o'qiydigan `firestore.exists(...)` ga tayanardi; Storage'ning Firestore ruxsati bor ekani deploy'da tasdiqlangan, sabab aniqlanmadi). Endi rasmlar `topildi/uploads/{uid}/{eʼlonId}_{n}.jpg` ga yuklanadi (`FirePaths.listingPhoto`), qoida faqat uid'ni tekshiradi. Eʼlon o'chirilganda rasmlar URL bo'yicha o'chiriladi; eski eʼlonlarning `topildi/listings/{id}/` dagi rasmlari ham tozalanadi. Eski eʼlonlarning rasmlari joyida qoladi.
 
-**Test rejimi** (bekor qilish kutishsiz, so'ng urinishni sarflagan holda — `ClaimTarget.cancelUsesAttempt`, `ClaimStatus.cancelled`) sinovdan keyin qaytarildi; bayroq `false` holda kodda qolgan.
+**Test rejimi** (bekor qilish kutishsiz, so'ng urinishni sarflagan holda) sinovdan keyin qaytarildi. `ClaimTarget.cancelUsesAttempt` bayrog'i va `ClaimStatus.cancelled` kodda qolgan (`false`, ishlatilmaydi); `true` qilish uchun claimant'ning `pending → cancelled` update qoidasini ham qaytarish kerak.
 
 **Boshqa:** O'zbekistonning 14 ta hududi va ~190 tuman/shahar filtrlarda (`regions.dart`); Chatlar refresh'i endi qotib qolmaydi (`ChatListCubit.load`); "Saqlash" va boshqa tugmalar `CreatePrimaryButton` uslubida.
 
@@ -159,9 +163,9 @@ Cloud Functions yo'q: chatni ilova yaratadi, xavfsizlikni Firestore rules taʼmi
 
 ### 0. Hozir
 
-1. **`storage.rules` deploy:** `npx -y firebase-tools@15 deploy --only storage --project foodai-73d66` — busiz rasmli eʼlon joylash xato beradi. (Deploy agent uchun bloklangan, egasi qiladi.)
-2. Shundan keyin rasmli eʼlonni haqiqiy qurilmada joylab ko'rish; dalil rasmli so'rovni ham sinash — u hali eski, Firestore'ni o'qiydigan Storage qoidasiga tayanadi; xato bersa, uni ham `uploads` usuliga o'tkazish.
-3. **So'rovni bekor qilish kutishi:** 3 kun ko'p deb muhokama qilindi; tavsiya — 24 soat (eslatma bilan bir vaqtda) yoki "muallif ko'rmagan bo'lsa darhol". Qaror kutilmoqda.
+1. **`storage.rules` deploy** (agar hali qilinmagan bo'lsa): `npx -y firebase-tools@15 deploy --only storage --project foodai-73d66`. Busiz rasmli eʼlon joylash xato beradi. Production deploy agent uchun bloklangan — egasi qiladi.
+2. Rasmli eʼlonni haqiqiy qurilmada joylab ko'rish. Dalil rasmli so'rovni ham sinash: u hali Firestore'ni o'qiydigan eski Storage qoidasiga (`topildi/claims/{id}/proof.jpg`) tayanadi — xato bersa, uni ham `uploads` usuliga o'tkazish.
+3. **So'rovni bekor qilish kutishi** — qaror kutilmoqda: hozir 3 kun; tavsiya 24 soat (eslatma bilan bir vaqtda) yoki "muallif ko'rmagan bo'lsa darhol" (yangi "ko'rildi" maydoni kerak). O'zgartirish: `ClaimTarget.cancelAfter` + `firestore.rules` (`duration.value`) + rules deploy.
 
 ### 1. Sinov (eng avval)
 
@@ -187,7 +191,23 @@ Cloud Functions yo'q: chatni ilova yaratadi, xavfsizlikni Firestore rules taʼmi
 
 Firestore'ga ulangan (yuqorida). Hozircha "o'xshash buyum topildi" va "eʼlon arxivlanadi" turlari yo'q.
 
-### 4. Mayda kamchiliklar
+### 4. Pul topish: eʼlonni tepaga ko'tarish (boost) — reja
+
+Qarorlar: **Click va Payme ikkalasi**, tariflar **1 / 3 / 7 kun** (taxminan 10 000 / 20 000 / 35 000 so'm, narx serverda), merchant akkaunt **hali yo'q**. Asosiy oqim (eʼlon, "Bu meniki", chat) bepul qoladi. To'liq reja: `~/.claude/plans/ha-plan-qilib-ber-rustling-pike.md`.
+
+- **Model:** `topildi_listings/{id}.boostedUntil` (faqat server yozadi; `validListing` kalitlariga qo'shiladi, muallifning update `affectedKeys` ga qo'shilmaydi); `topildi_boost_orders/{id}` — `{listingId, uid, plan, days, amount, provider, status, providerTxId, createdAt, paidAt}`, egasi o'qiydi, yozish faqat functions. Faollashtirish: `boostedUntil = max(hozir, joriy) + kunlar`, idempotent.
+- **1-bosqich (to'lovsiz, hozir qilsa bo'ladi):** `functions/src/boost.ts` — `topildiBoostPlans`, `topildiCreateBoostOrder` (muallif va `active` tekshiruvi), umumiy `activateBoost` (+ push "Eʼloningiz tepaga koʻtarildi"), sinov uchun `topildiDevActivateBoost` (faqat `BOOST_DEV=true`). Ilova: `Listing.boostedUntil`; lentada ikkinchi so'rov (`type, status, city, boostedUntil > now`, limit 10) natijasi ro'yxat boshiga, indeks `(type, status, city, boostedUntil)`; yangi `lib/features/boost/` (repository + `BoostCubit` + glass sheet: tariflar, Click/Payme, "Toʻlash" → loading kapsula → `LinkLauncher` → buyurtma kuzatiladi); eʼlon sahifasida muallifga "Tepaga koʻtarish" / "Tepada · N kun qoldi", lenta kartasida "↑ Tepada", "Mening eʼlonlarim"da holat.
+- **2-bosqich (merchant ochilgach):** `topildiClickWebhook` (Prepare/Complete, `sign_string` MD5 tekshiruvi) va `topildiPaymeWebhook` (JSON-RPC: Check/Create/Perform/Cancel/CheckTransaction/GetStatement, Basic auth, summa tiyinda, 12 soat timeout); sirlar `defineSecret` bilan; sandbox, so'ng prod.
+- **Biznes tomondan kerak:** YaTT/MChJ, Click va Payme shartnomalari, ommaviy oferta, chek fiskalizatsiyasi (MXIK/IKPU kodi).
+- **Boshqa daromad g'oyalari** (keyinroq): topuvchiga ixtiyoriy "rahmat" (komissiya bilan), tashkilotlar uchun B2B panel (metro, savdo markazi, universitet, taksi), QR stiker/brelok, kontekstli hamkor reklama. Qilinmaydi: asosiy oqimni pullik qilish, raqamni pulga ochish, erta banner reklama.
+
+### 4.1. iOS build eslatmalari
+
+- `objective_c` (`path_provider_foundation` orqali) native assets ishlatadi. Xcode'dan to'g'ridan-to'g'ri yoki eski kesh bilan yig'ilsa: simulyatorda `DOBJC_initializeApi … Failed to load`, qurilmada `objective_c.framework … invalid signature` (ad-hoc imzo, eski `_CodeSignature`).
+- Yechim: `rm -rf ~/Library/Developer/Xcode/DerivedData/Runner-*`, `flutter clean && flutter pub get`, so'ng `flutter run` (tavsiya) yoki Xcode → Clean Build Folder.
+- Deploy buyruqlari: Cloud Functions — `cd functions && npm run deploy` (global `firebase` CLI eski Node bilan qurilgan, funksiyalarni yuklay olmaydi); Firestore — `firebase deploy --only firestore:rules,firestore:indexes --project foodai-73d66`; Storage — `npx -y firebase-tools@15 deploy --only storage --project foodai-73d66`.
+
+### 5. Mayda kamchiliklar
 
 - (SMS kirish olib tashlangan bo'lsa, bu band endi kerak emas) SMS kod xato matnlari dizayn bilan bir xil emas: Firebase "Kod notoʻgʻri. Qayta tekshiring" / "Kod eskirdi. Yangisini oling", dizayn — "Qayta kiriting" / "Kod eskirgan. Yangisini soʻrang"; kod eskirganda "Qayta yuborish" darhol faollashishi kerak.
 - So'rov bekor qilinganda muallifning bildirishnomalar ro'yxatida eski "Yangi so'rov" yozuvi qoladi (bosilsa, so'rov yo'q).
@@ -197,13 +217,7 @@ Firestore'ga ulangan (yuqorida). Hozircha "o'xshash buyum topildi" va "eʼlon ar
 - Eʼlon sahifasidagi muallif uchun so'rovlar soni sahifa ochilganda yuklanadi (real vaqtda emas).
 - Simulator uchun reCAPTCHA'ni o'chirish (`appVerificationDisabledForTesting`, faqat test raqamlar bilan) — taklif qilingan, qilinmagan.
 
-### 4.1. iOS build eslatmalari
-
-- `objective_c` (`path_provider_foundation` orqali) native assets ishlatadi. Xcode'dan to'g'ridan-to'g'ri yoki eski kesh bilan yig'ilsa: simulyatorda `DOBJC_initializeApi … Failed to load`, qurilmada `objective_c.framework … invalid signature` (ad-hoc imzo, eski `_CodeSignature`).
-- Yechim: `rm -rf ~/Library/Developer/Xcode/DerivedData/Runner-*`, `flutter clean && flutter pub get`, so'ng `flutter run` (tavsiya) yoki Xcode → Clean Build Folder.
-- Cloud Functions deploy: `cd functions && npm run deploy` (global `firebase` CLI eski Node bilan qurilgan, funksiyalarni yuklay olmaydi). Firestore/Storage qoidalari: `firebase deploy --only firestore:rules` yoki `npx -y firebase-tools@15 deploy --only storage`.
-
-### 5. Keyinroq
+### 6. Keyinroq
 
 - **Android:** `google-services.json`, Gradle plagini, SHA-1/SHA-256, `firebase_options.dart` ga Android.
 - **Chat:** telefon yoki karta raqami yozilsa ogohlantirish; xabarga rasm.
@@ -219,4 +233,4 @@ Firestore'ga ulangan (yuqorida). Hozircha "o'xshash buyum topildi" va "eʼlon ar
 - Matnlar `tr()` orqali, yangi matnga `ru.dart` da tarjima shart (`l10n_test`).
 - Ripple yo'q, bosiladigan joy ≥44.
 - Yangi data manbalari: interfeys + `@prod` Firestore + `@test` mock (testlar Firebase'ga tegmaydi).
-- Rules o'zgarganda: avval `firebase deploy --only firestore,storage --project foodai-73d66 --dry-run`, deploy faqat ruxsat bilan. FoodZeen qoidalariga tegilmaydi.
+- Rules o'zgarganda: avval `firebase deploy --only firestore,storage --project foodai-73d66 --dry-run`, deploy faqat ruxsat bilan. FoodZeen qoidalariga tegilmaydi
