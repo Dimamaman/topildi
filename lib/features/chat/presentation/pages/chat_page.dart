@@ -9,6 +9,7 @@ import '../../../../app/routes.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/l10n/tr.dart';
 import '../../../../core/push/push_service.dart';
+import '../../../../core/theme/t_text.dart';
 import '../../../../core/utils/date_format.dart';
 import '../../../../core/view_state.dart';
 import '../../../../core/widgets/glass_surface.dart';
@@ -400,9 +401,8 @@ class _Header extends StatelessWidget {
                       textScaler: TextScaler.noScaling,
                       style: TextStyle(
                         fontSize: 16,
-                        fontWeight: FontWeight.w700,
                         color: cs.onPrimaryContainer,
-                      ),
+                      ).inter(FontWeight.w700),
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -418,9 +418,8 @@ class _Header extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 16,
                             height: 20 / 16,
-                            fontWeight: FontWeight.w700,
                             color: cs.onSurface,
-                          ),
+                          ).inter(FontWeight.w700),
                         ),
                         Row(
                           children: [
@@ -438,9 +437,8 @@ class _Header extends StatelessWidget {
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
                                   fontSize: 12,
-                                  fontWeight: FontWeight.w600,
                                   color: cs.primary,
-                                ),
+                                ).inter(FontWeight.w600),
                               ),
                             ),
                           ],
@@ -534,9 +532,8 @@ class _ItemCard extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         fontSize: 15,
-                        fontWeight: FontWeight.w700,
                         color: cs.onSurface,
-                      ),
+                      ).inter(FontWeight.w700),
                     ),
                     if (meta != null)
                       Text(
@@ -589,11 +586,7 @@ class _StatusChip extends StatelessWidget {
           const SizedBox(width: 4),
           Text(
             returned ? tr('Qaytarildi') : tr('Faol chat'),
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-              color: fg,
-            ),
+            style: TextStyle(fontSize: 12, color: fg).inter(FontWeight.w700),
           ),
         ],
       ),
@@ -717,9 +710,8 @@ class _DayLabel extends StatelessWidget {
         TDate.day(day),
         style: TextStyle(
           fontSize: 12,
-          fontWeight: FontWeight.w600,
           color: _ChatColors.of(context).hint,
-        ),
+        ).inter(FontWeight.w600),
       ),
     );
   }
@@ -765,9 +757,8 @@ class _SystemNote extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 12,
                   height: 16 / 12,
-                  fontWeight: FontWeight.w600,
                   color: cs.onPrimaryContainer,
-                ),
+                ).inter(FontWeight.w600),
               ),
             ),
           ],
@@ -921,6 +912,7 @@ class _ComposerState extends State<_Composer> {
     final cs = Theme.of(context).colorScheme;
     final c = _ChatColors.of(context);
     final empty = _empty;
+    final fade = empty ? 0.45 : 1.0;
     return Row(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
@@ -966,27 +958,28 @@ class _ComposerState extends State<_Composer> {
           child: GestureDetector(
             behavior: HitTestBehavior.opaque,
             onTap: empty ? null : _send,
-            child: Opacity(
-              opacity: empty ? 0.45 : 1,
-              child: Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: cs.primary,
-                  shape: BoxShape.circle,
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Color(0x4D2B5FD9),
-                      offset: Offset(0, 8),
-                      blurRadius: 20,
-                    ),
-                  ],
-                ),
-                child: Icon(
-                  Symbols.arrow_upward_rounded,
-                  size: 24,
-                  color: cs.onPrimary,
-                ),
+            // Faded by colour, not Opacity: Impeller cannot pass group
+            // opacity down to the blurred shadow and logs a validation error.
+            child: Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: cs.primary.withValues(alpha: fade),
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(
+                      0x4D2B5FD9,
+                    ).withValues(alpha: 0.3 * fade),
+                    offset: const Offset(0, 8),
+                    blurRadius: 20,
+                  ),
+                ],
+              ),
+              child: Icon(
+                Symbols.arrow_upward_rounded,
+                size: 24,
+                color: cs.onPrimary.withValues(alpha: fade),
               ),
             ),
           ),
@@ -1022,9 +1015,8 @@ class _ClosedBar extends StatelessWidget {
                     TextSpan(
                       text: tr('Chat yopildi.'),
                       style: TextStyle(
-                        fontWeight: FontWeight.w700,
                         color: cs.onSurface,
-                      ),
+                      ).inter(FontWeight.w700),
                     ),
                     const TextSpan(text: ' '),
                     TextSpan(text: tr('Yozishmalar saqlanadi.')),
@@ -1055,9 +1047,8 @@ class _ClosedBar extends StatelessWidget {
                     tr('Eʼlonni koʻrish'),
                     style: TextStyle(
                       fontSize: 14,
-                      fontWeight: FontWeight.w700,
                       color: cs.onPrimaryContainer,
-                    ),
+                    ).inter(FontWeight.w700),
                   ),
                 ),
               ),

@@ -118,6 +118,7 @@ class CreateFlowCubit extends Cubit<CreateFlowState> {
       category: l.category,
       hiddenDetail: hiddenDetail,
       landmark: l.areaName.startsWith(prefix) ? l.areaName.substring(prefix.length) : '',
+      city: l.city,
       point: GeoPoint(l.lat, l.lng),
       district: l.district,
       day: day == today
@@ -190,11 +191,16 @@ class CreateFlowCubit extends Cubit<CreateFlowState> {
   void hideErrors() => emit(state.copyWith(showDetailErrors: false, showAreaError: false));
 
   // Step 3
-  /// [point] is the GPS position from "Aniqlash"; otherwise the district centre.
-  void setDistrict(String district, {GeoPoint? point}) {
-    final (lat, lng) = Regions.tashkentDistrictCenters[district]!;
-    _draft((d) => d.copyWith(district: district, point: (point ?? GeoPoint(lat, lng)).approximate()));
+  /// Changing the region clears the district.
+  void setCity(String city) {
+    if (city != state.draft.city) _draft((d) => d.withCity(city));
   }
+
+  /// [point] is the GPS position from "Aniqlash"; otherwise the district
+  /// centre (the region centre outside Tashkent).
+  void setDistrict(String district, {GeoPoint? point}) => _draft(
+    (d) => d.copyWith(district: district, point: (point ?? Regions.pointOf(d.city, district)).approximate()),
+  );
 
   void setLandmark(String v) => _draft((d) => d.copyWith(landmark: v));
   void setDay(DraftDay day, {DateTime? date}) => _draft((d) => d.copyWith(day: day, date: date));

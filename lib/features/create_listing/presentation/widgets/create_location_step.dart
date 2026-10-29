@@ -4,9 +4,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
 import '../../../../core/di/injection.dart';
-import '../../../../core/location/geo_point.dart';
 import '../../../../core/location/location_service.dart';
 import '../../../../core/utils/date_format.dart';
+import '../../../../core/widgets/pull_down_menu.dart';
 import '../../../listing/domain/entities/regions.dart';
 import '../../domain/entities/create_draft.dart';
 import '../cubit/create_flow_cubit.dart';
@@ -14,8 +14,8 @@ import '../pages/create_flow_page.dart';
 import 'create_ui.dart';
 import '../../../../core/l10n/tr.dart';
 
-/// Step 3: district (with "Aniqlash"), an optional landmark and when it
-/// happened. No map: the listing is placed by district.
+/// Step 3: region and district (with "Aniqlash"), an optional landmark and
+/// when it happened. No map: the listing is placed by district.
 class CreateLocationStep extends StatefulWidget {
   const CreateLocationStep({super.key, required this.controller, required this.top});
 
@@ -23,9 +23,6 @@ class CreateLocationStep extends StatefulWidget {
 
   /// Room above the form for the preview card.
   final double top;
-
-  /// Farther than this from every district centre: not in Tashkent.
-  static const _maxDistrictMeters = 20000.0;
 
   @override
   State<CreateLocationStep> createState() => _CreateLocationStepState();
@@ -62,21 +59,43 @@ class _CreateLocationStepState extends State<CreateLocationStep> {
           _ => problem.message,
         },
       ),
-      (here) {
-        // The nearest district centre stands in for district borders.
-        String? best;
-        var bestMeters = double.infinity;
-        for (final MapEntry(key: name, value: (lat, lng)) in Regions.tashkentDistrictCenters.entries) {
-          final m = here.distanceTo(GeoPoint(lat, lng));
-          if (m < bestMeters) (best, bestMeters) = (name, m);
-        }
-        if (best == null || bestMeters > CreateLocationStep._maxDistrictMeters) {
-          setState(() => _locateNote = tr('Siz Toshkentdan tashqaridasiz — tumanni oʻzingiz tanlang'));
+      (here) async {
+        final place = Regions.locate(here);
+        if (place == null) {
+          setState(() => _locateNote = tr('Siz Oʻzbekistondan tashqaridasiz — hududni oʻzingiz tanlang'));
           return;
         }
-        _cubit.setDistrict(best, point: here);
+        _cubit.setCity(place.city);
+        // Outside Tashkent the district comes from the geocoder's name.
+        var district = place.district;
+        if (district == null) {
+          setState(() => _locating = true);
+          final area = await getIt<Geocoder>().areaFor(here.approximate());
+          if (!mounted) return;
+          setState(() => _locating = false);
+          district = Regions.matchDistrict(place.city, area?.district);
+        }
+        if (district == null) {
+          setState(() => _locateNote = tr('Hudud aniqlandi: {city}. Tumanni tanlang.', {'city': tr(place.city)}));
+          return;
+        }
+        _cubit.setDistrict(district, point: here);
       },
     );
+  }
+
+  Future<void> _pickCity(BuildContext anchor) async {
+    final current = _cubit.state.draft.city;
+    final v = await showPullDownMenu(
+      context,
+      anchor: anchor,
+      label: tr('Shahar / viloyat'),
+      items: [for (final c in Regions.cities) (c, tr(c))],
+      current: current,
+    );
+    if (v == null || v == current || !mounted) return;
+    setState(() => _locateNote = null);
+    _cubit.setCity(v);
   }
 
   Future<void> _pickWhen() async {
@@ -166,10 +185,14 @@ class _CreateLocationStepState extends State<CreateLocationStep> {
                 children: [
                   CreateSectionLabel(
                     label: d.isFound ? tr('Qaysi tumanda topdingiz?') : tr('Qaysi tumanda yoʻqotdingiz?'),
-                    value: tr('Toshkent'),
+                    value: tr(d.city),
+                    onValuePick: _pickCity,
                     error: districtError != null,
                   ),
                   _DistrictChips(
+                    // A new region starts its row from the beginning.
+                    key: ValueKey(d.city),
+                    city: d.city,
                     selected: d.district,
                     locating: _locating,
                     onLocate: _locate,
@@ -237,12 +260,15 @@ class _CreateLocationStepState extends State<CreateLocationStep> {
 /// "Aniqlash" then the districts, one scrolling row; the chosen one is kept in view.
 class _DistrictChips extends StatefulWidget {
   const _DistrictChips({
+    super.key,
+    required this.city,
     required this.selected,
     required this.locating,
     required this.onLocate,
     required this.onSelected,
   });
 
+  final String city;
   final String? selected;
   final bool locating;
   final VoidCallback onLocate;
@@ -253,7 +279,7 @@ class _DistrictChips extends StatefulWidget {
 }
 
 class _DistrictChipsState extends State<_DistrictChips> {
-  final _keys = {for (final d in Regions.tashkentDistricts) d: GlobalKey()};
+  late final _keys = {for (final d in Regions.districtsOf(widget.city)) d: GlobalKey()};
 
   @override
   void initState() {
@@ -282,7 +308,7 @@ class _DistrictChipsState extends State<_DistrictChips> {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    const districts = Regions.tashkentDistricts;
+    final districts = Regions.districtsOf(widget.city);
     return SizedBox(
       height: 44,
       // Runs to both screen edges, past the 20 side padding.

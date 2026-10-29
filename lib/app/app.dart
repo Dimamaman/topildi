@@ -52,10 +52,28 @@ class _TopildiAppState extends State<TopildiApp> {
             locale: language.materialLocale,
             supportedLocales: [for (final l in AppLanguage.values) l.materialLocale],
             localizationsDelegates: GlobalMaterialLocalizations.delegates,
+            scrollBehavior: const _AppScrollBehavior(),
+            // iOS-style keyboard: a tap on anything that is not a control
+            // (text, background, a message) closes it. Buttons and fields
+            // win the tap, so they keep working with the keyboard open.
+            builder: (context, child) => GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+              child: child,
+            ),
             routerConfig: _router,
           );
         },
       ),
     );
   }
+}
+
+/// Dragging any scroll view closes the keyboard, as on iOS.
+class _AppScrollBehavior extends MaterialScrollBehavior {
+  const _AppScrollBehavior();
+
+  @override
+  ScrollViewKeyboardDismissBehavior getKeyboardDismissBehavior(BuildContext context) =>
+      ScrollViewKeyboardDismissBehavior.onDrag;
 }

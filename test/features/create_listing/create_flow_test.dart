@@ -75,6 +75,15 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Tumanni tanlang'), findsOneWidget);
 
+    // Another region shows its own districts; "Aniqlash" brings Tashkent back.
+    await tester.tap(find.text('Toshkent'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Andijon').last);
+    await tester.pumpAndSettle();
+    expect(find.text('Andijon'), findsOneWidget);
+    expect(find.text('Andijon shahri'), findsOneWidget);
+    expect(find.text('Chilonzor'), findsNothing);
+
     // "Aniqlash": the (fake) position is near Chilonzor.
     await tester.tap(find.text('Aniqlash'));
     await tester.pumpAndSettle();

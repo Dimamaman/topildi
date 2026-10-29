@@ -310,7 +310,8 @@ const ruStrings = <String, String>{
   'Faqat haqiqiy egasi biladigan bitta belgini yozing. Egasi shu belgini aytib, narsa oʻziniki ekanini isbotlaydi.':
       'Напишите примету, которую знает только настоящий владелец. Назвав её, владелец докажет, что вещь его.',
   'Joylashuvga ruxsat yoʻq — tumanni oʻzingiz tanlang': 'Нет доступа к геопозиции — выберите район сами',
-  'Siz Toshkentdan tashqaridasiz — tumanni oʻzingiz tanlang': 'Вы за пределами Ташкента — выберите район сами',
+  'Siz Oʻzbekistondan tashqaridasiz — hududni oʻzingiz tanlang': 'Вы за пределами Узбекистана — выберите регион сами',
+  'Hudud aniqlandi: {city}. Tumanni tanlang.': 'Регион определён: {city}. Выберите район.',
   'Qaysi tumanda topdingiz?': 'В каком районе нашли?',
   'Qaysi tumanda yoʻqotdingiz?': 'В каком районе потеряли?',
   'Moʻljal · ixtiyoriy': 'Ориентир · необязательно',

@@ -395,6 +395,8 @@ class _AnswerField extends StatelessWidget {
                 maxLines: 6,
                 maxLength: maxLength,
                 textCapitalization: TextCapitalization.sentences,
+                // Clear of the floating footer (note + button) over the list.
+                scrollPadding: const EdgeInsets.fromLTRB(20, 20, 20, 140),
                 cursorColor: cs.primary,
                 style: text,
                 decoration: InputDecoration(

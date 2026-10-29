@@ -27,7 +27,7 @@ Topildi — yo'qolgan va topilgan buyumlar uchun Flutter ilova.
 
 **Branchlar (2026-10-26):** hamma ish `main` ga birlashtirildi — PR #3 → `firebase-phase1` → `main` (fast-forward). Yangi ish `main` dan alohida branch'da boshlanadi.
 
-**Tekshiruv (2026-10-29):** `flutter analyze` toza; `flutter test` — 96 ta test o'tadi; `functions`: `npm test` — 34 ta; `flutter build ios --simulator --debug` muvaffaqiyatli; Firestore rules, indekslar va `topildi` functions deploy qilingan.
+**Tekshiruv (2026-10-29):** `flutter analyze` toza; `flutter test` — 101 ta test o'tadi; `functions`: `npm test` — 34 ta; `flutter build ios --simulator --debug` muvaffaqiyatli; Firestore rules, indekslar va `topildi` functions deploy qilingan.
 
 > **Test rejimi** (bekor qilish kutishsiz va urinishni sarflagan holda) 2026-10-28 da sinovdan keyin qaytarildi: kutish yana 3 kun, bekor qilingan so'rov o'chiriladi va urinish qaytadi; rules deploy qilingan.
 
@@ -144,6 +144,8 @@ Cloud Functions yo'q: chatni ilova yaratadi, xavfsizlikni Firestore rules taʼmi
   - `ChatCubit` endi eʼlonni bir marta yuklaydi (`GetListingDetail` → `ChatState.listing`) — tuman, sana, rasm uchun; yuklanmasa karta faqat nom va ikonka bilan. `injection.config.dart` qo'lda yangilandi. Backend/rules oʻzgarmadi.
   - Golden skrinshotlar bilan tekshirildi (390 yorug'/qorong'i, 360 + 130% matn); `finder_flow_test` yangi UI'ga moslandi.
 
+- **Eʼlon joylash — barcha hududlar** (2026-10-29): 3-qadamda "Toshkent" yozuvi endi bosiladi (ko'k, `expand_more`) → hudud menyusi (filtrlardagi 14 ta hudud); tuman chiplari tanlangan hududdan (`Regions.districtsOf`), hudud almashsa tuman tozalanadi. `CreateDraft.city` (+ `withCity`), `CreateFlowCubit.setCity`, tahrirda eʼlonning `city` si, repository `city` ni yozadi (avval doim `'Toshkent'` edi). **"Aniqlash":** Toshkent tuman markazidan 10 km ichida → Toshkent + tuman; aks holda eng yaqin viloyat markazi (350 km gacha, Toshkent shahri hisobga olinmaydi — viloyat uni o'rab turadi), tuman `Geocoder.areaFor` nomidan (`Regions.matchDistrict`: "Urgut tumani" / "Urgut District" → "Urgut"); topilmasa "Hudud aniqlandi: {hudud}. Tumanni tanlang."; 350 km dan uzoq — "Siz Oʻzbekistondan tashqaridasiz". Yangi: `Regions.regionCenters`, `pointOf`, `locate`, `matchDistrict`; `CreateSectionLabel.onValuePick`. Rules allaqachon `city` ga ruxsat beradi — deploy kerak emas. Testlar: `regions_test`, `create_flow_test` ga hudud almashtirish.
+
 **Brend:** yangi "t." logo — `lib/core/widgets/topildi_logo.dart` (`TopildiMark`, `TopildiAppIcon`, `TopildiWordmark`, belgi SVG path'idan chiziladi). Arxivdagi PNG'lar buzuq edi, `assets/brand/` dagi PNG'lar shu path'dan qayta yasalgan. iOS/Android launcher ikonkalari (`flutter_launcher_icons`, Android 13 monoxrom bilan) va native splash (`flutter_native_splash`, ko'k fon) — sozlamalar `pubspec.yaml` da. Flutter splash belgini native splash bilan bir joyda chizadi.
 
 **Umumiy loading kapsula** — `lib/core/widgets/topildi_loader.dart` (`TopildiLoader.run`): Dynamic Island ostidan tushadi, orqa fonni va "orqaga" ni bloklaydi, "tugadi" / xato + "Qayta". Ulangan: eʼlonni o'chirish, eʼlon joylash, profilni saqlash, chiqish, so'rov yuborish, eʼlonni saqlash (tahrir), so'rovni bekor qilish.
@@ -228,7 +230,8 @@ Qarorlar: **Click va Payme ikkalasi**, tariflar **1 / 3 / 7 kun** (taxminan 10 0
 - (SMS kirish olib tashlangan bo'lsa, bu band endi kerak emas) SMS kod xato matnlari dizayn bilan bir xil emas: Firebase "Kod notoʻgʻri. Qayta tekshiring" / "Kod eskirdi. Yangisini oling", dizayn — "Qayta kiriting" / "Kod eskirgan. Yangisini soʻrang"; kod eskirganda "Qayta yuborish" darhol faollashishi kerak.
 - So'rov bekor qilinganda muallifning bildirishnomalar ro'yxatida eski "Yangi so'rov" yozuvi qoladi (bosilsa, so'rov yo'q).
 - "So'rov kelgan bo'lsa yashirin belgi o'zgarmaydi" qoidasini faqat ilova tekshiradi; to'liq himoya uchun Cloud Function kerak.
-- Tumanlar ro'yxati xotiradan tuzilgan (2022 dan keyingi yangi tumanlar yo'q) — rasmiy ro'yxat bilan solishtirish kerak. Eʼlon yaratishda hozircha faqat Toshkent tumanlari.
+- Tumanlar ro'yxati xotiradan tuzilgan (2022 dan keyingi yangi tumanlar yo'q) — rasmiy ro'yxat bilan solishtirish kerak.
+- Toshkentdan tashqarida tuman markazlari yo'q: qo'lda tanlangan tumanli eʼlonga viloyat markazining nuqtasi yoziladi ("Aniqlash" bo'lsa — GPS katagi). Xarita yoqilsa, tuman markazlarini qo'shish kerak.
 - Eski ishlatilmay qolgan tarjimalar (`ru.dart`): masalan "Eʼlonni tahrirlash tez orada qoʻshiladi".
 - Eʼlon sahifasidagi muallif uchun so'rovlar soni sahifa ochilganda yuklanadi (real vaqtda emas).
 - Simulator uchun reCAPTCHA'ni o'chirish (`appVerificationDisabledForTesting`, faqat test raqamlar bilan) — taklif qilingan, qilinmagan.

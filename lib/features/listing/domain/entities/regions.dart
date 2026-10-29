@@ -1,4 +1,6 @@
-/// Regions and districts offered in the Filters sheet.
+import '../../../../core/location/geo_point.dart';
+
+/// Regions and districts offered in the Filters sheet and when posting.
 abstract final class Regions {
   /// Tashkent city, the 12 viloyats and Qoraqalpogʻiston; the capital first,
   /// then alphabetical.
@@ -274,4 +276,79 @@ abstract final class Regions {
     'Yashnobod': (41.295, 69.345),
     'Yunusobod': (41.365, 69.285),
   };
+
+  /// Rough centre of each region (its capital). Outside Tashkent there are no
+  /// district centres yet, so a listing placed by district gets this point.
+  static const regionCenters = <String, (double, double)>{
+    'Toshkent': (41.311, 69.280),
+    'Toshkent viloyati': (41.042, 69.358),
+    'Andijon': (40.783, 72.344),
+    'Buxoro': (39.768, 64.421),
+    'Fargʻona': (40.389, 71.787),
+    'Jizzax': (40.116, 67.842),
+    'Namangan': (40.998, 71.672),
+    'Navoiy': (40.084, 65.379),
+    'Qashqadaryo': (38.861, 65.789),
+    'Qoraqalpogʻiston': (42.461, 59.617),
+    'Samarqand': (39.654, 66.976),
+    'Sirdaryo': (40.490, 68.785),
+    'Surxondaryo': (37.224, 67.278),
+    'Xorazm': (41.550, 60.631),
+  };
+
+  /// Approximate point of [district] in [city]: the district centre in
+  /// Tashkent, the region centre elsewhere.
+  static GeoPoint pointOf(String city, String district) {
+    final (lat, lng) = tashkentDistrictCenters[district] ?? regionCenters[city] ?? regionCenters['Toshkent']!;
+    return GeoPoint(lat, lng);
+  }
+
+  /// Within this of a district centre counts as Tashkent city.
+  static const _tashkentMeters = 10000.0;
+
+  /// Farther than this from every region centre: outside Uzbekistan.
+  static const _regionMeters = 350000.0;
+
+  /// The region of [here] and, in Tashkent, its district (the nearest centre
+  /// stands in for borders). Null when [here] is outside Uzbekistan.
+  static ({String city, String? district})? locate(GeoPoint here) {
+    String? nearest(Iterable<MapEntry<String, (double, double)>> centres, double maxMeters) {
+      String? best;
+      var bestMeters = maxMeters;
+      for (final MapEntry(key: name, value: (lat, lng)) in centres) {
+        final m = here.distanceTo(GeoPoint(lat, lng));
+        if (m <= bestMeters) (best, bestMeters) = (name, m);
+      }
+      return best;
+    }
+
+    final district = nearest(tashkentDistrictCenters.entries, _tashkentMeters);
+    if (district != null) return (city: 'Toshkent', district: district);
+    // The capital's centre is not used here: the region rings the city.
+    final city = nearest(regionCenters.entries.where((e) => e.key != 'Toshkent'), _regionMeters);
+    return city == null ? null : (city: city, district: null);
+  }
+
+  /// The district of [city] that a geocoder's [raw] name ("Urgut tumani",
+  /// "Urgut District") refers to, if any.
+  static String? matchDistrict(String city, String? raw) {
+    if (raw == null) return null;
+    String base(String s) => s
+        .toLowerCase()
+        .replaceAll(RegExp('[ʻʼ‘’`\']'), '')
+        .replaceAll(RegExp(r'\b(tumani|shahri|district|city|rayon|region)\b'), '')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
+    final want = base(raw);
+    if (want.length < 3) return null;
+    final districts = districtsOf(city);
+    for (final d in districts) {
+      if (base(d) == want) return d;
+    }
+    for (final d in districts) {
+      final b = base(d);
+      if (b.length >= 4 && (want.startsWith(b) || b.startsWith(want))) return d;
+    }
+    return null;
+  }
 }

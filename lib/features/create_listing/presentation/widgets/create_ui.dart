@@ -6,6 +6,7 @@ import '../../../../core/utils/date_format.dart';
 import '../../../../core/widgets/glass_surface.dart';
 import '../../../../core/widgets/t_feedback.dart';
 import '../../../../core/l10n/tr.dart';
+import '../pages/create_flow_page.dart';
 
 /// Colours of the create flow ("live card" design) that are not in the
 /// colour scheme, light and dark.
@@ -86,11 +87,21 @@ class CreateBackground extends StatelessWidget {
 /// Section title (15 w700) with an optional value on the right (13, muted);
 /// the value is tappable when [onValueTap] is set.
 class CreateSectionLabel extends StatelessWidget {
-  const CreateSectionLabel({super.key, required this.label, this.value, this.onValueTap, this.error = false});
+  const CreateSectionLabel({
+    super.key,
+    required this.label,
+    this.value,
+    this.onValueTap,
+    this.onValuePick,
+    this.error = false,
+  });
 
   final String label;
   final String? value;
   final VoidCallback? onValueTap;
+
+  /// Opens a menu from the value, which then shows a chevron.
+  final void Function(BuildContext anchor)? onValuePick;
   final bool error;
 
   @override
@@ -115,18 +126,33 @@ class CreateSectionLabel extends StatelessWidget {
             ),
           ),
           if (v != null)
-            GestureDetector(
-              onTap: onValueTap,
-              behavior: HitTestBehavior.opaque,
-              child: Semantics(
-                button: onValueTap != null,
-                child: Text(
+            Builder(
+              builder: (anchor) {
+                final pick = onValuePick;
+                final label = Text(
                   v,
                   style: text.bodySmall!
-                      .copyWith(fontSize: 13, height: 18 / 13, color: cs.onSurfaceVariant)
-                      .inter(FontWeight.w400),
-                ),
-              ),
+                      .copyWith(fontSize: 13, height: 18 / 13, color: pick != null ? cs.primary : cs.onSurfaceVariant)
+                      .inter(pick != null ? FontWeight.w600 : FontWeight.w400),
+                );
+                return GestureDetector(
+                  onTap: pick != null ? () => pick(anchor) : onValueTap,
+                  behavior: HitTestBehavior.opaque,
+                  child: Semantics(
+                    button: pick != null || onValueTap != null,
+                    child: pick == null
+                        ? label
+                        : Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              label,
+                              const SizedBox(width: 2),
+                              Icon(Symbols.expand_more_rounded, size: 18, color: cs.primary),
+                            ],
+                          ),
+                  ),
+                );
+              },
             ),
         ],
       ),
@@ -303,6 +329,9 @@ class _CreateFieldState extends State<CreateField> {
                         maxLength: widget.maxLength,
                         textInputAction: widget.textInputAction ?? TextInputAction.done,
                         textCapitalization: TextCapitalization.sentences,
+                        // The steps do not shrink for the keyboard: keep the
+                        // caret above it and the floating button.
+                        scrollPadding: EdgeInsets.fromLTRB(20, 20, 20, createFormBottomPadding(context)),
                         style: value,
                         cursorColor: cs.primary,
                         decoration: InputDecoration(

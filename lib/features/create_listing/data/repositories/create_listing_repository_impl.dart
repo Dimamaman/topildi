@@ -31,6 +31,7 @@ class CreateListingRepositoryImpl implements CreateListingRepository {
     // Only the approximate cell centre is stored publicly.
     lat: draft.point!.approximate().lat,
     lng: draft.point!.approximate().lng,
+    city: draft.city,
     district: draft.district!,
     happenedAt: draft.happenedAt(DateTime.now()),
     author: PublicUser(id: _session.userId, displayName: _session.displayName),

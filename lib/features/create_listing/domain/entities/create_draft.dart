@@ -17,6 +17,7 @@ class CreateDraft extends Equatable {
     this.category,
     this.hiddenDetail = '',
     this.landmark = '',
+    this.city = 'Toshkent',
     this.point,
     this.district,
     this.day = DraftDay.today,
@@ -38,6 +39,9 @@ class CreateDraft extends Equatable {
 
   /// Optional public hint, e.g. "Bogʻishamol, bekat yonida".
   final String landmark;
+
+  /// Region from [Regions.cities]; [district] is one of its districts.
+  final String city;
 
   /// Approximate point: the GPS cell from "Aniqlash" or the district centre.
   final GeoPoint? point;
@@ -78,6 +82,7 @@ class CreateDraft extends Equatable {
     ItemCategory? category,
     String? hiddenDetail,
     String? landmark,
+    String? city,
     GeoPoint? point,
     String? district,
     DraftDay? day,
@@ -92,6 +97,7 @@ class CreateDraft extends Equatable {
         category: category ?? this.category,
         hiddenDetail: hiddenDetail ?? this.hiddenDetail,
         landmark: landmark ?? this.landmark,
+        city: city ?? this.city,
         point: point ?? this.point,
         district: district ?? this.district,
         day: day ?? this.day,
@@ -100,9 +106,24 @@ class CreateDraft extends Equatable {
         minute: minute ?? this.minute,
       );
 
+  /// Another region: its district and point are chosen again.
+  CreateDraft withCity(String city) => CreateDraft(
+        type: type,
+        photos: photos,
+        title: title,
+        category: category,
+        hiddenDetail: hiddenDetail,
+        landmark: landmark,
+        city: city,
+        day: day,
+        date: date,
+        hour: hour,
+        minute: minute,
+      );
+
   @override
   List<Object?> get props =>
-      [type, photos, title, category, hiddenDetail, landmark, point, district, day, date, hour, minute];
+      [type, photos, title, category, hiddenDetail, landmark, city, point, district, day, date, hour, minute];
 }
 
 /// Field-level validation for step 2 and 3. Messages are user-facing.
