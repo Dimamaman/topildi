@@ -32,6 +32,7 @@ const ruStrings = <String, String>{
   'Tozalash': 'Сбросить',
   'Sozlamalar': 'Настройки',
   'Davom etish': 'Продолжить',
+  'Topildi — yuklanmoqda': 'Topildi — загрузка',
   'Boshlash': 'Начать',
   'Oʻtkazib yuborish': 'Пропустить',
   'Tasdiqlash': 'Подтвердить',

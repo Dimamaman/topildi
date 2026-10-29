@@ -138,11 +138,13 @@ flutter_launcher_icons:
   adaptive_icon_foreground_inset: 0
 
 # Native launch screen: `dart run flutter_native_splash:create`
-# Brand blue in both themes; SplashPage draws the same mark in the same place.
+# Brand blue in both themes: the white 116 pt tile with the blue "t." at the
+# screen centre — SplashPage's first frame draws the same tile in the same place.
 flutter_native_splash:
   web: false
   color: "#2b5fd9"
-  image: assets/brand/splash/splash-mark.png
+  image: assets/brand/splash/splash-icon.png
   android_12:
     color: "#2b5fd9"
-    image: assets/brand/splash/splash-android12.png
+    image: assets/brand/splash/splash-icon-a12.png
+    icon_background_color: "#2b5fd9"
