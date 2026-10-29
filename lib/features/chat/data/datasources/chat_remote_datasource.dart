@@ -30,6 +30,10 @@ abstract interface class ChatRemoteDataSource {
 
   /// Items the signed-in user has returned so far.
   Future<int> myReturnedCount();
+
+  /// When the item was handed over and the listing's first photo, for the
+  /// thank-you screen (either may be missing).
+  Future<({DateTime? returnedAt, String? photo})> returnedItem(String id);
 }
 
 /// Texts of the system notes in a chat (translated where they are shown).

@@ -138,4 +138,16 @@ class FirestoreChatDataSource implements ChatRemoteDataSource {
     final doc = await _db.collection(FirePaths.users).doc(_uid).get();
     return (doc.data()?['returnedCount'] as num?)?.toInt() ?? 0;
   }
+
+  @override
+  Future<({DateTime? returnedAt, String? photo})> returnedItem(String id) async {
+    final chat = (await _col.doc(id).get()).data();
+    final listingId = chat?['listingId'] as String?;
+    final listing = listingId == null ? null : (await _db.collection(FirePaths.listings).doc(listingId).get()).data();
+    final photos = (listing?['photoUrls'] as List?) ?? const [];
+    return (
+      returnedAt: (chat?['returnedAt'] as Timestamp?)?.toDate(),
+      photo: photos.isEmpty ? null : photos.first as String?,
+    );
+  }
 }

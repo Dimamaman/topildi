@@ -23,7 +23,6 @@ const ruStrings = <String, String>{
   '{n} kun oldin': '{n} дн. назад',
   'Ulashish': 'Поделиться',
   'Ulashib boʻlmadi': 'Не удалось поделиться',
-  'Havola nusxalandi': 'Ссылка скопирована',
   'Tahrirlash': 'Изменить',
   'Oʻchirish': 'Удалить',
   'Yana': 'Ещё',
@@ -189,14 +188,23 @@ const ruStrings = <String, String>{
   'Buyum egasiga qaytarildi. Chat yopilgan.': 'Вещь возвращена владельцу. Чат закрыт.',
 
   // Success
-  'Buyum egasiga qaytdi!': 'Вещь вернулась к владельцу!',
-  'Buyumingiz qaytdi!': 'Ваша вещь вернулась!',
+  // Headline in two lines: "Buyum egasiga / qaytdi!", "Buyumingiz / qaytdi!".
+  'Buyum egasiga': 'Вещь к владельцу',
+  'Buyumingiz': 'Ваша вещь',
+  'qaytdi!': 'вернулась!',
+  'Egasi: {name} · {time}': 'Владелец: {name} · {time}',
+  'Topuvchi: {name} · {time}': 'Нашёл: {name} · {time}',
   '{firstName}, bugun siz birovning kunini yaxshiladingiz. Halolligingiz uchun rahmat!':
       '{firstName}, сегодня вы кому-то сделали день лучше. Спасибо за честность!',
   '{finderName} buyumingizni qaytardi. Unga rahmat aytishni unutmang!': '{finderName} вернул(а) вашу вещь. Не забудьте поблагодарить!',
   '{displayName} yozdi': '{displayName} пишет',
-  'Mehribon qoʻshni': 'Добрый сосед',
-  'Siz {returnedCount} ta buyumni egasiga qaytardingiz': 'Вы вернули владельцам вещей: {returnedCount}',
+  // The bold part ('{n} ta buyumni', 'birinchi') must appear in the sentence as is.
+  'Siz endi {n} ta buyumni egasiga qaytardingiz': 'Вещей, возвращённых владельцам: {n}',
+  '{n} ta buyumni': '{n}',
+  'Bu sizning birinchi qaytargan buyumingiz': 'Это ваша первая возвращённая вещь',
+  'birinchi': 'первая',
+  '{title} egasiga qaytdi!\n\nYoʻqolgan va topilgan buyumlar — Topildi ilovasida.':
+      '{title} вернулась к владельцу!\n\nПотерянные и найденные вещи — в приложении Topildi.',
   'Lentaga qaytish': 'Вернуться в ленту',
   'Doʻstlarga ulashish': 'Поделиться с друзьями',
 

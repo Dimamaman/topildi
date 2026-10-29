@@ -77,7 +77,12 @@ class ChatMessage extends Equatable {
 /// Data for the thank-you screen after an item is returned.
 class ReturnSummary extends Equatable {
   const ReturnSummary({
+    required this.listingId,
     required this.listingTitle,
+    required this.listingCategory,
+    required this.listingTint,
+    this.listingPhoto,
+    required this.returnedAt,
     required this.finderName,
     required this.owner,
     required this.ownerNote,
@@ -85,12 +90,30 @@ class ReturnSummary extends Equatable {
     required this.iAmFinder,
   });
 
-  final String listingTitle, finderName;
+  final String listingId, listingTitle, finderName;
+  final ItemCategory listingCategory;
+  final int listingTint;
+  final String? listingPhoto;
+  final DateTime returnedAt;
   final PublicUser owner;
   final String? ownerNote;
+
+  /// Items the signed-in user has returned, this one included.
   final int returnedCount;
   final bool iAmFinder;
 
   @override
-  List<Object?> get props => [listingTitle, finderName, owner, ownerNote, returnedCount, iAmFinder];
+  List<Object?> get props => [
+    listingId,
+    listingTitle,
+    listingCategory,
+    listingTint,
+    listingPhoto,
+    returnedAt,
+    finderName,
+    owner,
+    ownerNote,
+    returnedCount,
+    iAmFinder,
+  ];
 }

@@ -73,9 +73,11 @@ void main() {
     await tester.tap(find.text('Ha, qaytarildi'));
     await _settle(tester);
 
-    expect(find.text('Buyum egasiga qaytdi!'), findsOneWidget);
-    expect(find.text('Mehribon qoʻshni'), findsOneWidget);
-    expect(find.text('Siz 5 ta buyumni egasiga qaytardingiz'), findsOneWidget);
+    expect(find.text('Buyum egasiga'), findsOneWidget);
+    expect(find.text('qaytdi!'), findsOneWidget);
+    expect(find.text('Mehribon qoʻshni'), findsNothing);
+    expect(find.text('Siz endi 5 ta buyumni egasiga qaytardingiz', findRichText: true), findsOneWidget);
+    expect(find.bySemanticsLabel('Doʻstlarga ulashish'), findsOneWidget);
     expect(find.text('Malika K. yozdi'), findsOneWidget);
 
     await tester.ensureVisible(find.text('Lentaga qaytish'));

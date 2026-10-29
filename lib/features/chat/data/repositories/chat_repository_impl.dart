@@ -77,12 +77,20 @@ class ChatRepositoryImpl implements ChatRepository {
   @override
   FutureEither<ReturnSummary> getReturnSummary(String chatId) => _guard(() async => _summary(await _thread(chatId)));
 
-  Future<ReturnSummary> _summary(ChatThread t) async => ReturnSummary(
+  Future<ReturnSummary> _summary(ChatThread t) async {
+    final item = await _chats.returnedItem(t.id);
+    return ReturnSummary(
+        listingId: t.listingId,
         listingTitle: t.listingTitle,
+        listingCategory: t.listingCategory,
+        listingTint: t.listingTint,
+        listingPhoto: item.photo,
+        returnedAt: item.returnedAt ?? t.lastAt,
         finderName: t.iAmFinder ? _session.displayName : t.other.displayName,
         owner: t.iAmFinder ? t.other : PublicUser(id: _session.userId, displayName: _session.displayName),
         ownerNote: await _chats.ownerNote(t.id),
         returnedCount: await _chats.myReturnedCount(),
         iAmFinder: t.iAmFinder,
       );
+  }
 }

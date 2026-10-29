@@ -30,6 +30,7 @@ class ChatMockDataSource implements ChatRemoteDataSource {
   final Map<String, ChatThread> _threads = {};
   final Map<String, List<ChatMessage>> _messages = {};
   final Map<String, String> _ownerNotes = {};
+  final Map<String, DateTime> _returnedAt = {};
 
   /// Items the signed-in user has returned so far (drives the badge copy).
   int _myReturnedCount = 4;
@@ -275,6 +276,7 @@ class ChatMockDataSource implements ChatRemoteDataSource {
       if (t.iAmFinder) _myReturnedCount++;
       await _listings.setStatus(t.listingId, ListingStatus.returned);
       final now = DateTime.now();
+      _returnedAt[id] = now;
       _threads[id] = t.copyWith(returned: true, lastMessage: ChatNotes.returned, lastAt: now);
       (_messages[id] ??= []).add(
         ChatMessage(id: '${id}_r', text: ChatNotes.returned, sentAt: now, kind: MessageKind.returned),
@@ -288,4 +290,8 @@ class ChatMockDataSource implements ChatRemoteDataSource {
 
   @override
   Future<int> myReturnedCount() async => _myReturnedCount;
+
+  @override
+  Future<({DateTime? returnedAt, String? photo})> returnedItem(String id) async =>
+      (returnedAt: _returnedAt[id], photo: null);
 }
