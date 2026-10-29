@@ -58,7 +58,13 @@ class Claim extends Equatable {
 
 /// What the would-be owner sees before claiming.
 class ClaimTarget extends Equatable {
-  const ClaimTarget({required this.listing, required this.attemptsLeft, this.pendingSince});
+  const ClaimTarget({
+    required this.listing,
+    required this.attemptsLeft,
+    this.pendingSince,
+    this.acceptedClaimId,
+    this.rejected = 0,
+  });
 
   static const maxAttempts = 3;
 
@@ -81,8 +87,17 @@ class ClaimTarget extends Equatable {
 
   bool get hasPending => pendingSince != null;
 
+  /// The signed-in user's claim the author accepted (its chat has the same
+  /// id); no new claim can be sent then.
+  final String? acceptedClaimId;
+
+  bool get accepted => acceptedClaimId != null;
+
+  /// How many of the user's answers the author turned down.
+  final int rejected;
+
   @override
-  List<Object?> get props => [listing, attemptsLeft, pendingSince];
+  List<Object?> get props => [listing, attemptsLeft, pendingSince, acceptedClaimId, rejected];
 }
 
 /// Author-only view: the hidden detail next to every claimant's answer.

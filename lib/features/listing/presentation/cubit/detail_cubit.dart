@@ -20,6 +20,7 @@ class DetailState extends Equatable {
     this.pendingClaims = 0,
     this.claimSent = false,
     this.claimSentAt,
+    this.acceptedChatId,
     this.deleted = false,
     this.busy = false,
   });
@@ -39,6 +40,9 @@ class DetailState extends Equatable {
   /// Visitor: when that waiting claim was sent.
   final DateTime? claimSentAt;
 
+  /// Visitor: the author accepted my claim; its chat (same id as the claim).
+  final String? acceptedChatId;
+
   /// Author deleted the listing; the page should close.
   final bool deleted;
 
@@ -52,6 +56,7 @@ class DetailState extends Equatable {
     int? pendingClaims,
     bool? claimSent,
     DateTime? Function()? claimSentAt,
+    String? Function()? acceptedChatId,
     bool? deleted,
     bool? busy,
   }) => DetailState(
@@ -61,12 +66,13 @@ class DetailState extends Equatable {
     pendingClaims: pendingClaims ?? this.pendingClaims,
     claimSent: claimSent ?? this.claimSent,
     claimSentAt: claimSentAt != null ? claimSentAt() : this.claimSentAt,
+    acceptedChatId: acceptedChatId != null ? acceptedChatId() : this.acceptedChatId,
     deleted: deleted ?? this.deleted,
     busy: busy ?? this.busy,
   );
 
   @override
-  List<Object?> get props => [view, photoIndex, isMine, pendingClaims, claimSent, claimSentAt, deleted, busy];
+  List<Object?> get props => [view, photoIndex, isMine, pendingClaims, claimSent, claimSentAt, acceptedChatId, deleted, busy];
 }
 
 @injectable
@@ -125,7 +131,16 @@ class DetailCubit extends Cubit<DetailState> {
     } else {
       final r = await _getTarget(id);
       if (isClosed) return;
-      r.match((_) {}, (t) => emit(state.copyWith(claimSent: t.hasPending, claimSentAt: () => t.pendingSince)));
+      r.match(
+        (_) {},
+        (t) => emit(
+          state.copyWith(
+            claimSent: t.hasPending,
+            claimSentAt: () => t.pendingSince,
+            acceptedChatId: () => t.acceptedClaimId,
+          ),
+        ),
+      );
     }
   }
 

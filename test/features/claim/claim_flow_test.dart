@@ -117,15 +117,15 @@ void main() {
   }
 
   testWidgets('The author accepts while the screen is open: "Qabul qilindi!"', (tester) async {
-    final id = await sendClaim(tester, 'l3');
+    final id = await sendClaim(tester, 'l2');
     final claims = getIt<ClaimRemoteDataSource>();
-    final listing = await _await(tester, getIt<ListingRemoteDataSource>().fetchById('l3'));
+    final listing = await _await(tester, getIt<ListingRemoteDataSource>().fetchById('l2'));
     final claim = await _await(tester, claims.byId(id));
     await _await(tester, claims.accept(claim!, listing!));
     await _frames(tester, seconds: 1);
     expect(find.text('Qabul'), findsOneWidget);
     expect(find.text('qilindi!'), findsOneWidget);
-    expect(find.text('Aziz T. tasdiqladi'), findsOneWidget);
+    expect(find.text('Sardor R. tasdiqladi'), findsOneWidget);
     expect(find.text('Chatga oʻtish'), findsOneWidget);
     expect(find.text('Lentaga qaytish'), findsNothing);
   });

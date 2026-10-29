@@ -60,6 +60,8 @@ class ClaimRepositoryImpl implements ClaimRepository {
           listing: model.toEntity(),
           attemptsLeft: ClaimTarget.maxAttempts - mine.length,
           pendingSince: mine.where((c) => c.status == ClaimStatus.pending).firstOrNull?.createdAt,
+          acceptedClaimId: mine.where((c) => c.status == ClaimStatus.accepted).firstOrNull?.id,
+          rejected: mine.where((c) => c.status == ClaimStatus.rejected).length,
         );
       });
 
@@ -68,6 +70,12 @@ class ClaimRepositoryImpl implements ClaimRepository {
         final model = await _listing(params.listingId);
         if (model.author.id == _session.userId) throw const ForbiddenFailure();
         final mine = await _claims.byClaimant(_session.userId, params.listingId);
+        if (mine.any((c) => c.status == ClaimStatus.accepted)) {
+          throw ValidationFailure(tr('Soʻrovingiz allaqachon qabul qilingan'));
+        }
+        if (mine.any((c) => c.status == ClaimStatus.pending)) {
+          throw ValidationFailure(tr('Soʻrovingiz hali koʻrib chiqilmoqda'));
+        }
         if (mine.length >= ClaimTarget.maxAttempts) throw ValidationFailure(tr('Urinishlar tugadi'));
         return _claims.add(
           listing: model,

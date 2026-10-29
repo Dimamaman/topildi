@@ -122,8 +122,10 @@ class _FormState extends State<_Form> {
     final cubit = context.read<ClaimCubit>();
     final state = widget.state;
     final l = widget.target.listing;
-    final left = widget.target.attemptsLeft;
-    final none = left <= 0;
+    final target = widget.target;
+    final left = target.attemptsLeft;
+    // Accepted, or still waiting for an answer: nothing new to send.
+    final none = left <= 0 || target.accepted || target.hasPending;
     // A "lost" listing is answered by someone who found the item: they prove
     // they hold it by naming the owner's hidden detail.
     final lost = !l.isFound;
@@ -161,9 +163,10 @@ class _FormState extends State<_Form> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (left < ClaimTarget.maxAttempts) ...[
+                  // Only after an answer was actually turned down.
+                  if (target.rejected > 0 && !target.accepted && !target.hasPending) ...[
                     _Notice(
-                      text: none
+                      text: left <= 0
                           ? tr('Javob mos kelmadi. Urinishlar tugadi')
                           : tr('Javob mos kelmadi. Yana {n} ta urinish qoldi', {'n': left}),
                     ),
@@ -210,7 +213,13 @@ class _FormState extends State<_Form> {
           left: 0,
           right: 0,
           bottom: 0,
-          child: _Footer(attemptsLeft: left, lost: lost, ready: state.answer.trim().length >= 3),
+          child: _Footer(
+            attemptsLeft: left,
+            lost: lost,
+            ready: state.answer.trim().length >= 3,
+            chatId: target.acceptedClaimId,
+            waiting: target.hasPending,
+          ),
         ),
       ],
     );
@@ -587,7 +596,13 @@ class _KeysState extends State<_Keys> with SingleTickerProviderStateMixin {
 /// Fade to the page colour, "3 ta kalit = 3 ta urinish · …" and the
 /// send button (or why there is none).
 class _Footer extends StatelessWidget {
-  const _Footer({required this.attemptsLeft, required this.lost, required this.ready});
+  const _Footer({
+    required this.attemptsLeft,
+    required this.lost,
+    required this.ready,
+    this.chatId,
+    this.waiting = false,
+  });
 
   static Future<void> _send(BuildContext context) async {
     final cubit = context.read<ClaimCubit>();
@@ -612,11 +627,34 @@ class _Footer extends StatelessWidget {
   /// At least 3 characters typed.
   final bool ready;
 
+  /// The answer was accepted: open the chat instead of sending again.
+  final String? chatId;
+
+  /// A sent answer still waits for the author.
+  final bool waiting;
+
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final none = attemptsLeft <= 0;
+    final chat = chatId;
+    final none = attemptsLeft <= 0 || chat != null || waiting;
     final bottom = math.max(34.0, MediaQuery.viewPaddingOf(context).bottom);
+    final String note;
+    if (chat != null) {
+      note = tr('Soʻrovingiz qabul qilindi. Chatda kelishib oling.');
+    } else if (waiting) {
+      note = tr('Soʻrovingiz hali koʻrib chiqilmoqda');
+    } else if (attemptsLeft <= 0) {
+      note = lost
+          ? tr('Urinishlar tugadi. Egasi bilan bogʻlanib boʻlmaydi')
+          : tr('Urinishlar tugadi. Topuvchi bilan bogʻlanib boʻlmaydi');
+    } else {
+      note = lost
+          ? tr('{n} ta kalit = {n} ta urinish · Javobni faqat egasi koʻradi', {'n': attemptsLeft})
+          : tr('{n} ta kalit = {n} ta urinish · Javobni faqat topuvchi koʻradi', {'n': attemptsLeft});
+    }
+    // Only running out of attempts is bad news.
+    final bad = attemptsLeft <= 0 && chat == null && !waiting;
     // The fade only paints: taps go through to the chips under it.
     return Stack(
       children: [
@@ -641,20 +679,22 @@ class _Footer extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                none
-                    ? (lost
-                          ? tr('Urinishlar tugadi. Egasi bilan bogʻlanib boʻlmaydi')
-                          : tr('Urinishlar tugadi. Topuvchi bilan bogʻlanib boʻlmaydi'))
-                    : lost
-                    ? tr('{n} ta kalit = {n} ta urinish · Javobni faqat egasi koʻradi', {'n': attemptsLeft})
-                    : tr('{n} ta kalit = {n} ta urinish · Javobni faqat topuvchi koʻradi', {'n': attemptsLeft}),
+                note,
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: none ? 15 : 13,
                   height: 18 / 13,
-                  color: none ? cs.error : cs.onSurfaceVariant,
+                  color: bad ? cs.error : (none ? cs.onSurface : cs.onSurfaceVariant),
                 ).inter(none ? FontWeight.w600 : FontWeight.w400),
               ),
+              if (chat != null) ...[
+                const SizedBox(height: 10),
+                CreatePrimaryButton(
+                  label: tr('Chatga oʻtish'),
+                  leadingIcon: Symbols.forum_rounded,
+                  onTap: () => context.push(Routes.chat(chat)),
+                ),
+              ],
               if (!none) ...[
                 const SizedBox(height: 10),
                 CreatePrimaryButton(

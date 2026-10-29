@@ -818,4 +818,7 @@ const ruStrings = <String, String>{
   'Bu uning oxirgi urinishi. Ismingiz va raqamingiz koʻrsatilmaydi.': 'Это его последняя попытка. Ваше имя и номер не показываются.',
   'Chatga oʻtish': 'Перейти в чат',
   'Mos emas': 'Не подходит',
+  'Soʻrovingiz allaqachon qabul qilingan': 'Ваша заявка уже принята',
+  'Soʻrovingiz hali koʻrib chiqilmoqda': 'Ваша заявка ещё рассматривается',
+  'Soʻrovingiz qabul qilindi. Chatda kelishib oling.': 'Ваша заявка принята. Договоритесь в чате.',
 };

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:topildi/features/listing/data/datasources/listing_remote_datasource.dart';
+import 'package:topildi/features/claim/data/datasources/claim_remote_datasource.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:injectable/injectable.dart';
 import 'package:topildi/app/app.dart';
@@ -155,5 +157,33 @@ void main() {
     expect(find.text('Bu meniki'), findsOneWidget);
     final t = await tester.runAsync(() => getIt<ClaimRepository>().getTarget('l20'));
     expect(t!.getRight().toNullable()!.attemptsLeft, 3);
+  });
+
+  testWidgets('Visitor: once my claim is accepted, Chatga oʻtish instead of Bu meniki', (tester) async {
+    _phone(tester);
+    // The author (someone else) accepts my waiting claim on l20.
+    await tester.runAsync(() async {
+      final claims = getIt<ClaimRemoteDataSource>();
+      // An earlier test may have taken back the seeded claim: send one if needed.
+      if (!(await claims.byClaimant('u_me', 'l20')).any((c) => c.status == ClaimStatus.pending)) {
+        await getIt<ClaimRepository>().submit(
+          const SubmitClaimParams(listingId: 'l20', answer: 'Ramkaning ichki tomonida tirnalgan joy bor'),
+        );
+      }
+      final mine = await claims.byClaimant('u_me', 'l20');
+      final listing = await getIt<ListingRemoteDataSource>().fetchById('l20');
+      await claims.accept(mine.firstWhere((c) => c.status == ClaimStatus.pending), listing!);
+    });
+    await tester.pumpWidget(TopildiApp(initialLocation: Routes.listing('l20')));
+    await _settle(tester);
+    expect(find.text('Chatga oʻtish'), findsOneWidget);
+    expect(find.text('Bu meniki'), findsNothing);
+
+    final t = await tester.runAsync(() => getIt<ClaimRepository>().getTarget('l20'));
+    expect(t!.getRight().toNullable()!.accepted, isTrue);
+    final again = await tester.runAsync(
+      () => getIt<ClaimRepository>().submit(const SubmitClaimParams(listingId: 'l20', answer: 'Yana bir urinish javobi')),
+    );
+    expect(again!.getLeft().toNullable(), isA<ValidationFailure>());
   });
 }

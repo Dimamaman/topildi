@@ -169,7 +169,12 @@ class _DetailViewState extends State<_DetailView> {
                     bottom: math.max(20, MediaQuery.paddingOf(context).bottom - 14),
                     child: state.isMine
                         ? _AuthorPanel(listing: data, pending: state.pendingClaims, busy: state.busy)
-                        : _VisitorPanel(listing: data, claimSent: state.claimSent, sentAt: state.claimSentAt),
+                        : _VisitorPanel(
+                            listing: data,
+                            claimSent: state.claimSent,
+                            sentAt: state.claimSentAt,
+                            chatId: state.acceptedChatId,
+                          ),
                   ),
                 ],
               ),
@@ -944,13 +949,16 @@ class _PillButton extends StatelessWidget {
 
 /// Visitor: glass capsule — privacy note left, "Bu meniki" right.
 class _VisitorPanel extends StatelessWidget {
-  const _VisitorPanel({required this.listing, required this.claimSent, this.sentAt});
+  const _VisitorPanel({required this.listing, required this.claimSent, this.sentAt, this.chatId});
 
   static const height = 72.0;
 
   final Listing listing;
   final bool claimSent;
   final DateTime? sentAt;
+
+  /// My claim was accepted: the button opens our chat instead.
+  final String? chatId;
 
   /// "Soʻrov yuborildi" tapped: take the claim back once it has waited
   /// [ClaimTarget.cancelAfter], otherwise say when that becomes possible.
@@ -996,7 +1004,10 @@ class _VisitorPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tc = context.tc;
-    final Widget action = claimSent
+    final chat = chatId;
+    final Widget action = chat != null
+        ? _PillButton(label: tr('Chatga oʻtish'), onTap: () => context.push(Routes.chat(chat)))
+        : claimSent
         ? _PillButton(label: tr('Soʻrov yuborildi'), onTap: () => _sent(context), bg: tc.warningContainer, fg: tc.warning)
         : listing.isFound
         ? _PillButton(label: tr('Bu meniki'), onTap: () => _claim(context))
