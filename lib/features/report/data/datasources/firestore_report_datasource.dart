@@ -35,8 +35,25 @@ class FirestoreReportDataSource implements ReportRemoteDataSource {
   }
 
   @override
-  Future<bool> hasOpenReport(ReportTargetType type, String targetId, String reporterId) async {
-    final doc = await _doc(type, targetId, reporterId).get();
-    return doc.exists && doc.data()?['status'] == 'open';
+  Future<MyReport?> myReport(ReportTargetType type, String targetId, String reporterId) async =>
+      _toEntity(await _doc(type, targetId, reporterId).get());
+
+  @override
+  Stream<MyReport?> watchMyReport(ReportTargetType type, String targetId, String reporterId) =>
+      _doc(type, targetId, reporterId).snapshots().map(_toEntity);
+
+  MyReport? _toEntity(DocumentSnapshot<Map<String, dynamic>> doc) {
+    final data = doc.data();
+    if (data == null) return null;
+    final at = data['createdAt'];
+    return MyReport(
+      // An unknown status is treated as still open: the sheet then says it
+      // is with a moderator rather than inventing an outcome.
+      status: ReportStatus.values.firstWhere(
+        (s) => s.name == data['status'],
+        orElse: () => ReportStatus.open,
+      ),
+      createdAt: at is Timestamp ? at.toDate() : null,
+    );
   }
 }

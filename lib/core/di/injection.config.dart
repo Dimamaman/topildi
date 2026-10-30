@@ -209,6 +209,8 @@ import 'package:topildi/features/report/domain/usecases/check_reported.dart'
     as _i320;
 import 'package:topildi/features/report/domain/usecases/submit_report.dart'
     as _i793;
+import 'package:topildi/features/report/domain/usecases/watch_report.dart'
+    as _i167;
 
 const String _test = 'test';
 const String _prod = 'prod';
@@ -582,6 +584,9 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.factory<_i793.SubmitReport>(
       () => _i793.SubmitReport(gh<_i16.ReportRepository>()),
+    );
+    gh.factory<_i167.WatchReport>(
+      () => _i167.WatchReport(gh<_i16.ReportRepository>()),
     );
     gh.factory<_i80.SuccessCubit>(
       () => _i80.SuccessCubit(gh<_i581.GetReturnSummary>()),

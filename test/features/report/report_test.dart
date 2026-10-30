@@ -31,17 +31,23 @@ void _phone(WidgetTester tester) {
   addTearDown(tester.view.reset);
 }
 
-Future<void> _openReport(WidgetTester tester) async {
+/// Opens the sheet from the eʼlon's "Yana" menu. [spinner] for the sheet
+/// that shows the moderator's step turning — it never settles.
+Future<void> _openReport(WidgetTester tester, {bool spinner = false}) async {
   await tester.tap(find.bySemanticsLabel('Yana'));
   await tester.pumpAndSettle();
   await tester.tap(find.text('Shikoyat qilish'));
-  await _settle(tester);
+  if (spinner) {
+    await _frames(tester, 12);
+  } else {
+    await _settle(tester);
+  }
 }
 
 void main() {
   setUpAll(() => configureDependencies(environment: Environment.test));
 
-  testWidgets('Eʼlon → Yana → Shikoyat: reason, send, then "allaqachon"', (tester) async {
+  testWidgets('Eʼlon → Yana → Shikoyat: izoh, yuborish, keyin "allaqachon"', (tester) async {
     _phone(tester);
     // l3 is Aziz T.'s found listing, so the visitor menu is the one shown.
     await tester.pumpWidget(TopildiApp(initialLocation: Routes.listing('l3')));
@@ -57,20 +63,20 @@ void main() {
     await tester.tap(find.text('Shikoyat qilish'));
     await _settle(tester);
 
-    expect(find.text('SABAB'), findsOneWidget);
+    // The note is all the sheet asks for — no reason chips.
+    expect(find.text('IZOH'), findsOneWidget);
+    expect(find.text('SABAB'), findsNothing);
     expect(find.text('Bolalar ryukzagi, koʻk'), findsWidgets);
     expect(find.text('Eʼlon · Aziz T.'), findsOneWidget);
-    // Chat wording stays out of a listing's sheet.
-    expect(find.text('Soxta eʼlon'), findsOneWidget);
-    expect(find.text('Aldov'), findsNothing);
 
-    // Without a reason "Yuborish" does nothing.
+    // Under 10 characters "Yuborish" does nothing.
+    await tester.enterText(find.byType(TextField), 'Pul');
+    await tester.pumpAndSettle();
+    expect(find.text('3 / 300'), findsOneWidget);
     await tester.tap(find.text('Yuborish'));
     await _settle(tester);
-    expect(find.text('SABAB'), findsOneWidget);
+    expect(find.text('IZOH'), findsOneWidget);
 
-    await tester.tap(find.text('Firibgarlik'));
-    await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField), 'Pul soʻrayapti');
     await tester.pumpAndSettle();
     expect(find.text('14 / 300'), findsOneWidget);
@@ -81,40 +87,50 @@ void main() {
     expect(find.text('Shikoyatingiz yuborildi'), findsOneWidget);
     final sent = (getIt<ReportRemoteDataSource>() as ReportMockDataSource).sent;
     expect(sent.keys, ['listing_l3_u_me']);
-    expect(sent.values.single.reason, ReportReason.scam);
+    // No reason is asked for, so Firestore's required field gets `other`.
+    expect(sent.values.single.reason, ReportReason.other);
     expect(sent.values.single.comment, 'Pul soʻrayapti');
 
     await tester.tap(find.text('Tayyor'));
     await _frames(tester);
     expect(find.text('Shikoyatingiz yuborildi'), findsNothing);
 
-    // Second time around the sheet only says it is already with a moderator.
-    await _openReport(tester);
-    expect(find.text('Allaqachon yuborilgan'), findsOneWidget);
-    expect(find.text('SABAB'), findsNothing);
-    await tester.tap(find.text('Yopish'));
-    await _settle(tester);
+    // Second time around the sheet shows where that shikoyat has got to.
+    await _openReport(tester, spinner: true);
+    expect(find.text('Shikoyatingiz allaqachon yuborilgan'), findsOneWidget);
+    expect(find.text('Yuborildi'), findsOneWidget);
+    expect(find.text('Moderator koʻrib chiqmoqda'), findsOneWidget);
+    expect(find.text('Natija'), findsOneWidget);
+    expect(find.text('IZOH'), findsNothing);
+    // There is no button down there while it is open: the X closes it.
+    expect(find.text('Yana shikoyat qilish'), findsNothing);
 
-    // Once the moderator has closed it, the same person may report the same
-    // listing again — a resolved case must not silence them for good.
+    // The moderator decides while the sheet is still on screen: the steps
+    // follow, with no reopening, and the form is one tap away — a resolved
+    // case must not silence them for good.
     (getIt<ReportRemoteDataSource>() as ReportMockDataSource).close(
       ReportTargetType.listing,
       'l3',
       'u_me',
     );
-    await _openReport(tester);
-    expect(find.text('SABAB'), findsOneWidget);
-    expect(find.text('Allaqachon yuborilgan'), findsNothing);
+    await _frames(tester, 4);
+    expect(find.text('Koʻrib chiqildi'), findsOneWidget);
+    expect(find.text('Natija'), findsOneWidget);
+    expect(find.text('Chora koʻrildi. Rahmat!'), findsOneWidget);
+    expect(find.text('Moderator koʻrib chiqmoqda'), findsNothing);
+    await tester.tap(find.text('Yana shikoyat qilish'));
+    await tester.pumpAndSettle();
+    expect(find.text('IZOH'), findsOneWidget);
 
-    await tester.tap(find.text('Spam'));
+    await tester.enterText(find.byType(TextField), 'Yana aldamoqchi');
     await tester.pumpAndSettle();
     await tester.tap(find.text('Yuborish'));
     await _frames(tester);
     expect(find.text('Shikoyatingiz yuborildi'), findsOneWidget);
-    // `sent` above is a snapshot, so read the mock again for the new reason.
+    // `sent` above is a snapshot, so read the mock again for the new note.
     final resent = (getIt<ReportRemoteDataSource>() as ReportMockDataSource).sent;
     expect(resent.keys, ['listing_l3_u_me']);
-    expect(resent['listing_l3_u_me']?.reason, ReportReason.spam);
+    expect(resent['listing_l3_u_me']?.comment, 'Yana aldamoqchi');
 
     await tester.tap(find.text('Tayyor'));
     await _frames(tester);

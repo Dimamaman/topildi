@@ -6,11 +6,38 @@ import '../../../listing/domain/entities/listing.dart';
 /// (`{targetType}_{targetId}_{reporterUid}`), so it never changes.
 enum ReportTargetType { listing, chat }
 
-/// Why. `fake` reads "Soxta eʼlon" on a listing and "Aldov" in a chat.
+/// Why. The sheet asks for a note instead of a reason, so the app always
+/// sends `other`; the rest are kept for the moderator's own tooling and for
+/// reports stored before the reasons were dropped.
 enum ReportReason { spam, fake, scam, offensive, other }
 
-/// Longest optional note the moderator gets (also in firestore.rules).
+/// Longest note the moderator gets (also in firestore.rules).
 const maxReportComment = 300;
+
+/// Shortest note that may be sent: anything briefer tells a moderator
+/// nothing. Counted without the surrounding spaces.
+const minReportComment = 10;
+
+/// Where a shikoyat stands. `resolved` covers both of the moderator's
+/// acting buttons (Eʼlonni yashirish, Yopish); `dismissed` is Qaytarish.
+enum ReportStatus { open, resolved, dismissed }
+
+/// The signed-in user's own shikoyat on a target — what SH6 shows instead
+/// of the form. A closed one is kept so its outcome can be shown; the form
+/// is one tap away from it, so a resolved case never silences anyone.
+class MyReport extends Equatable {
+  const MyReport({required this.status, this.createdAt});
+
+  final ReportStatus status;
+
+  /// When it was sent; null until the server timestamp lands.
+  final DateTime? createdAt;
+
+  bool get isOpen => status == ReportStatus.open;
+
+  @override
+  List<Object?> get props => [status, createdAt];
+}
 
 /// The listing or the chat being reported, with what the sheet shows at the
 /// top: a thumbnail, the title and who is reported.

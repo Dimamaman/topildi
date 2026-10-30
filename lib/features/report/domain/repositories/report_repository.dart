@@ -8,8 +8,11 @@ abstract interface class ReportRepository {
   /// listing.
   FutureEither<void> submit(SubmitReportParams params);
 
-  /// True while the signed-in user's report on this target is still open
-  /// (the sheet then shows "Allaqachon yuborilgan" instead of the form).
-  /// A closed one lets them report the same target again.
-  FutureEither<bool> alreadyReported(ReportTargetType type, String targetId);
+  /// The signed-in user's own report on this target, or null. The sheet
+  /// shows its progress instead of the form; a closed one also carries the
+  /// moderator's outcome, and they may report the target again.
+  FutureEither<MyReport?> myReport(ReportTargetType type, String targetId);
+
+  /// The same report as [myReport], live, so SH6 follows the moderator.
+  StreamEither<MyReport?> watchMyReport(ReportTargetType type, String targetId);
 }

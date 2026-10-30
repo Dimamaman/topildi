@@ -37,15 +37,31 @@ class ReportRepositoryImpl implements ReportRepository {
     if (params.comment.trim().length > maxReportComment) {
       throw ValidationFailure(tr('Izoh juda uzun'));
     }
-    if (await _reports.hasOpenReport(params.target.type, params.target.id, me)) {
+    if ((await _reports.myReport(params.target.type, params.target.id, me))?.isOpen ?? false) {
       throw ValidationFailure(tr('Shikoyatingiz allaqachon yuborilgan'));
     }
     await _reports.add(params, me);
   });
 
   @override
-  FutureEither<bool> alreadyReported(ReportTargetType type, String targetId) => _guard(() async {
+  FutureEither<MyReport?> myReport(ReportTargetType type, String targetId) => _guard(() async {
     final me = _session.userId;
-    return me.isNotEmpty && await _reports.hasOpenReport(type, targetId, me);
+    return me.isEmpty ? null : await _reports.myReport(type, targetId, me);
   });
+
+  @override
+  StreamEither<MyReport?> watchMyReport(ReportTargetType type, String targetId) async* {
+    final me = _session.userId;
+    if (me.isEmpty) {
+      yield left(const ForbiddenFailure());
+      return;
+    }
+    try {
+      await for (final report in _reports.watchMyReport(type, targetId, me)) {
+        yield right(report);
+      }
+    } catch (e) {
+      yield left(failureOf(e));
+    }
+  }
 }

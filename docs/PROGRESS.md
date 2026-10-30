@@ -238,6 +238,43 @@ Sabab — Telegram `callback_data` ni 64 baytdan oshishiga yo'l qo'ymaydi va **b
 
 **Testlar:** `functions` — 49 ta (yangi: `callback_data` chegarasi, `isReopened`); `flutter analyze` toza; `report_test.dart` ga yopilgandan keyin qayta shikoyat qilish qadami qo'shildi.
 
+### 10. 2026-10-30 (uchinchi sessiya) — shikoyat sheeti sababsiz (SH3/SH4 qayta ishlandi)
+
+Yangi UI topshirigʻi (`TOPSHIRIQ-shikoyat-bloklash-ui.md`): shikoyatda **sabab tanlash olib tashlandi**, foydalanuvchi faqat izoh yozadi.
+
+- `report_sheet.dart`: 5 ta sabab chipi va `_reasonLabel` / `_reasonIcon` / `_ReasonChip` oʻchirildi. Firestore talab qiladigan `reason` maydoniga ilova avtomatik `ReportReason.other` yuboradi (rules va functions oʻzgarmadi — Telegram xabarida asosiy maʼlumot izoh).
+- Yuqori panel endi Filtrlar sheeti bilan bir xil: chapda 44×44 glass "Yopish", markazda "Shikoyat qilish" 17px w600, oʻngda 44px boʻsh joy.
+- Izoh **majburiy**: yorliq "IZOH" (ilgari "IZOH · IXTIYORIY"), yangi placeholder "Nima boʻldi? Batafsil yozing…", maydon avtomatik fokusda ochiladi (klaviatura darhol chiqadi), balandligi 190 (klaviatura ochilganda 150, joy yetmasa undan ham kichrayadi — `Flexible` + `expands: true`), radius 22, fokusda 2px `primary` va koʻk soya.
+- "Yuborish" izoh (boʻshliqlarsiz) **10 belgidan** kam boʻlsa oʻchiq (opacity 0.45); tugmada ikonka yoʻq — faqat matn. Klaviatura ochilganda "Shikoyat anonim · …" qatori yashiriladi.
+- Klaviatura ustida turish `showGlassSheet` ning oʻzida bor edi (`mq.viewInsets.bottom`) — qoʻshimcha oʻzgarish kerak boʻlmadi.
+- `minReportComment = 10` — `report.dart` da, `maxReportComment` yonida.
+- `ru.dart`: 'SABAB', 'IZOH · IXTIYORIY', 'Spam', 'Soxta eʼlon', 'Aldov', 'Firibgarlik', 'Haqoratli' va eski placeholder olib tashlandi; 'IZOH' va yangi placeholder qoʻshildi. `ReportReason` enumi oʻzi qoldi (eski shikoyatlar va moderator asboblari uchun).
+- Qolgan ekranlar (SH1, SH2, SH5, SH6, BL1–BL4) topshiriqqa mos edi — tegilmadi.
+
+**Testlar:** `report_test.dart` sababsiz oqimga moslandi (10 belgidan kam izohda "Yuborish" ishlamasligi, `reason: other` yuborilishi). `flutter analyze` toza; `flutter test` — faqat eski `auth_flow_test.dart` yiqiladi (toza `main` da ham yiqiladi, bu ishga aloqasi yoʻq).
+
+### 11. 2026-10-30 (toʻrtinchi sessiya) — SH6 bosqichli sheet
+
+Yangilangan topshiriq (`TOPSHIRIQ-shikoyat-bloklash-ui_1.md`): "Allaqachon yuborilgan" qisqa kartasi oʻrniga **bosqichlar** koʻrsatiladigan toʻliq sheet.
+
+- Endi ilova oʻz shikoyatining **sanasini** ham oʻqiydi: `hasOpenReport` (bool) oʻrnida `openReport` → `OpenReport(createdAt)`. `ReportRemoteDataSource`, Firestore va mock manbalar, `ReportRepository.openReport`, `CheckReported` shunga moslandi. **`firestore.rules` oʻzgarmadi** — shikoyat egasining `get` i allaqachon ochiq edi (`allow get: ... isMe(resource.data.reporterId)`).
+- SH6 sheeti SH3 bilan bir xil: yuqori panel (chapda 44×44 glass X, markazda "Shikoyat qilish"), nishon kartasi, ostida oq holat kartasi (radius 22, padding 16/2). Sarlavha "Shikoyatingiz allaqachon yuborilgan" 17px w800, ostida 3 bosqich: 30×30 belgi + 2px vertikal chiziq, oraliq 12.
+  1. **Yuborildi** — `primary` doira, oq `check` 18px; izohi `TDate.relative(..., withTimeForOld: true)` → "Bugun, 14:20".
+  2. **Moderator koʻrib chiqmoqda** — #e3ebfc doira, atrofida 5px `primary` 12% halqa (spread shadow), ichida aylanuvchi 14px halqa; "Kamroq harakat" da statik.
+  3. **Natija** — 2px #dce2ec halqa, `notifications` 16px, matn kulrang.
+- Tugma yoʻq — X yoki pastga surib yopiladi.
+- **3-bosqich izohi**: "Bildirishnoma orqali xabar beramiz" oʻrniga **"Moderator qarori shu yerda koʻrinadi"** — qaror push qilib yuborilmaydi, lekin sheetning oʻzida koʻrinadi (pastda).
+- **Natija sheetda koʻrinadi (foydalanuvchi qarori, 2026-10-30).** Shikoyat yopilgandan keyin ham SH6 ochiladi: 1 va 2-bosqich ✓, 3-bosqich "Koʻrib chiqildi" + `gavel` belgisi; izohi `resolved` → "Chora koʻrildi. Rahmat!", `dismissed` → "Qoidabuzarlik topilmadi". Pastda **"Yana shikoyat qilish"** tugmasi — bosilganda oʻsha sheet ichida forma ochiladi, yaʼni yopilgan ish baribir hech kimni jim qilmaydi.
+  - Shu sabab `OpenReport` → `MyReport(status, createdAt)`, `ReportStatus { open, resolved, dismissed }`; datasource `myReport` hujjatni holatidan qatʼi nazar qaytaradi, notaʼnish `status` esa `open` deb qaraladi. Sheet bir widget: `_Phase { status, form, sent }`.
+  - **Bosqichlar bir xil qadamda (2026-10-30).** Avval yopilgan holatda 2-bosqichning izohi boʻlmagani uchun doiralar orasidagi masofa teng emas edi. Endi har bir bosqich izoh qatorini (min 16dp) doim band qiladi, sarlavha balandligi 20dp ga qotirilgan — qator balandligi 58dp, doiralar teng oraliqda (widget testida oʻlchab tekshirildi).
+  - Yopilgan holatdagi matnlar: 2-bosqich "Koʻrib chiqildi", 3-bosqich doim "Natija" (ikkala holatda ham), izohi `resolved` → "Chora koʻrildi. Rahmat!", `dismissed` → "Qoidabuzarlik topilmadi". 3-bosqich belgisi: `verified_user` (koʻk, toʻla) yoki kulrang `remove`.
+  - **Real vaqtda (2026-10-30).** SH6 ochiq turganda moderator qarori oʻzi tushadi: `watchMyReport` → `topildi_reports/{id}` hujjatining `snapshots()` i, `WatchReport` usecase, sheet ichida `StreamBuilder` (boshlangʻich qiymat — ochishdan oldingi `get`). Moderator Telegramda tugmani bossa, bosqichlar sheet yopilmasdan yangilanadi va "Yana shikoyat qilish" tugmasi paydo boʻladi. `firestore.rules` oʻzgarmadi — bitta hujjatga listener ham `get` qoidasidan oʻtadi. Mock datasource ham `StreamController` bilan jonli (test shuni tekshiradi).
+  - Diqqat: `functions/src/report.ts` dagi `statusAfter` moderatorning **"Yopish"** va **"Eʼlonni yashirish"** tugmalarini bir xil `resolved` ga oʻtkazadi, yaʼni oddiy yopishda ham "Chora koʻrildi. Rahmat!" chiqadi. Aniqroq matn kerak boʻlsa, backendda `close` uchun alohida holat kerak.
+- `ru.dart`: 'Allaqachon yuborilgan' va ikkita "Bu eʼlonga/suhbatga…" matni olib tashlandi; 'Moderator koʻrib chiqmoqda', 'Odatda 24 soat ichida', 'Natija', 'Moderator qarori shu yerda koʻrinadi' qoʻshildi; 'Shikoyatingiz allaqachon yuborilgan' tarjimasi "Жалоба уже отправлена" ga oʻzgardi.
+- "Yuborish" tugmasidagi `send` ikonkasi foydalanuvchi soʻroviga koʻra olib tashlandi.
+
+**Testlar:** `report_test.dart` SH6 bosqichlarini tekshiradi va X orqali yopadi (aylanuvchi halqa tufayli `pumpAndSettle` oʻrniga sanab pump qilinadi). `flutter analyze` toza; `flutter test` — 110 ta oʻtdi, faqat eski `auth_flow_test.dart` yiqiladi.
+
 ### Maxfiylik qoidalari (saqlanadi)
 
 - **Telefon raqami** Firestore'ga hech qachon yozilmaydi — na eʼlonda, na so'rovda, na chatda.
