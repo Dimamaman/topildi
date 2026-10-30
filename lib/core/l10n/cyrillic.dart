@@ -78,7 +78,7 @@ const _single = {
   't': 'т', 'u': 'у', 'v': 'в', 'w': 'в', 'x': 'х', 'y': 'й', 'z': 'з',
 };
 
-const _keep = ['Google', 'OpenStreetMap'];
+const _keep = ['Google', 'Firebase', 'OpenStreetMap'];
 
 String? _keepAt(String s, int i) {
   for (final k in _keep) {

@@ -661,6 +661,8 @@ class _Settings extends StatelessWidget {
       ],
     );
 
+    final chevron = Icon(Symbols.chevron_right_rounded, size: 22, color: cs.onSurfaceVariant);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -718,6 +720,26 @@ class _Settings extends StatelessWidget {
                     ),
                   ),
                 ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 14),
+        Container(
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          decoration: BoxDecoration(color: cs.surfaceContainerLowest, borderRadius: BorderRadius.circular(26)),
+          child: Column(
+            children: [
+              _Tap(
+                label: tr('Foydalanish shartlari'),
+                onTap: () => context.push(Routes.terms),
+                child: row(icon: Symbols.description_rounded, label: tr('Foydalanish shartlari'), trailing: chevron),
+              ),
+              separator,
+              _Tap(
+                label: tr('Maxfiylik siyosati'),
+                onTap: () => context.push(Routes.privacy),
+                child: row(icon: Symbols.privacy_tip_rounded, label: tr('Maxfiylik siyosati'), trailing: chevron),
               ),
             ],
           ),

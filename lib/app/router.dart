@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import '../core/di/injection.dart';
 import '../features/auth/presentation/pages/profile_setup_page.dart';
 import '../features/auth/presentation/pages/sign_in_page.dart';
+import '../features/legal/domain/legal_documents.dart';
+import '../features/legal/presentation/pages/legal_page.dart';
 import '../features/notifications/presentation/pages/notifications_page.dart';
 import '../features/onboarding/presentation/pages/onboarding_page.dart';
 import '../features/onboarding/presentation/pages/splash_page.dart';
@@ -23,10 +25,8 @@ import '../features/claim/presentation/pages/claims_page.dart';
 import '../features/listing/presentation/pages/detail_page.dart';
 import '../features/listing/presentation/pages/home_page.dart';
 import '../features/listing/presentation/pages/map_page.dart';
-import 'coming_soon_page.dart';
 import 'routes.dart';
 import 'shell.dart';
-import '../core/l10n/tr.dart';
 
 GoRouter createRouter({String initialLocation = Routes.splash}) => GoRouter(
   initialLocation: initialLocation,
@@ -40,11 +40,11 @@ GoRouter createRouter({String initialLocation = Routes.splash}) => GoRouter(
     ),
     GoRoute(
       path: Routes.terms,
-      builder: (_, _) => ComingSoonPage(title: tr('Foydalanish shartlari')),
+      builder: (_, _) => const LegalPage(kind: LegalKind.terms),
     ),
     GoRoute(
       path: Routes.privacy,
-      builder: (_, _) => ComingSoonPage(title: tr('Maxfiylik siyosati')),
+      builder: (_, _) => const LegalPage(kind: LegalKind.privacy),
     ),
     StatefulShellRoute.indexedStack(
       builder: (context, state, shell) => AppShell(shell: shell),
