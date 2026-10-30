@@ -285,9 +285,28 @@ Ilovadagi har qanday xatolik endi dasturchilar chatiga tushadi: qaysi sahifa, ni
 - **Ilova:** `lib/core/error/error_reporter.dart` — `TErrorReporter.instance.install()` `FlutterError.onError` va `PlatformDispatcher.onError` ni ushlaydi, `main.dart` esa butun ilovani `runZonedGuarded` ichiga oldi (`kind: flutter / platform / zone / manual`). Sahifa `app.dart` da router listeneridan olinadi. Versiya va qurilma uchun yangi paketlar: `package_info_plus`, `device_info_plus`.
 - **Debug:** debug buildda yuborilmaydi (konsolda koʻrinadi); kerak boʻlsa `flutter run --dart-define=ERROR_REPORT_DEBUG=true`.
 - **Qoʻlda xabar berish:** `TErrorReporter.instance.report(e, s, action: 'Shikoyat yuborish')` — ilova yiqilmagan, lekin bilish kerak boʻlgan joylar uchun.
-- **Qolgani:** `cd functions && npm run deploy` (funksiya hali deploy qilinmagan) va xohlasa alohida chat id qoʻyish. Ilovaning yangi buildi ham kerak.
+- **Deploy qilindi (2026-10-30):** `topildiLogError` yaratildi, qolgan funksiyalar yangilandi. **Qolgani:** xohlasa alohida chat ochib `TELEGRAM_ERRORS_CHAT_ID` ga id sini yozish (hozir boʻsh → moderator chatiga tushadi) va ilovaning yangi buildi — TestFlight dagi `1.0.0 (1)` da bu kod yoʻq.
 
 **Testlar:** `functions/src/test/errors.test.ts` — 7 ta (parse, uid, stack kesish, HTML escape, kun kaliti); `test/core/error_reporter_test.dart` — 6 ta (signature va throttle). `functions` jami 56 ta, `flutter analyze` toza.
+
+### 13. 2026-10-30 — birinchi TestFlight buildi
+
+Ilova birinchi marta TestFlight ga chiqdi: `Topildi`, `1.0.0 (1)`, bundle `com.topildi.topildi`, team `7DA9YV7633`.
+
+**Qurish tartibi** (keyingi safar uchun):
+1. `pubspec.yaml` da build raqamini oshirish (`1.0.0+1` → `+2`) — App Store Connect bir raqamni ikki marta qabul qilmaydi.
+2. Tozalash (4.1-boʻlimdagi `objective_c` muammosi uchun majburiy):
+ `rm -rf ~/Library/Developer/Xcode/DerivedData/Runner-* .dart_tool/hooks_runner build/native_assets && flutter clean && flutter pub get`
+3. `flutter build ipa --release` → `build/ios/archive/Runner.xcarchive` (va imzo boʻlsa `build/ios/ipa/*.ipa`).
+4. `open build/ios/archive/Runner.xcarchive` → Organizer → **Distribute App ▸ App Store Connect ▸ Upload** (TestFlight Internal Only). Alohida "TestFlight ga yuborish" kanali yoʻq — TestFlight App Store Connect ichidagi tab, yuklash App Store ga chiqarish degani emas.
+
+**Yoʻlda chiqqan toʻsiqlar va yechimlari:**
+- `Unable to process request - PLA Update available` → developer.apple.com/account da yangilangan Program License Agreement ni hisob egasi qabul qilishi kerak. Shu sabab `flutter build ipa` ning eksport bosqichi ham yiqilgan edi ("No signing certificate iOS Distribution found" — sertifikat shartnomasiz berilmaydi).
+- `STATE_ERROR.APP_CREATE.PLATFORM_NOT_ALLOWED_DUE_TO_CONTRACT_STATE` → App Store Connect → **Business** → *Paid Apps Agreement* da "View and Agree to Terms". Ilova bepul boʻlsa ham shart. Shundan keyin **Apps → + → New App** bilan yozuv qoʻlda yaratildi.
+- `Upload Symbols Failed … dSYM for objective_c.framework` → faqat ogohlantirish, yuklash oʻtadi; oʻsha freymvork ichidagi crash hisoboti simvolsiz koʻrinadi.
+- Export compliance: "What type of encryption algorithms…" → **None of the algorithms mentioned above** (ilova faqat HTTPS/TLS ishlatadi, oʻz kriptosi yoʻq). Har safar soʻralmasligi uchun `Info.plist` ga `ITSAppUsesNonExemptEncryption = NO` qoʻshish mumkin — **hali qoʻshilmagan**.
+- Tester TestFlight da ilovani koʻrmasa: qurilmadagi Apple ID (Sozlamalar → Media va xaridlar) taklif yuborilgan email bilan bir xil boʻlishi, ichki tester esa avval App Store Connect taklifini qabul qilgan boʻlishi kerak. Taklif xatidagi **View in TestFlight** → **Accept** → **Install**. Ilova iOS 15.0+ talab qiladi.
+- Deploy da `Quota exceeded for total allowable CPU per project per region` (Cloud Run, us-central1, loyiha FoodZeen bilan umumiy): yangilanmagan funksiyalar eski revision bilan ishlayveradi, 5–10 daqiqadan keyin faqat oʻshalarni qayta deploy qilish kifoya. Takrorlansa — Cloud Run Admin API kvotasini oshirish kerak.
 
 ### Maxfiylik qoidalari (saqlanadi)
 
