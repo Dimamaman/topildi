@@ -5,6 +5,8 @@
  *
  * The texts and the shape of it all are pure functions in report.ts.
  */
+import { randomBytes } from "node:crypto";
+
 import { FieldPath, FieldValue, getFirestore } from "firebase-admin/firestore";
 import { logger } from "firebase-functions";
 
@@ -15,11 +17,21 @@ import {
   maxEvidenceMessages,
   ModerationAction,
   moderationKeyboard,
+  modKeyLength,
   moderationNote,
   ReportDoc,
   reportMessage,
   statusAfter,
 } from "./report";
+
+/**
+ * The key a moderator button carries instead of the report id, which is too
+ * long for callback_data (see modKeyLength in report.ts). Stored on the
+ * report as `modKey` and read back when the button is pressed.
+ */
+export function newModKey(): string {
+  return randomBytes(9).toString("base64url").slice(0, modKeyLength);
+}
 
 export const reportPaths = {
   reports: "topildi_reports",
@@ -130,12 +142,13 @@ export async function handleReport(reportId: string, report: ReportDoc, cfg: Bot
   const db = getFirestore();
   const evidence = await evidenceOf(db, report);
   const count = await reportCount(db, report.targetType, report.targetId);
+  const modKey = newModKey();
   // On the report itself: the listing or the chat may be gone by the time a
   // moderator looks, the copy stays.
   await db
     .collection(reportPaths.reports)
     .doc(reportId)
-    .set({ evidence: evidence ?? null, reports: count }, { merge: true });
+    .set({ evidence: evidence ?? null, reports: count, modKey }, { merge: true });
 
   const hide = report.targetType === "listing" && count >= hideThreshold;
   if (hide) {
@@ -160,7 +173,7 @@ export async function handleReport(reportId: string, report: ReportDoc, cfg: Bot
     text: hide ? `${text}\n\n🙈 <b>Avtomatik yashirildi</b>` : text,
     parse_mode: "HTML",
     link_preview_options: { is_disabled: true },
-    reply_markup: moderationKeyboard(reportId, report.targetType),
+    reply_markup: moderationKeyboard(modKey, report.targetType),
   });
 }
 
@@ -170,7 +183,8 @@ export type ModerationPress = {
   chatId: number;
   messageId: number;
   action: ModerationAction;
-  reportId: string;
+  /** The report's short key, as the button carried it. */
+  modKey: string;
 };
 
 /**
@@ -185,12 +199,19 @@ export async function handleModeration(press: ModerationPress, cfg: BotConfig): 
     return;
   }
   const db = getFirestore();
-  const ref = db.collection(reportPaths.reports).doc(press.reportId);
-  const report = (await ref.get()).data();
-  if (!report) {
+  // A single-field equality, so Firestore's automatic index is enough.
+  const snap = await db
+    .collection(reportPaths.reports)
+    .where("modKey", "==", press.modKey)
+    .limit(1)
+    .get();
+  const doc = snap.docs[0];
+  if (!doc) {
     await answer("Shikoyat topilmadi");
     return;
   }
+  const ref = doc.ref;
+  const report = doc.data();
   if (press.action !== "close" && report.targetType === "listing") {
     await setListingStatus(db, str(report.targetId), press.action === "hide" ? "hidden" : "active");
   }

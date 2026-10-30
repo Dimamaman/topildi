@@ -111,24 +111,47 @@ export function reportMessage(
   return lines.join("\n");
 }
 
-export type ModerationAction = "hide" | "restore" | "close";
-
-/** callback_data, kept well under Telegram's 64 bytes by using the report id. */
-export function callbackData(action: ModerationAction, reportId: string): string {
-  return `r:${action}:${reportId}`;
+/**
+ * A closed report the reporter has sent again: the app writes the whole
+ * document anew with `status: "open"` (firestore.rules allows that only once
+ * a moderator has closed it), and the moderator hears about it a second time.
+ *
+ * The evidence/modKey write in moderate.ts leaves the status alone, so the
+ * function never sets itself off.
+ */
+export function isReopened(before: unknown, after: unknown): boolean {
+  const status = (d: unknown) => (d as { status?: unknown } | undefined)?.status;
+  return status(after) === "open" && status(before) !== "open";
 }
 
-export function parseCallbackData(data: unknown): { action: ModerationAction; reportId: string } | null {
+export type ModerationAction = "hide" | "restore" | "close";
+
+/** Telegram rejects the whole keyboard when a callback_data is longer. */
+export const maxCallbackBytes = 64;
+
+/**
+ * Characters of the short key a button carries ([newModKey] in moderate.ts).
+ * The report id itself is too long: "listing_" plus a document id plus a uid
+ * is 57 characters, which "r:restore:" pushes over [maxCallbackBytes].
+ */
+export const modKeyLength = 12;
+
+/** callback_data: the action and the report's short key, nothing else. */
+export function callbackData(action: ModerationAction, modKey: string): string {
+  return `r:${action}:${modKey}`;
+}
+
+export function parseCallbackData(data: unknown): { action: ModerationAction; modKey: string } | null {
   if (typeof data !== "string") return null;
-  const m = /^r:(hide|restore|close):(.+)$/.exec(data);
-  return m ? { action: m[1] as ModerationAction, reportId: m[2] } : null;
+  const m = /^r:(hide|restore|close):([A-Za-z0-9_-]+)$/.exec(data);
+  return m ? { action: m[1] as ModerationAction, modKey: m[2] } : null;
 }
 
 /** Buttons under the message; a chat report cannot be hidden, only closed. */
-export function moderationKeyboard(reportId: string, targetType: ReportTargetType) {
+export function moderationKeyboard(modKey: string, targetType: ReportTargetType) {
   const button = (text: string, action: ModerationAction) => ({
     text,
-    callback_data: callbackData(action, reportId),
+    callback_data: callbackData(action, modKey),
   });
   const rows =
     targetType === "listing"

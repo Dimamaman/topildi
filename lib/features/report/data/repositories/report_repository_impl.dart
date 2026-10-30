@@ -37,7 +37,7 @@ class ReportRepositoryImpl implements ReportRepository {
     if (params.comment.trim().length > maxReportComment) {
       throw ValidationFailure(tr('Izoh juda uzun'));
     }
-    if (await _reports.exists(params.target.type, params.target.id, me)) {
+    if (await _reports.hasOpenReport(params.target.type, params.target.id, me)) {
       throw ValidationFailure(tr('Shikoyatingiz allaqachon yuborilgan'));
     }
     await _reports.add(params, me);
@@ -46,6 +46,6 @@ class ReportRepositoryImpl implements ReportRepository {
   @override
   FutureEither<bool> alreadyReported(ReportTargetType type, String targetId) => _guard(() async {
     final me = _session.userId;
-    return me.isNotEmpty && await _reports.exists(type, targetId, me);
+    return me.isNotEmpty && await _reports.hasOpenReport(type, targetId, me);
   });
 }

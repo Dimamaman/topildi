@@ -18,7 +18,7 @@ import { claimCreated, claimUpdated, Delivery, messageCreated, remindAfterMs, re
 import { claimSession, handleUpdate, startSession } from "./login";
 import { BotConfig, handleModeration, handleReport } from "./moderate";
 import { deliver } from "./notify";
-import { parseCallbackData, ReportDoc } from "./report";
+import { isReopened, parseCallbackData, ReportDoc } from "./report";
 import { parseCallback, parseUpdate, TgUpdate } from "./telegram";
 
 initializeApp();
@@ -121,6 +121,20 @@ export const topildiOnReportCreated = onDocumentCreated(
     const report = event.data?.data() as ReportDoc | undefined;
     if (!report) return;
     await handleReport(event.params.reportId, report, botConfig());
+  },
+);
+
+/**
+ * The same shikoyat sent again after the moderator closed it. A separate
+ * trigger rather than onDocumentWritten, so the create above keeps its name
+ * and no function is deleted and made again on deploy.
+ */
+export const topildiOnReportReopened = onDocumentUpdated(
+  { document: "topildi_reports/{reportId}", secrets: [botToken] },
+  async (event) => {
+    const after = event.data?.after.data();
+    if (!after || !isReopened(event.data?.before.data(), after)) return;
+    await handleReport(event.params.reportId, after as ReportDoc, botConfig());
   },
 );
 

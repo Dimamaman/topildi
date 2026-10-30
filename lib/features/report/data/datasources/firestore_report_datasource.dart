@@ -6,8 +6,9 @@ import '../../domain/entities/report.dart';
 import 'report_remote_datasource.dart';
 
 /// `topildi_reports/{targetType}_{targetId}_{reporterUid}`: the id is what
-/// keeps one person from reporting the same thing twice. The rules allow
-/// only this create and the reporter's own `get`.
+/// keeps one person from reporting the same thing twice while the moderator
+/// is looking at it. [add] writes the whole document, so it also re-opens a
+/// closed one; the rules allow that and the reporter's own `get`.
 @prod
 @LazySingleton(as: ReportRemoteDataSource)
 class FirestoreReportDataSource implements ReportRemoteDataSource {
@@ -34,6 +35,8 @@ class FirestoreReportDataSource implements ReportRemoteDataSource {
   }
 
   @override
-  Future<bool> exists(ReportTargetType type, String targetId, String reporterId) async =>
-      (await _doc(type, targetId, reporterId).get()).exists;
+  Future<bool> hasOpenReport(ReportTargetType type, String targetId, String reporterId) async {
+    final doc = await _doc(type, targetId, reporterId).get();
+    return doc.exists && doc.data()?['status'] == 'open';
+  }
 }

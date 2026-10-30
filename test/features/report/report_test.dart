@@ -94,6 +94,30 @@ void main() {
     expect(find.text('SABAB'), findsNothing);
     await tester.tap(find.text('Yopish'));
     await _settle(tester);
+
+    // Once the moderator has closed it, the same person may report the same
+    // listing again — a resolved case must not silence them for good.
+    (getIt<ReportRemoteDataSource>() as ReportMockDataSource).close(
+      ReportTargetType.listing,
+      'l3',
+      'u_me',
+    );
+    await _openReport(tester);
+    expect(find.text('SABAB'), findsOneWidget);
+    expect(find.text('Allaqachon yuborilgan'), findsNothing);
+
+    await tester.tap(find.text('Spam'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Yuborish'));
+    await _frames(tester);
+    expect(find.text('Shikoyatingiz yuborildi'), findsOneWidget);
+    // `sent` above is a snapshot, so read the mock again for the new reason.
+    final resent = (getIt<ReportRemoteDataSource>() as ReportMockDataSource).sent;
+    expect(resent.keys, ['listing_l3_u_me']);
+    expect(resent['listing_l3_u_me']?.reason, ReportReason.spam);
+
+    await tester.tap(find.text('Tayyor'));
+    await _frames(tester);
   });
 
   testWidgets('Oʻz eʼlonimda shikoyat va bloklash bandlari yoʻq', (tester) async {

@@ -257,8 +257,18 @@ service cloud.firestore {
 
       // `resource == null` is the sheet asking whether it reported this before.
       allow get: if signedIn() && (resource == null || isMe(resource.data.reporterId));
-      allow list, update, delete: if false;
+      allow list, delete: if false;
       allow create: if signedIn() && validReport(request.resource.data) && validTarget(request.resource.data);
+      // Reporting the same target again, once the moderator has closed the
+      // last one: the reporter writes the whole document anew (validReport
+      // pins the id, so the target and the reporter cannot change), and the
+      // server's own fields — evidence, reports, modKey — go with it. While
+      // the report is open this is refused, which is what stops the spam.
+      allow update: if signedIn()
+        && isMe(resource.data.reporterId)
+        && resource.data.status != 'open'
+        && validReport(request.resource.data)
+        && validTarget(request.resource.data);
     }
   }
 }
