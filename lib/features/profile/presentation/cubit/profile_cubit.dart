@@ -30,7 +30,13 @@ class ProfileState extends Equatable {
 
 @injectable
 class ProfileCubit extends Cubit<ProfileState> {
-  ProfileCubit(this._get, this._setNotifications, this._signOut, WatchListings watch, WatchPendingClaims pending)
+  ProfileCubit(
+    this._get,
+    this._setNotifications,
+    this._signOut,
+    WatchListings watch,
+    WatchPendingClaims pending,
+  )
       : super(const ProfileState()) {
     _sub = watch().listen((_) => load(silent: true));
     // A claim arrived or was answered: refresh the "Soʻrov bor" tags.

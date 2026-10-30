@@ -27,3 +27,11 @@ class SignOut implements UseCase<void, NoParams> {
   @override
   FutureEither<void> call(NoParams params) => _repository.signOut();
 }
+
+@injectable
+class DeleteAccount implements UseCase<void, NoParams> {
+  const DeleteAccount(this._repository);
+  final ProfileRepository _repository;
+  @override
+  FutureEither<void> call(NoParams params) => _repository.deleteAccount();
+}

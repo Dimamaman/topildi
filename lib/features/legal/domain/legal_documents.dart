@@ -117,7 +117,8 @@ const _termsUz = LegalDocument(
       'Hozirda ilovadan foydalanish bepul. Pullik xizmatlar paydo boʻlsa, ularning narxi va shartlari toʻlovdan oldin alohida koʻrsatiladi.',
     ]),
     LegalSection('10. Hisobni yopish', [
-      'Istalgan vaqtda ilovadan foydalanishni toʻxtatishingiz mumkin. Hisobingiz va maʼlumotlaringizni oʻchirish uchun {contact} ga yozing.',
+      'Hisobingizni istalgan vaqtda Profil → “Profilni tahrirlash” → “Hisobni oʻchirish” orqali oʻchirishingiz mumkin. Eʼlonlaringiz, soʻrovlaringiz, '
+          'chatlaringiz (suhbatdoshingiz uchun ham) va rasmlaringiz darhol butunlay oʻchiriladi.',
     ]),
     LegalSection('11. Shartlarning oʻzgarishi', [
       'Shartlarni vaqti-vaqti bilan yangilashimiz mumkin. Muhim oʻzgarishlar haqida ilovada xabar beramiz. '
@@ -196,7 +197,8 @@ const _termsRu = LegalDocument(
       'Сейчас приложение бесплатное. Если появятся платные услуги, их цена и условия будут показаны отдельно до оплаты.',
     ]),
     LegalSection('10. Закрытие аккаунта', [
-      'Вы можете перестать пользоваться приложением в любой момент. Чтобы удалить аккаунт и данные, напишите: {contact}.',
+      'Удалить аккаунт можно в любой момент: Профиль → «Редактировать профиль» → «Удалить аккаунт». Ваши объявления, запросы, чаты '
+          '(в том числе у собеседника) и фото сразу удаляются навсегда.',
     ]),
     LegalSection('11. Изменение условий', [
       'Мы можем время от времени обновлять условия. О важных изменениях сообщим в приложении. '
@@ -257,7 +259,7 @@ const _privacyUz = LegalDocument(
       'Kirish uchun Telegram boti ishlatiladi. Telegram oʻz maxfiylik siyosatiga ega.',
     ]),
     LegalSection('6. Saqlash muddati', [
-      '• Hisob va profil — hisobni oʻchirguningizcha.',
+      '• Hisob va profil — hisobni oʻchirguningizcha (Profil → “Profilni tahrirlash” → “Hisobni oʻchirish”).',
       '• Eʼlonlar — oʻzingiz oʻchirguningizcha yoki hisob oʻchirilguncha. “Qaytarildi” eʼlonlar tarix sifatida qoladi.',
       '• 3 kun ichida javob berilmagan soʻrov bekor qilinadi va oʻchiriladi.',
       '• Chat xabarlari — hisob oʻchirilguncha.',
@@ -266,8 +268,9 @@ const _privacyUz = LegalDocument(
       '• Profilingiz va eʼlonlaringizni koʻrish va tahrirlash.',
       '• Eʼlon va soʻrovlaringizni oʻchirish.',
       '• Qurilma ruxsatlarini bekor qilish.',
-      '• Siz haqingizdagi maʼlumotlar nusxasini olish yoki hisobingizni barcha maʼlumotlari bilan oʻchirishni soʻrash — '
-          '{contact} ga yozing. Soʻrovni 30 kun ichida bajaramiz.',
+      '• Hisobingizni barcha maʼlumotlari bilan oʻchirish: Profil → “Profilni tahrirlash” → “Hisobni oʻchirish”. Oʻchirish darhol bajariladi '
+          'va uni qaytarib boʻlmaydi. Chatlar ikkala tomon uchun ham oʻchadi.',
+      '• Siz haqingizdagi maʼlumotlar nusxasini soʻrash — {contact} ga yozing. Soʻrovni 30 kun ichida bajaramiz.',
     ]),
     LegalSection('8. Xavfsizlik', [
       'Ilova va serverlar oʻrtasidagi ulanish shifrlangan. Maʼlumotlarga kirish xavfsizlik qoidalari bilan cheklangan: '
@@ -329,7 +332,7 @@ const _privacyRu = LegalDocument(
       'Для входа используется бот Telegram. У Telegram своя политика конфиденциальности.',
     ]),
     LegalSection('6. Сроки хранения', [
-      '• Аккаунт и профиль — пока вы не удалите аккаунт.',
+      '• Аккаунт и профиль — пока вы не удалите аккаунт (Профиль → «Редактировать профиль» → «Удалить аккаунт»).',
       '• Объявления — пока вы их не удалите или пока не удалён аккаунт. Объявления «Возвращено» остаются в истории.',
       '• Запрос без ответа в течение 3 дней отменяется и удаляется.',
       '• Сообщения чата — пока не удалён аккаунт.',
@@ -338,8 +341,9 @@ const _privacyRu = LegalDocument(
       '• Просматривать и изменять профиль и объявления.',
       '• Удалять свои объявления и запросы.',
       '• Отзывать разрешения устройства.',
-      '• Запросить копию данных о себе или удаление аккаунта со всеми данными — напишите: {contact}. '
-          'Мы выполним запрос в течение 30 дней.',
+      '• Удалить аккаунт со всеми данными: Профиль → «Редактировать профиль» → «Удалить аккаунт». Удаление происходит сразу, '
+          'отменить его нельзя. Чаты удаляются у обоих участников.',
+      '• Запросить копию данных о себе — напишите: {contact}. Мы выполним запрос в течение 30 дней.',
     ]),
     LegalSection('8. Безопасность', [
       'Соединение между приложением и серверами зашифровано. Доступ к данным ограничен правилами безопасности: '

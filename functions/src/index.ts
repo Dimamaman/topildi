@@ -10,9 +10,10 @@ import { logger } from "firebase-functions";
 import { defineSecret, defineString } from "firebase-functions/params";
 import { setGlobalOptions } from "firebase-functions/v2";
 import { onDocumentCreated, onDocumentUpdated } from "firebase-functions/v2/firestore";
-import { onCall, onRequest } from "firebase-functions/v2/https";
+import { HttpsError, onCall, onRequest } from "firebase-functions/v2/https";
 import { onSchedule } from "firebase-functions/v2/scheduler";
 
+import { deleteAccount } from "./account";
 import { claimCreated, claimUpdated, Delivery, messageCreated, remindAfterMs, reminders, WaitingClaim } from "./events";
 import { claimSession, handleUpdate, startSession } from "./login";
 import { deliver } from "./notify";
@@ -120,4 +121,11 @@ export const topildiTgWebhook = onRequest({ secrets: [webhookSecret] }, async (r
     logger.error("Telegram update failed", e);
     res.status(200).end();
   }
+});
+
+/** Profil → "Hisobni oʻchirish" (account.ts). Only the signed-in user themself. */
+export const topildiDeleteAccount = onCall({ timeoutSeconds: 300 }, async (req) => {
+  const uid = req.auth?.uid;
+  if (!uid) throw new HttpsError("unauthenticated", "sign in first");
+  return deleteAccount(uid);
 });

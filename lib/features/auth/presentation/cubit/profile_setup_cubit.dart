@@ -4,6 +4,8 @@ import 'package:injectable/injectable.dart';
 
 import '../../../../core/error/failure.dart';
 import '../../../../core/session/session.dart';
+import '../../../../core/usecase/usecase.dart';
+import '../../../profile/domain/usecases/profile_usecases.dart';
 import '../../domain/entities/auth_result.dart';
 import '../../domain/usecases/save_profile.dart';
 import '../../../../core/l10n/tr.dart';
@@ -69,10 +71,14 @@ class ProfileSetupState extends Equatable {
 
 @injectable
 class ProfileSetupCubit extends Cubit<ProfileSetupState> {
-  ProfileSetupCubit(this._save, this._session) : super(const ProfileSetupState());
+  ProfileSetupCubit(this._save, this._session, this._deleteAccount) : super(const ProfileSetupState());
 
   final SaveProfile _save;
   final Session _session;
+  final DeleteAccount _deleteAccount;
+
+  /// "Hisobni oʻchirish" (editing only); null once the account is gone.
+  Future<Failure?> deleteAccount() async => (await _deleteAccount(const NoParams())).fold((f) => f, (_) => null);
 
   void prefill() => emit(
     state.copyWith(

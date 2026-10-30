@@ -1,6 +1,6 @@
 # Topildi — loyiha holati
 
-> Oxirgi yangilanish: 2026-10-29
+> Oxirgi yangilanish: 2026-10-30
 
 Topildi — yo'qolgan va topilgan buyumlar uchun Flutter ilova.
 - **Arxitektura**: Clean Architecture — `flutter_bloc`, `get_it` + `injectable` (`@prod` / `@test`), `fpdart`.
@@ -24,6 +24,8 @@ Topildi — yo'qolgan va topilgan buyumlar uchun Flutter ilova.
 | Pul topish: eʼlonni tepaga ko'tarish (Click + Payme) | 📝 reja tayyor, kod yo'q (pastda) |
 | Xarita | ⏸ `Features.map` bilan yashirilgan |
 | Android | ⏳ sozlanmagan |
+| Foydalanish shartlari, Maxfiylik siyosati | ✅ ilova ichida (uz/kirill/ru), aloqa: Telegram @dimamamann |
+| Hisobni o'chirish | 🟡 kod tayyor; **`topildiDeleteAccount` deploy qilinishi kerak** |
 
 **Branchlar (2026-10-26):** hamma ish `main` ga birlashtirildi — PR #3 → `firebase-phase1` → `main` (fast-forward). Yangi ish `main` dan alohida branch'da boshlanadi.
 
@@ -182,6 +184,9 @@ Cloud Functions yo'q: chatni ilova yaratadi, xavfsizlikni Firestore rules taʼmi
 ## ⏳ Qilinishi kerak
 
 ### 0. Hozir
+
+- **Hisobni o'chirish (2026-10-30).** Profil → "Profilni tahrirlash" → pastda qizil "Hisobni oʻchirish" → tasdiq → `topildiDeleteAccount` (`functions/src/account.ts`). O'chiriladi: muallifning eʼlonlari (`private/secret` bilan), u yuborgan va uning eʼlonlariga kelgan so'rovlar, u aʼzo bo'lgan chatlar (xabarlar bilan, ikkala tomon uchun), `topildi_users/{uid}` (devices, notifications), Storage: `topildi/uploads/{uid}/`, `topildi/users/{uid}/`, eʼlon va so'rov papkalari. **Auth foydalanuvchisi** faqat FoodZeen'da `users/{uid}` (yoki `recipes`) bo'lmasa o'chiriladi — aks holda sessiyalar bekor qilinadi (loyiha umumiy, Telegram kirish raqam bo'yicha bir xil uid'ni ishlatadi). Ilovada: avval push tokeni o'chiriladi, server xato bersa push qaytib yoqiladi va foydalanuvchi chiqmaydi. **Deploy:** `cd functions && npm run deploy`.
+- **Shikoyat soxta:** chatdagi "Shikoyat qilish" hech narsa yubormaydi. App Store uchun haqiqiy shikoyat (chat va eʼlon) va bloklash kerak.
 
 0. **Chat ekrani commit qilinmagan.** Unga qo'shimcha ravishda `dart format` 80 ustun bilan 8 ta chat faylini bexosdan qayta formatlagan (`chat_mock_datasource`, `firestore_chat_datasource`, `chat_firestore`, `chat_repository_impl`, `entities/chat.dart`, `chat_list_cubit`, `chat_list_page`, `success_page`) — faqat formatlash, mantiq o'zgarmagan. Commit'dan oldin `git checkout` bilan qaytarish kerak; `ru.dart` va `chat_cubit.dart` da haqiqiy o'zgarishlar ham bor — ularni qaytarib, o'zgarishlarni qayta qo'llash. Loyiha 120 ustunda yozilgan: `dart format` ni papkaga emas, faqat o'zgargan faylga ishlatish.
 1. **`storage.rules` deploy** (agar hali qilinmagan bo'lsa): `npx -y firebase-tools@15 deploy --only storage --project foodai-73d66`. Busiz rasmli eʼlon joylash xato beradi. Production deploy agent uchun bloklangan — egasi qiladi.

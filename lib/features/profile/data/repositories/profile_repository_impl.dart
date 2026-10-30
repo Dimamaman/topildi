@@ -2,6 +2,7 @@ import 'package:fpdart/fpdart.dart';
 import 'package:injectable/injectable.dart';
 
 import '../../../../core/error/failure.dart';
+import '../../../../core/error/firebase_failure.dart';
 import '../../../../core/network/network_info.dart';
 import '../../../../core/push/push_service.dart';
 import '../../../../core/session/session.dart';
@@ -12,10 +13,11 @@ import '../../../listing/data/datasources/listing_remote_datasource.dart';
 import '../../../listing/domain/entities/listing.dart';
 import '../../domain/entities/profile_summary.dart';
 import '../../domain/repositories/profile_repository.dart';
+import '../datasources/account_remote_datasource.dart';
 
 @LazySingleton(as: ProfileRepository)
 class ProfileRepositoryImpl implements ProfileRepository {
-  ProfileRepositoryImpl(this._listings, this._claims, this._session, this._network, this._kv, this._push);
+  ProfileRepositoryImpl(this._listings, this._claims, this._session, this._network, this._kv, this._push, this._account);
 
   final ListingRemoteDataSource _listings;
   final ClaimRemoteDataSource _claims;
@@ -23,6 +25,7 @@ class ProfileRepositoryImpl implements ProfileRepository {
   final NetworkInfo _network;
   final KeyValueStore _kv;
   final PushService _push;
+  final AccountRemoteDataSource _account;
 
   bool get _notificationsOn => _kv.getBool(StoreKeys.notificationsOn) ?? true;
 
@@ -68,6 +71,21 @@ class ProfileRepositoryImpl implements ProfileRepository {
   FutureEither<void> signOut() async {
     // While still signed in: the rules let only the owner delete the token.
     await _push.stop();
+    await _session.signOut();
+    return right(null);
+  }
+
+  @override
+  FutureEither<void> deleteAccount() async {
+    if (!await _network.isConnected) return left(const NetworkFailure());
+    // The device token goes first, while the rules still let the owner delete it.
+    await _push.stop();
+    try {
+      await _account.delete();
+    } catch (e) {
+      if (_notificationsOn) await _push.start();
+      return left(failureOf(e));
+    }
     await _session.signOut();
     return right(null);
   }

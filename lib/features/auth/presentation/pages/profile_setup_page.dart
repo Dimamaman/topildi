@@ -18,6 +18,7 @@ import '../../../../core/widgets/glass_surface.dart';
 import '../../../../core/widgets/pull_down_menu.dart';
 import '../cubit/profile_setup_cubit.dart';
 import '../../../../core/widgets/photo_placeholder.dart';
+import '../../../../core/widgets/t_feedback.dart';
 import '../../../../core/widgets/topildi_loader.dart';
 import '../../../../core/error/failure.dart';
 
@@ -143,6 +144,29 @@ class _ProfileSetupViewState extends State<_ProfileSetupView> with SingleTickerP
     if (state.done) widget.editing && context.canPop() ? context.pop() : context.go(Routes.home);
   }
 
+  Future<void> _deleteAccount() async {
+    final ok = await TFeedback.confirm(
+      context,
+      title: tr('Hisobingiz oʻchirilsinmi?'),
+      body: tr(
+        'Eʼlonlaringiz, soʻrovlaringiz, chatlaringiz va rasmlaringiz butunlay oʻchiriladi. Buni qaytarib boʻlmaydi.',
+      ),
+      confirmLabel: tr('Oʻchirish'),
+      cancelLabel: tr('Bekor qilish'),
+      destructive: true,
+    );
+    if (!ok || !mounted) return;
+    final failure = await TopildiLoader.run(
+      context,
+      task: context.read<ProfileSetupCubit>().deleteAccount,
+      failureOf: (f) => f,
+      icon: Symbols.delete_forever_rounded,
+      label: tr('Hisob oʻchirilmoqda…'),
+      errorLabel: tr('Hisobni oʻchirib boʻlmadi'),
+    );
+    if (failure == null && mounted) context.go(Routes.signIn);
+  }
+
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
@@ -255,6 +279,10 @@ class _ProfileSetupViewState extends State<_ProfileSetupView> with SingleTickerP
                                     loading: state.saving,
                                     onTap: state.canSubmit ? _save : null,
                                   ),
+                                  if (widget.editing) ...[
+                                    const SizedBox(height: 8),
+                                    _DeleteAccountButton(onTap: state.saving ? null : _deleteAccount),
+                                  ],
                                 ],
                               ),
                             ),
@@ -266,6 +294,43 @@ class _ProfileSetupViewState extends State<_ProfileSetupView> with SingleTickerP
                 ),
               ],
             ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Red "Hisobni oʻchirish" under Saqlash (editing only), 44 tall.
+class _DeleteAccountButton extends StatelessWidget {
+  const _DeleteAccountButton({required this.onTap});
+
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Semantics(
+      button: true,
+      label: tr('Hisobni oʻchirish'),
+      excludeSemantics: true,
+      child: GestureDetector(
+        onTap: onTap,
+        behavior: HitTestBehavior.opaque,
+        child: SizedBox(
+          height: 44,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Symbols.delete_rounded, size: 20, color: cs.error),
+              const SizedBox(width: 6),
+              Text(
+                tr('Hisobni oʻchirish'),
+                style: Theme.of(context).textTheme.bodyLarge!
+                    .copyWith(fontSize: 16, height: 22 / 16, color: cs.error)
+                    .inter(FontWeight.w600),
+              ),
+            ],
           ),
         ),
       ),

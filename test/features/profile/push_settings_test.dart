@@ -6,6 +6,7 @@ import 'package:topildi/core/session/session.dart';
 import 'package:topildi/core/storage/stores.dart';
 import 'package:topildi/features/claim/data/datasources/claim_remote_datasource.dart';
 import 'package:topildi/features/listing/data/datasources/listing_remote_datasource.dart';
+import 'package:topildi/features/profile/data/datasources/account_remote_datasource.dart';
 import 'package:topildi/features/profile/data/repositories/profile_repository_impl.dart';
 
 class _Push extends Mock implements PushService {}
@@ -18,11 +19,15 @@ class _Claims extends Mock implements ClaimRemoteDataSource {}
 
 class _Network extends Mock implements NetworkInfo {}
 
+class _Account extends Mock implements AccountRemoteDataSource {}
+
 void main() {
   late _Push push;
   late _Session session;
   late MemoryKeyValueStore kv;
   late ProfileRepositoryImpl repo;
+  late _Network network;
+  late _Account account;
 
   setUp(() {
     push = _Push();
@@ -31,7 +36,10 @@ void main() {
     when(push.start).thenAnswer((_) async {});
     when(push.stop).thenAnswer((_) async {});
     when(session.signOut).thenAnswer((_) async {});
-    repo = ProfileRepositoryImpl(_Listings(), _Claims(), session, _Network(), kv, push);
+    network = _Network();
+    account = _Account();
+    when(() => network.isConnected).thenAnswer((_) async => true);
+    repo = ProfileRepositoryImpl(_Listings(), _Claims(), session, network, kv, push, account);
   });
 
   test('the Bildirishnomalar switch registers and unregisters the device', () async {
@@ -46,5 +54,25 @@ void main() {
   test('sign-out removes the device first, while the rules still allow it', () async {
     await repo.signOut();
     verifyInOrder([push.stop, session.signOut]);
+  });
+
+  test('deleting the account: device token, then the server, then sign-out', () async {
+    when(account.delete).thenAnswer((_) async {});
+    expect((await repo.deleteAccount()).isRight(), isTrue);
+    verifyInOrder([push.stop, account.delete, session.signOut]);
+  });
+
+  test('a failed deletion keeps the user signed in and push back on', () async {
+    when(account.delete).thenThrow(Exception('boom'));
+    expect((await repo.deleteAccount()).isLeft(), isTrue);
+    verify(push.start).called(1);
+    verifyNever(session.signOut);
+  });
+
+  test('no deletion attempt offline', () async {
+    when(() => network.isConnected).thenAnswer((_) async => false);
+    expect((await repo.deleteAccount()).isLeft(), isTrue);
+    verifyNever(account.delete);
+    verifyNever(push.stop);
   });
 }

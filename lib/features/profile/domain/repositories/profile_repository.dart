@@ -7,4 +7,7 @@ abstract interface class ProfileRepository {
   FutureEither<void> setNotifications(bool on);
 
   FutureEither<void> signOut();
+
+  /// Deletes the account and everything in it, then signs out.
+  FutureEither<void> deleteAccount();
 }

@@ -810,6 +810,12 @@ const ruStrings = <String, String>{
   'Saqlab boʻlmadi': 'Не удалось сохранить',
   'Chiqilmoqda…': 'Выходим…',
   'Chiqib boʻlmadi': 'Не удалось выйти',
+  'Hisobni oʻchirish': 'Удалить аккаунт',
+  'Hisobingiz oʻchirilsinmi?': 'Удалить аккаунт?',
+  'Eʼlonlaringiz, soʻrovlaringiz, chatlaringiz va rasmlaringiz butunlay oʻchiriladi. Buni qaytarib boʻlmaydi.':
+      'Ваши объявления, запросы, чаты и фото будут удалены навсегда. Это нельзя отменить.',
+  'Hisob oʻchirilmoqda…': 'Удаляем аккаунт…',
+  'Hisobni oʻchirib boʻlmadi': 'Не удалось удалить аккаунт',
   'Eʼlon joylanmoqda…': 'Публикуем объявление…',
   'Joylab boʻlmadi': 'Не удалось опубликовать',
   'Eʼlon oʻchirilmoqda…': 'Удаляем объявление…',
