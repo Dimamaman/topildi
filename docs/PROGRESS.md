@@ -26,10 +26,13 @@ Topildi — yo'qolgan va topilgan buyumlar uchun Flutter ilova.
 | Android | ⏳ sozlanmagan |
 | Foydalanish shartlari, Maxfiylik siyosati | ✅ ilova ichida (uz/kirill/ru), aloqa: Telegram @dimamamann |
 | Hisobni o'chirish | 🟡 kod tayyor; **`topildiDeleteAccount` deploy qilinishi kerak** |
+| Shikoyat va bloklash (App Store 1.2) | 🟡 kod, rules va functions deploy qilingan (2026-10-30); webhook qayta ulash va qurilmada sinov qolgan |
 
 **Branchlar (2026-10-26):** hamma ish `main` ga birlashtirildi — PR #3 → `firebase-phase1` → `main` (fast-forward). Yangi ish `main` dan alohida branch'da boshlanadi.
 
 **Tekshiruv (2026-10-29):** `flutter analyze` toza; `flutter test` — 103 ta test o'tadi; `functions`: `npm test` — 34 ta; `flutter build ios --simulator --debug` muvaffaqiyatli; Firestore rules, indekslar va `topildi` functions deploy qilingan.
+
+**Tekshiruv (2026-10-30):** `flutter analyze` toza; `flutter test` — 110 ta o'tadi (`auth_flow_test` oldindan yiqilardi, bu sessiyaga aloqasi yo'q); `functions`: `npm test` — 47 ta; `firestore.rules` va `topildi` functions deploy qilingan.
 
 > **Test rejimi** (bekor qilish kutishsiz va urinishni sarflagan holda) 2026-10-28 da sinovdan keyin qaytarildi: kutish yana 3 kun, bekor qilingan so'rov o'chiriladi va urinish qaytadi; rules deploy qilingan.
 
@@ -171,6 +174,41 @@ Cloud Functions yo'q: chatni ilova yaratadi, xavfsizlikni Firestore rules taʼmi
 
 **Boshqa:** O'zbekistonning 14 ta hududi va ~190 tuman/shahar filtrlarda (`regions.dart`); Chatlar refresh'i endi qotib qolmaydi (`ChatListCubit.load`); "Saqlash" va boshqa tugmalar `CreatePrimaryButton` uslubida.
 
+### 8. 2026-10-30 sessiyasi — shikoyat va bloklash (SH1–SH6, BL1–BL4)
+
+App Store Guideline 1.2 talabi: haqiqiy shikoyat, bloklash, moderatsiya va nomaqbul kontentga nol tolerantlik. Reja — `docs/SHIKOYAT_PLAN.md`, UI topshirigʻi — `TOPSHIRIQ-shikoyat-bloklash-ui.md`.
+
+**Maʼlumotlar va qoidalar (`firestore.rules`):**
+- `topildi_reports/{targetType}_{targetId}_{reporterUid}` — id shunday tuzilgani uchun bitta odam bitta narsaga faqat bir marta shikoyat qila oladi. Faqat `create` mumkin; ilova o'z hujjatini `get` qila oladi (sheet "allaqachon yuborilgan" ni shundan biladi), `list` / `update` / `delete` yopiq. `reportedUid` nishondan kelib chiqishi tekshiriladi: eʼlon uchun — uning muallifi, chat uchun — suhbatdagi ikkinchi aʼzo; o'z eʼloningizga shikoyat qilib bo'lmaydi.
+- `topildi_users/{uid}/blocked/{otherUid}` — ro'yxatni egasi yozadi va o'qiydi; bloklangan odam faqat **o'z** yozuvini o'qiy oladi. Chatdagi "yozib bo'lmaydi" bannerini ko'rsatish uchun shu kerak — yaʼni "meni falonchi bloklaganmi?" degan savolga javob beradi.
+- Bloklangan odam xabar ham, "Bu meniki" so'rovi ham yubora olmaydi: `blockedBy()` tekshiruvi `topildi_claims` create va chat `messages` create ichida.
+- `ListingStatus.hidden` — faqat server qo'yadi; muallif undan chiqa olmaydi, yashirilgan eʼlonni tahrirlay ham, "Qaytarildi" deb yopa ham olmaydi.
+
+**Cloud Functions:**
+- `functions/src/report.ts` — sof funksiyalar (test qilinadi): moderatorga ketadigan Telegram xabari matni (HTML, foydalanuvchi yozgani escape qilinadi), sabab nomlari ("Soxta eʼlon", chatda "Aldov"), moderator tugmalari va `callback_data`, `hideThreshold = 3`.
+- `functions/src/moderate.ts` — Firestore va Bot API: dalilni shikoyatga nusxalash (eʼlon tavsifi, joyi va rasm URL'lari yoki chatning oxirgi 20 xabari), bir nishondagi shikoyatlarni sanash (hujjat id'si bo'yicha — qo'shimcha indeks kerak emas), avtomatik yashirish, moderator bosgan tugmani bajarish.
+- `topildiOnReportCreated` — yangi shikoyat yozilganda ishlaydi. Bitta eʼlonga 3 xil odam shikoyat qilsa, eʼlon `hidden` bo'ladi va lentadan yo'qoladi.
+- `topildiTgWebhook` endi `callback_query` ni ham oladi (`parseCallback`, `telegram.ts`): "🙈 Eʼlonni yashirish", "↩️ Qaytarish", "✅ Yopish". Faqat `TELEGRAM_ADMIN_CHAT_ID` dan kelgan bosishlar qabul qilinadi; kirish oqimiga tegmaydi.
+- `account.ts` — hisob o'chirilganda foydalanuvchi **yuborgan** shikoyatlar ham o'chadi (`blocked` ro'yxati `topildi_users/{uid}` bilan birga ketadi). Unga qilingan shikoyatlar dalil sifatida qoladi.
+- Sozlamalar: `TELEGRAM_ADMIN_CHAT_ID` (`functions/.env`, sir emas) va `TELEGRAM_BOT_TOKEN` (Secret Manager). **Tokenni `.env` ga yozmang** — ikkala joyda bo'lsa Cloud Run "Secret environment variable overlaps non secret environment variable" deb deploy'ni rad etadi.
+
+**Ilova:**
+- `lib/features/report/` — `ReportTarget`, `ReportReason`, `SubmitReport`, `CheckReported`, Firestore va mock datasource, `report_sheet.dart`.
+- `lib/features/block/` — `BlockedUser`, `BlockUser` / `UnblockUser` / `WatchBlocked` / `GetBlockState`, datasource'lar, `BlockedCubit`, `blocked_page.dart`, `block_sheet.dart`.
+- **SH1** — boshqa odamning eʼlonida "Ulashish" o'rnida "…": Ulashish | Shikoyat qilish, Muallifni bloklash. O'z eʼloningizda menyu o'zgarmadi.
+- **SH2** — chat "…": Buyum qaytarildi (topuvchida), Eʼlonni ko'rish | Shikoyat qilish, Bloklash (bloklangan bo'lsa "Blokdan chiqarish"). Eski soxta tasdiq oynasi olib tashlandi.
+- **SH3/SH4** — shikoyat sheeti: nishon kartasi, 5 ta sabab chipi (galochkasiz, bittasi tanlanadi), ixtiyoriy izoh (≤300, hisoblagich bilan), "Shikoyat anonim · 24 soat ichida ko'rib chiqiladi". Yuborilganda sheet yopilmaydi — ichidagi kontent **SH5** ("Shikoyatingiz yuborildi") ga almashadi. **SH6** — takroriy shikoyatda ochiladigan qisqa sheet.
+- **BL1** — bloklash tasdigʻi (3 qator tushuntirish). **BL2** — chatda yozish paneli o'rnida kapsula: "Siz bloklagansiz." + "Blokdan chiqarish"; sizni bloklagan odam bilan bo'lsa tugmasiz matn, kim bloklagani ko'rsatilmaydi. **BL3** — Profil → Sozlamalar → "Bloklanganlar" (soni bilan), blokdan chiqarishda 5 soniyalik "Bekor qilish". **BL4** — bo'sh holat.
+- Bloklangan odamning eʼlonlari lenta, xarita va qidiruvdan chiqadi — `ListingRepositoryImpl` da bir joyda filtrlanadi; blok o'zgarsa `changes` oqimi lentani yangilaydi.
+- Yashirilgan eʼlon muallifiga "Tekshiruvda" deb ko'rinadi (Mening eʼlonlarim va Profil kartasi).
+- Foydalanish shartlarining 7-bandi qayta yozildi: nol tolerantlik, 24 soat, shikoyat va bloklash qanday ishlashi (uz / kirill / ru). Yangi matnlar `ru.dart` ga qo'shildi, kirill avtomatik.
+
+**Yo'l-yo'lakay tuzatilgan xato:** `showPullDownMenu` menyu balandligini har bir qator bitta qatorlik matn deb hisoblardi. Matni ikki qatorga tushgan band menyuning kesilgan chegarasidan chiqib ketar va umuman bosilmas edi ("Muallifni bloklash" aynan shunday edi). Endi menyu haqiqiy balandligini oladi, cheklov — ekrandagi bo'sh joy.
+
+**Testlar:** `functions/src/test/report.test.ts` (xabar matni, escape, tugmalar, yashirish chegarasi) — 13 ta yangi; `test/features/report/report_test.dart` (shikoyat oqimi, takroriy shikoyat, o'z eʼlonida bandlar yo'qligi) va `test/features/block/block_test.dart` (eʼlondan bloklash + lentadan yo'qolishi, Bloklanganlar sahifasi, chatdagi banner) — 5 ta yangi.
+
+**Deploy (2026-10-30):** `firestore.rules` va `topildi` functions deploy qilingan, `topildiOnReportCreated` yaratildi. Bot token `/revoke` bilan yangilangan, shuning uchun webhook qayta ulanishi kerak: `setWebhook` → `https://topilditgwebhook-5o72enezwa-uc.a.run.app`, `allowed_updates=["message","callback_query"]`. **`callback_query` bo'lmasa moderator tugmalari ishlamaydi.** Haqiqiy qurilmada sinov qolgan.
+
 ### Maxfiylik qoidalari (saqlanadi)
 
 - **Telefon raqami** Firestore'ga hech qachon yozilmaydi — na eʼlonda, na so'rovda, na chatda.
@@ -186,7 +224,7 @@ Cloud Functions yo'q: chatni ilova yaratadi, xavfsizlikni Firestore rules taʼmi
 ### 0. Hozir
 
 - **Hisobni o'chirish (2026-10-30).** Profil → "Profilni tahrirlash" → pastda qizil "Hisobni oʻchirish" → tasdiq → `topildiDeleteAccount` (`functions/src/account.ts`). O'chiriladi: muallifning eʼlonlari (`private/secret` bilan), u yuborgan va uning eʼlonlariga kelgan so'rovlar, u aʼzo bo'lgan chatlar (xabarlar bilan, ikkala tomon uchun), `topildi_users/{uid}` (devices, notifications), Storage: `topildi/uploads/{uid}/`, `topildi/users/{uid}/`, eʼlon va so'rov papkalari. **Auth foydalanuvchisi** faqat FoodZeen'da `users/{uid}` (yoki `recipes`) bo'lmasa o'chiriladi — aks holda sessiyalar bekor qilinadi (loyiha umumiy, Telegram kirish raqam bo'yicha bir xil uid'ni ishlatadi). Ilovada: avval push tokeni o'chiriladi, server xato bersa push qaytib yoqiladi va foydalanuvchi chiqmaydi. **Deploy:** `cd functions && npm run deploy`.
-- **Shikoyat soxta:** chatdagi "Shikoyat qilish" hech narsa yubormaydi. App Store uchun haqiqiy shikoyat (chat va eʼlon) va bloklash kerak.
+- **Shikoyat va bloklash (2026-10-30)** — kod yozilgan, rules va functions deploy qilingan (8-bo'lim). Qolgani: webhook'ni yangi token bilan qayta ulash va haqiqiy qurilmada sinash (chatdan shikoyat → Telegramga xabar; 3 ta shikoyat → eʼlon lentadan yo'qoladi; bloklash → xabar yuborib bo'lmaydi; Telegramdagi tugmalar).
 
 0. **Chat ekrani commit qilinmagan.** Unga qo'shimcha ravishda `dart format` 80 ustun bilan 8 ta chat faylini bexosdan qayta formatlagan (`chat_mock_datasource`, `firestore_chat_datasource`, `chat_firestore`, `chat_repository_impl`, `entities/chat.dart`, `chat_list_cubit`, `chat_list_page`, `success_page`) — faqat formatlash, mantiq o'zgarmagan. Commit'dan oldin `git checkout` bilan qaytarish kerak; `ru.dart` va `chat_cubit.dart` da haqiqiy o'zgarishlar ham bor — ularni qaytarib, o'zgarishlarni qayta qo'llash. Loyiha 120 ustunda yozilgan: `dart format` ni papkaga emas, faqat o'zgargan faylga ishlatish.
 1. **`storage.rules` deploy** (agar hali qilinmagan bo'lsa): `npx -y firebase-tools@15 deploy --only storage --project foodai-73d66`. Busiz rasmli eʼlon joylash xato beradi. Production deploy agent uchun bloklangan — egasi qiladi.
