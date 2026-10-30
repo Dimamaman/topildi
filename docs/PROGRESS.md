@@ -257,3 +257,6 @@ Qarorlar: **Click va Payme ikkalasi**, tariflar **1 / 3 / 7 kun** (taxminan 10 0
 - Ripple yo'q, bosiladigan joy ≥44.
 - Yangi data manbalari: interfeys + `@prod` Firestore + `@test` mock (testlar Firebase'ga tegmaydi).
 - Rules o'zgarganda: avval `firebase deploy --only firestore,storage --project foodai-73d66 --dry-run`, deploy faqat ruxsat bilan. FoodZeen qoidalariga tegilmaydi
+
+If this comes back after you switch between a real iPhone and the simulator, run the same cleanup again:
+rm -rf .dart_tool/hooks_runner build/native_assets && flutter clean && flutter pub get
