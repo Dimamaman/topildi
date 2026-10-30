@@ -5,7 +5,7 @@
  * functions. Names are prefixed for the same reason (they are project-wide).
  */
 import { initializeApp } from "firebase-admin/app";
-import { getFirestore, Timestamp } from "firebase-admin/firestore";
+import { FieldValue, getFirestore, Timestamp } from "firebase-admin/firestore";
 import { logger } from "firebase-functions";
 import { defineSecret, defineString } from "firebase-functions/params";
 import { setGlobalOptions } from "firebase-functions/v2";
@@ -15,8 +15,9 @@ import { onSchedule } from "firebase-functions/v2/scheduler";
 
 import { deleteAccount } from "./account";
 import { claimCreated, claimUpdated, Delivery, messageCreated, remindAfterMs, reminders, WaitingClaim } from "./events";
+import { errorMessage, errorRateDay, maxErrorsPerDay, parseErrorReport } from "./errors";
 import { claimSession, handleUpdate, startSession } from "./login";
-import { BotConfig, handleModeration, handleReport } from "./moderate";
+import { BotConfig, callBot, handleModeration, handleReport } from "./moderate";
 import { deliver } from "./notify";
 import { isReopened, parseCallbackData, ReportDoc } from "./report";
 import { parseCallback, parseUpdate, TgUpdate } from "./telegram";
@@ -103,6 +104,12 @@ const botUsername = defineString("TELEGRAM_BOT_USERNAME");
 const adminChatId = defineString("TELEGRAM_ADMIN_CHAT_ID", { default: "" });
 
 /**
+ * Where app errors go (functions/.env); empty falls back to the moderator
+ * chat, and an empty moderator chat turns error reports off.
+ */
+const errorsChatId = defineString("TELEGRAM_ERRORS_CHAT_ID", { default: "" });
+
+/**
  * Bot token, for the calls the bot makes by itself (the sign-in replies ride
  * back in the webhook's response and need none).
  */
@@ -175,6 +182,38 @@ export const topildiTgWebhook = onRequest({ secrets: [webhookSecret, botToken] }
     logger.error("Telegram update failed", e);
     res.status(200).end();
   }
+});
+
+/**
+ * An error the app ran into (lib/core/error/error_reporter.dart): the
+ * developer chat gets the page, the message and the stack. The app never
+ * holds the bot token, and nothing is written to Firestore except the
+ * counter that caps a runaway day.
+ */
+export const topildiLogError = onCall({ secrets: [botToken] }, async (req) => {
+  const chatId = errorsChatId.value() || adminChatId.value();
+  if (!chatId) return { sent: false };
+  const report = parseErrorReport(req.data, req.auth?.uid);
+  if (!report) throw new HttpsError("invalid-argument", "message required");
+  const ref = getFirestore().collection("topildi_error_rate").doc(errorRateDay());
+  // Read then increment: two errors at the very same moment may share a
+  // slot, which costs one message over the cap and saves a transaction.
+  const sentToday = Number((await ref.get()).get("count") ?? 0);
+  if (sentToday >= maxErrorsPerDay) return { sent: false, limited: true };
+  await ref.set({ count: FieldValue.increment(1), day: errorRateDay() }, { merge: true });
+  try {
+    await callBot(botConfig(), "sendMessage", {
+      chat_id: chatId,
+      text: errorMessage(report),
+      parse_mode: "HTML",
+      disable_web_page_preview: true,
+    });
+  } catch (e) {
+    // The app is already in trouble; it must not be told about ours.
+    logger.error("Error report failed", e);
+    return { sent: false };
+  }
+  return { sent: true };
 });
 
 /** Profil → "Hisobni oʻchirish" (account.ts). Only the signed-in user themself. */

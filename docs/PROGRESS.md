@@ -275,6 +275,20 @@ Yangilangan topshiriq (`TOPSHIRIQ-shikoyat-bloklash-ui_1.md`): "Allaqachon yubor
 
 **Testlar:** `report_test.dart` SH6 bosqichlarini tekshiradi va X orqali yopadi (aylanuvchi halqa tufayli `pumpAndSettle` oʻrniga sanab pump qilinadi). `flutter analyze` toza; `flutter test` — 110 ta oʻtdi, faqat eski `auth_flow_test.dart` yiqiladi.
 
+### 12. 2026-10-30 — xatoliklar Telegramga
+
+Ilovadagi har qanday xatolik endi dasturchilar chatiga tushadi: qaysi sahifa, nima boʻlgan, stack, versiya va qurilma.
+
+- **Server:** `functions/src/errors.ts` (sof funksiyalar: `parseErrorReport`, `errorMessage`, `trimStack`, `errorRateDay`) + `topildiLogError` (`onCall`, `index.ts`). Ilovada bot tokeni yoʻq — hamma narsa callable orqali oʻtadi. Xabar HTML: 🐞 sarlavha (platforma · versiya · debug), **Sahifa**, **Amal**, **Xabar**, **Qayerda** (tur · qurilma · til), **Kim** (uid), **Vaqt**, soʻng `<pre>` ichida stack (14 qator, qolgani "… +N"). Telegram limiti uchun 3500 belgida kesiladi, barcha matn escape qilinadi.
+- **Chat:** `TELEGRAM_ERRORS_CHAT_ID` (`functions/.env`, hozircha boʻsh → `TELEGRAM_ADMIN_CHAT_ID` ga tushadi). Alohida chat/guruh ochib id sini shu yerga yozish mumkin.
+- **Oqim nazorati:** kuniga `maxErrorsPerDay = 200` (hisoblagich `topildi_error_rate/{sana}`, faqat funksiya yozadi — rules kerak emas); ilovada bitta xatolik 10 daqiqada bir marta, bitta sessiyada koʻpi bilan 30 ta (`ErrorThrottle`, `errorSignature` raqamlarni `#` ga almashtiradi, shuning uchun "Listing l3 not found" va "l9" bitta xatolik hisoblanadi).
+- **Ilova:** `lib/core/error/error_reporter.dart` — `TErrorReporter.instance.install()` `FlutterError.onError` va `PlatformDispatcher.onError` ni ushlaydi, `main.dart` esa butun ilovani `runZonedGuarded` ichiga oldi (`kind: flutter / platform / zone / manual`). Sahifa `app.dart` da router listeneridan olinadi. Versiya va qurilma uchun yangi paketlar: `package_info_plus`, `device_info_plus`.
+- **Debug:** debug buildda yuborilmaydi (konsolda koʻrinadi); kerak boʻlsa `flutter run --dart-define=ERROR_REPORT_DEBUG=true`.
+- **Qoʻlda xabar berish:** `TErrorReporter.instance.report(e, s, action: 'Shikoyat yuborish')` — ilova yiqilmagan, lekin bilish kerak boʻlgan joylar uchun.
+- **Qolgani:** `cd functions && npm run deploy` (funksiya hali deploy qilinmagan) va xohlasa alohida chat id qoʻyish. Ilovaning yangi buildi ham kerak.
+
+**Testlar:** `functions/src/test/errors.test.ts` — 7 ta (parse, uid, stack kesish, HTML escape, kun kaliti); `test/core/error_reporter_test.dart` — 6 ta (signature va throttle). `functions` jami 56 ta, `flutter analyze` toza.
+
 ### Maxfiylik qoidalari (saqlanadi)
 
 - **Telefon raqami** Firestore'ga hech qachon yozilmaydi — na eʼlonda, na so'rovda, na chatda.

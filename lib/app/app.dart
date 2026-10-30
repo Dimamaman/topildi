@@ -4,6 +4,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:go_router/go_router.dart';
 
 import '../core/di/injection.dart';
+import '../core/error/error_reporter.dart';
 import '../core/l10n/app_language.dart';
 import '../core/l10n/language_cubit.dart';
 import '../core/theme/no_ripple.dart';
@@ -27,7 +28,20 @@ class _TopildiAppState extends State<TopildiApp> {
   late final GoRouter _router = createRouter(initialLocation: widget.initialLocation);
 
   @override
+  void initState() {
+    super.initState();
+    _trackRoute();
+    _router.routerDelegate.addListener(_trackRoute);
+  }
+
+  /// An error report says which page the person was on.
+  void _trackRoute() {
+    TErrorReporter.instance.route = _router.routeInformationProvider.value.uri.toString();
+  }
+
+  @override
   void dispose() {
+    _router.routerDelegate.removeListener(_trackRoute);
     _router.dispose();
     super.dispose();
   }
