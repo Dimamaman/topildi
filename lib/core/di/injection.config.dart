@@ -50,6 +50,26 @@ import 'package:topildi/features/auth/presentation/cubit/profile_setup_cubit.dar
     as _i570;
 import 'package:topildi/features/auth/presentation/cubit/sign_in_cubit.dart'
     as _i480;
+import 'package:topildi/features/block/data/datasources/block_mock_datasource.dart'
+    as _i522;
+import 'package:topildi/features/block/data/datasources/block_remote_datasource.dart'
+    as _i797;
+import 'package:topildi/features/block/data/datasources/firestore_block_datasource.dart'
+    as _i647;
+import 'package:topildi/features/block/data/repositories/block_repository_impl.dart'
+    as _i61;
+import 'package:topildi/features/block/domain/repositories/block_repository.dart'
+    as _i713;
+import 'package:topildi/features/block/domain/usecases/block_user.dart'
+    as _i547;
+import 'package:topildi/features/block/domain/usecases/get_block_state.dart'
+    as _i327;
+import 'package:topildi/features/block/domain/usecases/unblock_user.dart'
+    as _i628;
+import 'package:topildi/features/block/domain/usecases/watch_blocked.dart'
+    as _i770;
+import 'package:topildi/features/block/presentation/cubit/blocked_cubit.dart'
+    as _i165;
 import 'package:topildi/features/chat/data/datasources/chat_mock_datasource.dart'
     as _i584;
 import 'package:topildi/features/chat/data/datasources/chat_remote_datasource.dart'
@@ -175,6 +195,20 @@ import 'package:topildi/features/profile/domain/usecases/profile_usecases.dart'
     as _i126;
 import 'package:topildi/features/profile/presentation/cubit/profile_cubit.dart'
     as _i533;
+import 'package:topildi/features/report/data/datasources/firestore_report_datasource.dart'
+    as _i271;
+import 'package:topildi/features/report/data/datasources/report_mock_datasource.dart'
+    as _i301;
+import 'package:topildi/features/report/data/datasources/report_remote_datasource.dart'
+    as _i633;
+import 'package:topildi/features/report/data/repositories/report_repository_impl.dart'
+    as _i207;
+import 'package:topildi/features/report/domain/repositories/report_repository.dart'
+    as _i16;
+import 'package:topildi/features/report/domain/usecases/check_reported.dart'
+    as _i320;
+import 'package:topildi/features/report/domain/usecases/submit_report.dart'
+    as _i793;
 
 const String _test = 'test';
 const String _prod = 'prod';
@@ -217,8 +251,16 @@ extension GetItInjectableX on _i174.GetIt {
       () => _i305.FakeGeocoder(),
       registerFor: {_test},
     );
+    gh.lazySingleton<_i633.ReportRemoteDataSource>(
+      () => _i301.ReportMockDataSource(),
+      registerFor: {_test},
+    );
     gh.lazySingleton<_i297.MapTileConfig>(
       () => _i297.NoTiles(),
+      registerFor: {_test},
+    );
+    gh.lazySingleton<_i797.BlockRemoteDataSource>(
+      () => _i522.BlockMockDataSource(),
       registerFor: {_test},
     );
     gh.lazySingleton<_i1037.SecureStore>(
@@ -298,6 +340,10 @@ extension GetItInjectableX on _i174.GetIt {
       () => _i855.UrlLinkLauncher(),
       registerFor: {_prod},
     );
+    gh.lazySingleton<_i633.ReportRemoteDataSource>(
+      () => _i271.FirestoreReportDataSource(gh<_i974.FirebaseFirestore>()),
+      registerFor: {_prod},
+    );
     gh.lazySingleton<_i206.NotificationRemoteDataSource>(
       () => _i865.FirestoreNotificationDataSource(
         gh<_i974.FirebaseFirestore>(),
@@ -368,6 +414,10 @@ extension GetItInjectableX on _i174.GetIt {
       ),
       registerFor: {_test},
     );
+    gh.lazySingleton<_i797.BlockRemoteDataSource>(
+      () => _i647.FirestoreBlockDataSource(gh<_i974.FirebaseFirestore>()),
+      registerFor: {_prod},
+    );
     gh.lazySingleton<_i122.LanguageCubit>(
       () => _i122.LanguageCubit(gh<_i1037.KeyValueStore>()),
     );
@@ -437,13 +487,6 @@ extension GetItInjectableX on _i174.GetIt {
       ),
       registerFor: {_prod},
     );
-    gh.lazySingleton<_i856.ListingRepository>(
-      () => _i786.ListingRepositoryImpl(
-        gh<_i395.ListingRemoteDataSource>(),
-        gh<_i263.NetworkInfo>(),
-        gh<_i554.Session>(),
-      ),
-    );
     gh.factory<_i567.NotificationBadgeCubit>(
       () => _i567.NotificationBadgeCubit(gh<_i582.WatchUnreadNotifications>()),
     );
@@ -458,36 +501,19 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i523.AccountRemoteDataSource>(),
       ),
     );
-    gh.factory<_i445.GetListingDetail>(
-      () => _i445.GetListingDetail(gh<_i856.ListingRepository>()),
+    gh.lazySingleton<_i16.ReportRepository>(
+      () => _i207.ReportRepositoryImpl(
+        gh<_i633.ReportRemoteDataSource>(),
+        gh<_i263.NetworkInfo>(),
+        gh<_i554.Session>(),
+      ),
     );
-    gh.factory<_i1022.GetListings>(
-      () => _i1022.GetListings(gh<_i856.ListingRepository>()),
-    );
-    gh.factory<_i619.GetMapListings>(
-      () => _i619.GetMapListings(gh<_i856.ListingRepository>()),
-    );
-    gh.factory<_i487.DeleteListing>(
-      () => _i487.DeleteListing(gh<_i856.ListingRepository>()),
-    );
-    gh.factory<_i487.MarkListingReturned>(
-      () => _i487.MarkListingReturned(gh<_i856.ListingRepository>()),
-    );
-    gh.factory<_i592.WatchListings>(
-      () => _i592.WatchListings(gh<_i856.ListingRepository>()),
-    );
-    gh.factory<_i534.FiltersCubit>(
-      () => _i534.FiltersCubit(gh<_i1022.GetListings>()),
-    );
-    gh.factory<_i516.FeedCubit>(
-      () =>
-          _i516.FeedCubit(gh<_i1022.GetListings>(), gh<_i592.WatchListings>()),
-    );
-    gh.factory<_i446.MapCubit>(
-      () => _i446.MapCubit(
-        gh<_i619.GetMapListings>(),
-        gh<_i305.LocationService>(),
-        gh<_i592.WatchListings>(),
+    gh.lazySingleton<_i856.ListingRepository>(
+      () => _i786.ListingRepositoryImpl(
+        gh<_i395.ListingRemoteDataSource>(),
+        gh<_i797.BlockRemoteDataSource>(),
+        gh<_i263.NetworkInfo>(),
+        gh<_i554.Session>(),
       ),
     );
     gh.lazySingleton<_i956.ChatRepository>(
@@ -523,6 +549,13 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i384.UpdateListing>(
       () => _i384.UpdateListing(gh<_i762.CreateListingRepository>()),
     );
+    gh.lazySingleton<_i713.BlockRepository>(
+      () => _i61.BlockRepositoryImpl(
+        gh<_i797.BlockRemoteDataSource>(),
+        gh<_i263.NetworkInfo>(),
+        gh<_i554.Session>(),
+      ),
+    );
     gh.factory<_i468.GetChatThread>(
       () => _i468.GetChatThread(gh<_i956.ChatRepository>()),
     );
@@ -543,6 +576,12 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.factory<_i956.WatchChats>(
       () => _i956.WatchChats(gh<_i956.ChatRepository>()),
+    );
+    gh.factory<_i320.CheckReported>(
+      () => _i320.CheckReported(gh<_i16.ReportRepository>()),
+    );
+    gh.factory<_i793.SubmitReport>(
+      () => _i793.SubmitReport(gh<_i16.ReportRepository>()),
     );
     gh.factory<_i80.SuccessCubit>(
       () => _i80.SuccessCubit(gh<_i581.GetReturnSummary>()),
@@ -569,6 +608,24 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i389.ChatListCubit>(
       () => _i389.ChatListCubit(gh<_i956.WatchChats>()),
     );
+    gh.factory<_i445.GetListingDetail>(
+      () => _i445.GetListingDetail(gh<_i856.ListingRepository>()),
+    );
+    gh.factory<_i1022.GetListings>(
+      () => _i1022.GetListings(gh<_i856.ListingRepository>()),
+    );
+    gh.factory<_i619.GetMapListings>(
+      () => _i619.GetMapListings(gh<_i856.ListingRepository>()),
+    );
+    gh.factory<_i487.DeleteListing>(
+      () => _i487.DeleteListing(gh<_i856.ListingRepository>()),
+    );
+    gh.factory<_i487.MarkListingReturned>(
+      () => _i487.MarkListingReturned(gh<_i856.ListingRepository>()),
+    );
+    gh.factory<_i592.WatchListings>(
+      () => _i592.WatchListings(gh<_i856.ListingRepository>()),
+    );
     gh.factory<_i480.SignInCubit>(
       () => _i480.SignInCubit(
         gh<_i754.StartTelegramLogin>(),
@@ -576,6 +633,21 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i263.NetworkInfo>(),
         gh<_i855.LinkLauncher>(),
       ),
+    );
+    gh.factory<_i547.BlockUser>(
+      () => _i547.BlockUser(gh<_i713.BlockRepository>()),
+    );
+    gh.factory<_i327.GetBlockState>(
+      () => _i327.GetBlockState(gh<_i713.BlockRepository>()),
+    );
+    gh.factory<_i628.UnblockUser>(
+      () => _i628.UnblockUser(gh<_i713.BlockRepository>()),
+    );
+    gh.factory<_i770.WatchBlocked>(
+      () => _i770.WatchBlocked(gh<_i713.BlockRepository>()),
+    );
+    gh.factory<_i534.FiltersCubit>(
+      () => _i534.FiltersCubit(gh<_i1022.GetListings>()),
     );
     gh.factory<_i546.AcceptClaim>(
       () => _i546.AcceptClaim(gh<_i28.ClaimRepository>()),
@@ -601,6 +673,17 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i843.WatchPendingClaims>(
       () => _i843.WatchPendingClaims(gh<_i28.ClaimRepository>()),
     );
+    gh.factory<_i516.FeedCubit>(
+      () =>
+          _i516.FeedCubit(gh<_i1022.GetListings>(), gh<_i592.WatchListings>()),
+    );
+    gh.factory<_i446.MapCubit>(
+      () => _i446.MapCubit(
+        gh<_i619.GetMapListings>(),
+        gh<_i305.LocationService>(),
+        gh<_i592.WatchListings>(),
+      ),
+    );
     gh.factory<_i358.ChatCubit>(
       () => _i358.ChatCubit(
         gh<_i894.WatchChat>(),
@@ -608,6 +691,7 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i496.SendMessage>(),
         gh<_i905.MarkReturned>(),
         gh<_i445.GetListingDetail>(),
+        gh<_i327.GetBlockState>(),
       ),
     );
     gh.factory<_i64.CreateFlowCubit>(
@@ -652,6 +736,13 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i445.GetClaimReview>(),
         gh<_i546.AcceptClaim>(),
         gh<_i695.RejectClaim>(),
+      ),
+    );
+    gh.factory<_i165.BlockedCubit>(
+      () => _i165.BlockedCubit(
+        gh<_i770.WatchBlocked>(),
+        gh<_i628.UnblockUser>(),
+        gh<_i547.BlockUser>(),
       ),
     );
     return this;

@@ -8,7 +8,11 @@ enum ItemCategory { documents, phones, keys, wallets, bags, electronics, clothes
 
 enum DatePeriod { today, week, month, custom }
 
-enum ListingStatus { active, returned }
+/// [hidden] is set by the server when three different people reported the
+/// listing (functions/src/moderate.ts): it leaves the feed, the map and
+/// search, and its author can neither edit nor close it until a moderator
+/// has looked at it.
+enum ListingStatus { active, returned, hidden }
 
 /// Public profile of another user. Never carries a phone number.
 class PublicUser extends Equatable {

@@ -17,6 +17,8 @@ export const accountPaths = {
   listings: "topildi_listings",
   claims: "topildi_claims",
   chats: "topildi_chats",
+  /** Shikoyatlar the user sent; those sent about them stay as evidence. */
+  reports: "topildi_reports",
   /** FoodZeen's profiles: `users/{uid}`, `users/{uid}/recipes`. */
   foodzeenUsers: "users",
 } as const;
@@ -40,14 +42,16 @@ export async function deleteAccount(uid: string): Promise<{ authDeleted: boolean
   // Claims the user sent, and claims others sent on the user's listings.
   const claims = [...(await ids(accountPaths.claims, "claimantId")), ...(await ids(accountPaths.claims, "listingAuthorId"))];
   const chats = await ids(accountPaths.chats, "members", "array-contains");
+  const reports = await ids(accountPaths.reports, "reporterId");
 
   const bucket = getStorage().bucket();
   for (const prefix of storagePrefixes(uid, listings.map((r) => r.id), claims.map((r) => r.id))) {
     await bucket.deleteFiles({ prefix });
   }
 
-  // Recursive: messages, the hidden detail, devices and notifications go too.
-  for (const ref of [...chats, ...claims, ...listings, db.collection(paths.users).doc(uid)]) {
+  // Recursive: messages, the hidden detail, devices, notifications and the
+  // user's own `blocked` list go with them.
+  for (const ref of [...chats, ...claims, ...listings, ...reports, db.collection(paths.users).doc(uid)]) {
     await db.recursiveDelete(ref);
   }
 
@@ -68,6 +72,7 @@ export async function deleteAccount(uid: string): Promise<{ authDeleted: boolean
     listings: listings.length,
     claims: claims.length,
     chats: chats.length,
+    reports: reports.length,
     authDeleted: !usedByFoodzeen,
   });
   return { authDeleted: !usedByFoodzeen };

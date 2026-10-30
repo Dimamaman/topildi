@@ -144,7 +144,10 @@ class _MenuLayout extends SingleChildLayoutDelegate {
   @override
   BoxConstraints getConstraintsForChild(BoxConstraints constraints) {
     final w = math.min(_MenuSpec.width, constraints.maxWidth - 16);
-    return BoxConstraints.tightFor(width: w, height: height);
+    // Loose height: a row whose label wraps onto a second line makes the
+    // menu taller (up to [height]) instead of hanging past its clipped
+    // edge, where it would not even take a tap.
+    return BoxConstraints(minWidth: w, maxWidth: w, maxHeight: height);
   }
 
   @override
@@ -252,7 +255,9 @@ class _PullDownMenuState<T> extends State<_PullDownMenu<T>> with SingleTickerPro
     // Below the row when it fits, or when at least 4.5 rows fit (then it
     // scrolls); otherwise above it, if there is more room there.
     final up = wanted > below && below < 16 + row * 4.5 && above > below;
-    final height = math.min(wanted, up ? above : below);
+    // The cap, not the guess: with loose constraints the menu takes its real
+    // height (a wrapped label makes a row taller than [row]) and stops here.
+    final height = math.min(maxHeight, up ? above : below);
     final scrollable = content > height;
     // Pick menus keep a check column; action menus start with the label.
     final checks = spec.items.any((it) => it.$1 == spec.current);
@@ -323,7 +328,9 @@ class _PullDownMenuState<T> extends State<_PullDownMenu<T>> with SingleTickerPro
         return false;
       },
       child: SingleChildScrollView(
-        physics: scrollable ? null : const NeverScrollableScrollPhysics(),
+        // The menu is only as tall as it needs to be, so this scrolls only
+        // when the rows really do not fit.
+        physics: const ClampingScrollPhysics(),
         padding: const EdgeInsets.symmetric(vertical: 8),
         child: Column(mainAxisSize: MainAxisSize.min, children: rows),
       ),

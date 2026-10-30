@@ -103,9 +103,16 @@ const _termsUz = LegalDocument(
           'boshqa foydalanuvchilarga koʻrsatish uchun bepul, noeksklyuziv ruxsat berasiz. Eʼlonni oʻchirsangiz, bu ruxsat tugaydi.',
       'Topildi nomi, logotipi va dizayni ilova egalariga tegishli.',
     ]),
-    LegalSection('7. Eʼlonlar nazorati', [
-      'Ushbu shartlarni buzgan eʼlon, soʻrov yoki hisobni ogohlantirishsiz yashirish yoki oʻchirish huquqimiz bor. '
-          'Qoidabuzarlik haqida {contact} orqali xabar bering.',
+    LegalSection('7. Eʼlonlar nazorati va shikoyatlar', [
+      'Nomaqbul kontent va suiisteʼmolga nol tolerantlik: haqorat, tahdid, firibgarlik, spam va soxta eʼlonlarga '
+          'yoʻl qoʻyilmaydi.',
+      '• Har qanday eʼlon yoki suhbat ustidan “…” menyusidagi “Shikoyat qilish” orqali shikoyat qilishingiz mumkin. '
+          'Kim shikoyat qilgani boshqalarga koʻrsatilmaydi.',
+      '• Shikoyatlar 24 soat ichida koʻrib chiqiladi. Bir nechta odam shikoyat qilgan eʼlon tekshiruvgacha avtomatik yashiriladi.',
+      '• Istalgan foydalanuvchini bloklashingiz mumkin: u sizga yoza olmaydi, soʻrov yubora olmaydi va eʼlonlari sizga koʻrinmaydi. '
+          'Bloklanganlar roʻyxati: Profil → “Bloklanganlar”.',
+      '• Ushbu shartlarni buzgan eʼlon, soʻrov yoki hisobni ogohlantirishsiz yashirish yoki oʻchirish huquqimiz bor. '
+          'Qoidabuzarlik haqida {contact} orqali ham xabar berishingiz mumkin.',
     ]),
     LegalSection('8. Javobgarlikning cheklanishi', [
       'Topildi buyum egalari va topgan odamlarni bogʻlaydigan platforma xolos.',
@@ -183,9 +190,17 @@ const _termsRu = LegalDocument(
           'хранить, сжимать и показывать их другим пользователям в приложении. Разрешение прекращается, когда вы удаляете объявление.',
       'Название, логотип и дизайн Topildi принадлежат владельцам приложения.',
     ]),
-    LegalSection('7. Модерация', [
-      'Мы вправе без предупреждения скрыть или удалить объявление, запрос или аккаунт, нарушающие эти условия. '
-          'О нарушениях сообщайте: {contact}.',
+    LegalSection('7. Модерация и жалобы', [
+      'Нулевая терпимость к недопустимому контенту и злоупотреблениям: оскорбления, угрозы, мошенничество, спам '
+          'и фейковые объявления запрещены.',
+      '• На любое объявление или переписку можно пожаловаться через «Пожаловаться» в меню «…». '
+          'Никто не узнает, кто отправил жалобу.',
+      '• Жалобы рассматриваются в течение 24 часов. Объявление, на которое пожаловались несколько человек, '
+          'скрывается автоматически до проверки.',
+      '• Любого пользователя можно заблокировать: он не сможет писать вам и отправлять запросы, а его объявления '
+          'будут скрыты. Список: Профиль → «Заблокированные».',
+      '• Мы вправе без предупреждения скрыть или удалить объявление, запрос или аккаунт, нарушающие эти условия. '
+          'О нарушениях также можно сообщить: {contact}.',
     ]),
     LegalSection('8. Ограничение ответственности', [
       'Topildi — лишь платформа, которая связывает владельцев вещей и тех, кто их нашёл.',

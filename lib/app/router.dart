@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import '../core/di/injection.dart';
 import '../features/auth/presentation/pages/profile_setup_page.dart';
+import '../features/block/presentation/pages/blocked_page.dart';
 import '../features/auth/presentation/pages/sign_in_page.dart';
 import '../features/legal/domain/legal_documents.dart';
 import '../features/legal/presentation/pages/legal_page.dart';
@@ -74,6 +75,7 @@ GoRouter createRouter({String initialLocation = Routes.splash}) => GoRouter(
     ),
     GoRoute(path: Routes.notifications, builder: (_, _) => const NotificationsPage()),
     GoRoute(path: Routes.myListings, builder: (_, _) => const MyListingsPage()),
+    GoRoute(path: Routes.blocked, builder: (_, _) => const BlockedPage()),
     // Create flow shares one CreateFlowCubit across its steps.
     ShellRoute(
       builder: (_, _, child) => BlocProvider(create: (_) => getIt<CreateFlowCubit>(), child: child),

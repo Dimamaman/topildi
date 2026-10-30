@@ -17,8 +17,11 @@ import '../../../../core/widgets/photo_placeholder.dart';
 import '../../../../core/widgets/pull_down_menu.dart';
 import '../../../../core/widgets/state_views.dart';
 import '../../../../core/widgets/t_feedback.dart';
+import '../../../block/presentation/widgets/block_sheet.dart';
 import '../../../listing/domain/entities/listing.dart';
 import '../../../listing/presentation/category_ui.dart';
+import '../../../report/domain/entities/report.dart';
+import '../../../report/presentation/widgets/report_sheet.dart';
 import '../../domain/entities/chat.dart';
 import '../cubit/chat_cubit.dart';
 
@@ -141,6 +144,8 @@ class _ChatView extends StatelessWidget {
               data: data,
               listing: state.listing,
               returning: state.returning,
+              blockedByMe: state.blockedByMe,
+              canWrite: state.canWrite,
             ),
           },
         );
@@ -159,11 +164,17 @@ class _Body extends StatefulWidget {
     required this.data,
     required this.listing,
     required this.returning,
+    required this.blockedByMe,
+    required this.canWrite,
   });
 
   final ChatData data;
   final Listing? listing;
   final bool returning;
+
+  /// Blocked by the signed-in user, so the bar can offer the way back.
+  final bool blockedByMe;
+  final bool canWrite;
 
   @override
   State<_Body> createState() => _BodyState();
@@ -263,7 +274,11 @@ class _BodyState extends State<_Body> {
           left: 16,
           right: 16,
           top: top,
-          child: _Header(thread: thread, returning: widget.returning),
+          child: _Header(
+            thread: thread,
+            returning: widget.returning,
+            blockedByMe: widget.blockedByMe,
+          ),
         ),
         Positioned(
           left: 16,
@@ -292,6 +307,12 @@ class _BodyState extends State<_Body> {
                 ? _ClosedBar(
                     key: const ValueKey('closed'),
                     listingId: thread.listingId,
+                  )
+                : !widget.canWrite
+                ? _BlockedBar(
+                    key: const ValueKey('blocked'),
+                    byMe: widget.blockedByMe,
+                    other: thread.other,
                   )
                 : const _Composer(key: ValueKey('composer')),
           ),
@@ -335,10 +356,11 @@ class _GlassIconButton extends StatelessWidget {
 }
 
 class _Header extends StatelessWidget {
-  const _Header({required this.thread, required this.returning});
+  const _Header({required this.thread, required this.returning, required this.blockedByMe});
 
   final ChatThread thread;
   final bool returning;
+  final bool blockedByMe;
 
   Future<void> _confirmReturned(BuildContext context) async {
     final ok = await TFeedback.confirm(
@@ -351,16 +373,32 @@ class _Header extends StatelessWidget {
     if (ok && context.mounted) context.read<ChatCubit>().markReturned();
   }
 
-  Future<void> _report(BuildContext context) async {
-    final ok = await TFeedback.confirm(
+  /// The shikoyat sheet for this chat: what it carries is the conversation,
+  /// not the listing, so the moderator gets the last messages as evidence.
+  Future<void> _report(BuildContext context, Listing? listing) async {
+    await showReportSheet(
       context,
-      title: tr('Shikoyat qilasizmi?'),
-      body: tr('Moderatorlar suhbatni koʻrib chiqadi.'),
-      confirmLabel: tr('Shikoyat qilish'),
-      destructive: true,
+      target: ReportTarget(
+        type: ReportTargetType.chat,
+        id: thread.id,
+        reportedUid: thread.other.id,
+        title: thread.listingTitle,
+        personName: thread.other.displayName,
+        photoUrl: listing?.photos.isEmpty ?? true ? null : listing!.photos.first,
+        category: thread.listingCategory,
+        tint: thread.listingTint,
+      ),
     );
-    if (ok && context.mounted) {
-      TFeedback.success(context, tr('Shikoyat yuborildi'));
+  }
+
+  Future<void> _toggleBlock(BuildContext context) async {
+    final cubit = context.read<ChatCubit>();
+    if (blockedByMe) {
+      if (await unblock(context, thread.other.id)) await cubit.refreshBlock();
+      return;
+    }
+    if (await confirmBlock(context, uid: thread.other.id, name: thread.other.displayName)) {
+      await cubit.refreshBlock();
     }
   }
 
@@ -457,30 +495,123 @@ class _Header extends StatelessWidget {
             icon: Symbols.more_horiz_rounded,
             label: tr('Koʻproq'),
             onTap: () async {
+              // Buyum qaytarildi · Eʼlonni koʻrish | Shikoyat · Bloklash
+              final items = <(String, String)>[
+                if (canReturn) ('returned', tr('Buyum qaytarildi')),
+                ('listing', tr('Eʼlonni koʻrish')),
+                ('report', tr('Shikoyat qilish')),
+                ('block', blockedByMe ? tr('Blokdan chiqarish') : tr('Bloklash')),
+              ];
+              final icons = <IconData>[
+                if (canReturn) Symbols.handshake_rounded,
+                Symbols.inventory_2_rounded,
+                Symbols.flag_rounded,
+                blockedByMe ? Symbols.lock_open_rounded : Symbols.block_rounded,
+              ];
+              final listingAt = canReturn ? 1 : 0;
+              final listing = context.read<ChatCubit>().state.listing;
               final v = await showPullDownMenu(
                 context,
                 anchor: anchor,
                 label: tr('Koʻproq'),
-                items: [
-                  if (canReturn) ('returned', tr('Buyum qaytarildi')),
-                  ('report', tr('Shikoyat qilish')),
-                ],
-                icons: {
-                  if (canReturn) 0: Symbols.handshake_rounded,
-                  canReturn ? 1 : 0: Symbols.flag_rounded,
-                },
-                destructive: {canReturn ? 1 : 0},
+                items: items,
+                icons: icons.asMap(),
+                dividersAfter: {listingAt},
+                // Unblocking is not a dangerous action, so it keeps its colour.
+                destructive: {listingAt + 1, if (!blockedByMe) listingAt + 2},
               );
               if (!context.mounted) return;
-              if (v == 'returned') {
-                await _confirmReturned(context);
-              } else if (v == 'report') {
-                await _report(context);
+              switch (v) {
+                case 'returned':
+                  await _confirmReturned(context);
+                case 'listing':
+                  await context.push(Routes.listing(thread.listingId));
+                case 'report':
+                  await _report(context, listing);
+                case 'block':
+                  await _toggleBlock(context);
               }
             },
           ),
         ),
       ],
+    );
+  }
+}
+
+/// BL2: writing is closed because of a block. Only the side that blocked is
+/// offered a way back; the other never learns who blocked whom.
+class _BlockedBar extends StatelessWidget {
+  const _BlockedBar({super.key, required this.byMe, required this.other});
+
+  final bool byMe;
+  final PublicUser other;
+
+  Future<void> _unblock(BuildContext context) async {
+    final cubit = context.read<ChatCubit>();
+    if (await unblock(context, other.id)) await cubit.refreshBlock();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final c = _ChatColors.of(context);
+    return GlassSurface(
+      color: c.glassBar,
+      radius: 28,
+      padding: const EdgeInsets.fromLTRB(18, 8, 8, 8),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: 40),
+        child: Row(
+          children: [
+            Icon(Symbols.block_rounded, size: 20, color: cs.error),
+            const SizedBox(width: 10),
+            Expanded(
+              child: byMe
+                  ? Text.rich(
+                      TextSpan(
+                        children: [
+                          TextSpan(
+                            text: tr('Siz bloklagansiz.'),
+                            style: TextStyle(color: cs.onSurface).inter(FontWeight.w700),
+                          ),
+                          const TextSpan(text: ' '),
+                          TextSpan(text: tr('Yozib boʻlmaydi.')),
+                        ],
+                      ),
+                      style: TextStyle(fontSize: 14, height: 18 / 14, color: cs.secondary),
+                    )
+                  : Text(
+                      tr('Bu foydalanuvchi bilan yozishib boʻlmaydi'),
+                      style: TextStyle(fontSize: 14, height: 18 / 14, color: cs.secondary),
+                    ),
+            ),
+            if (byMe) ...[
+              const SizedBox(width: 10),
+              Semantics(
+                button: true,
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => _unblock(context),
+                  child: Container(
+                    height: 40,
+                    padding: const EdgeInsets.symmetric(horizontal: 14),
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: cs.primaryContainer,
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: Text(
+                      tr('Blokdan chiqarish'),
+                      style: TextStyle(fontSize: 14, color: cs.onPrimaryContainer).inter(FontWeight.w700),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
     );
   }
 }

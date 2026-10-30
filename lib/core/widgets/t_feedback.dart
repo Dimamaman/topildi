@@ -7,8 +7,13 @@ import '../theme/t_text.dart';
 import 'glass_surface.dart';
 
 abstract final class TFeedback {
-  static void success(BuildContext context, String message, {String? action, VoidCallback? onAction}) =>
-      _show(context, message, Symbols.check_rounded, action, onAction, isSuccess: true);
+  static void success(
+    BuildContext context,
+    String message, {
+    String? action,
+    VoidCallback? onAction,
+    Duration? duration,
+  }) => _show(context, message, Symbols.check_rounded, action, onAction, isSuccess: true, duration: duration);
 
   static void error(BuildContext context, String message, {String? action, VoidCallback? onAction}) =>
       _show(context, message, Symbols.error_rounded, action, onAction);
@@ -20,6 +25,7 @@ abstract final class TFeedback {
     String? action,
     VoidCallback? onAction, {
     bool isSuccess = false,
+    Duration? duration,
   }) {
     final cs = Theme.of(context).colorScheme;
     final dark = Theme.of(context).brightness == Brightness.dark;
@@ -31,6 +37,7 @@ abstract final class TFeedback {
       ..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
+          duration: duration ?? const Duration(seconds: 4),
           content: Row(
             children: [
               Icon(icon, size: 20, color: iconColor),

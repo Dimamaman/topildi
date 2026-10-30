@@ -42,15 +42,24 @@ abstract class FirebaseModule {
 abstract final class FirePaths {
   static const users = 'topildi_users';
 
-  /// Under a user: `notifications/{id}` (written by Cloud Functions) and
-  /// `devices/{fcmToken}` (push targets). Both readable by the owner only.
+  /// Under a user: `notifications/{id}` (written by Cloud Functions),
+  /// `devices/{fcmToken}` (push targets) and `blocked/{uid}` (people this
+  /// user has blocked). Readable by the owner only.
   static const notifications = 'notifications';
   static const devices = 'devices';
+  static const blocked = 'blocked';
   static const listings = 'topildi_listings';
   static const claims = 'topildi_claims';
 
   /// A chat's id is the id of the claim that opened it.
   static const chats = 'topildi_chats';
+
+  /// Shikoyatlar, id `{targetType}_{targetId}_{reporterUid}`: the app only
+  /// ever writes one and reads back its own (firestore.rules).
+  static const reports = 'topildi_reports';
+
+  static String reportId(String targetType, String targetId, String reporterUid) =>
+      '${targetType}_${targetId}_$reporterUid';
 
   /// Listing photos: in the author's own folder, so the storage rules check
   /// only the uid (no Firestore lookup). [name] is unique per photo.

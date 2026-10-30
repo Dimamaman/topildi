@@ -30,7 +30,10 @@ import '../widgets/area_map_page.dart';
 import '../widgets/photo_viewer.dart';
 import '../../../../core/l10n/tr.dart';
 import '../../../../core/widgets/topildi_loader.dart';
+import '../../../block/presentation/widgets/block_sheet.dart';
 import '../../../claim/domain/entities/claim.dart';
+import '../../../report/domain/entities/report.dart';
+import '../../../report/presentation/widgets/report_sheet.dart';
 
 class DetailPage extends StatelessWidget {
   const DetailPage({super.key, required this.listingId});
@@ -101,12 +104,7 @@ class _DetailViewState extends State<_DetailView> {
                 ? null
                 : state.isMine
                 ? _AuthorActions(listing: listing)
-                : _GlassButton(
-                    icon: Symbols.ios_share_rounded,
-                    iconSize: 22,
-                    label: tr('Ulashish'),
-                    onTap: () => _share(context, listing),
-                  ),
+                : _VisitorActions(listing: listing, onBlocked: _close),
           );
           return Scaffold(
             body: switch (view) {
@@ -364,6 +362,56 @@ class _GlassButton extends StatelessWidget {
   }
 }
 
+/// Someone else's eʼlon: "…" with Ulashish, Shikoyat qilish and
+/// Muallifni bloklash. Blocking closes the page — their listings are gone
+/// from the Lenta behind it.
+class _VisitorActions extends StatelessWidget {
+  const _VisitorActions({required this.listing, required this.onBlocked});
+
+  final Listing listing;
+  final VoidCallback onBlocked;
+
+  Future<void> _more(BuildContext context, BuildContext anchor) async {
+    final picked = await showPullDownMenu(
+      context,
+      anchor: anchor,
+      label: tr('Yana'),
+      items: [
+        ('share', tr('Ulashish')),
+        ('report', tr('Shikoyat qilish')),
+        ('block', tr('Muallifni bloklash')),
+      ],
+      icons: const {0: Symbols.ios_share_rounded, 1: Symbols.flag_rounded, 2: Symbols.block_rounded},
+      dividersAfter: const {0},
+      destructive: const {1, 2},
+    );
+    if (!context.mounted) return;
+    switch (picked) {
+      case 'share':
+        await _share(context, listing);
+      case 'report':
+        await showReportSheet(context, target: ReportTarget.listing(listing));
+      case 'block':
+        final blocked = await confirmBlock(
+          context,
+          uid: listing.author.id,
+          name: listing.author.displayName,
+        );
+        if (blocked) onBlocked();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) => Builder(
+    builder: (anchor) => _GlassButton(
+      icon: Symbols.more_horiz_rounded,
+      iconSize: 22,
+      label: tr('Yana'),
+      onTap: () => _more(context, anchor),
+    ),
+  );
+}
+
 /// Author: one glass capsule with Tahrirlash and Yana (delete / share).
 class _AuthorActions extends StatelessWidget {
   const _AuthorActions({required this.listing});
@@ -439,8 +487,8 @@ class _AuthorActions extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // A returned listing is closed: nothing to edit.
-            if (listing.status != ListingStatus.returned)
+            // A closed or reported listing is not editable.
+            if (listing.status == ListingStatus.active)
               button(Symbols.edit_rounded, tr('Tahrirlash'), (_) => _edit(context)),
             button(Symbols.more_horiz_rounded, tr('Yana'), (anchor) => _more(context, anchor)),
           ],
@@ -1063,7 +1111,8 @@ class _AuthorPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tc = context.tc;
-    final returned = listing.status == ListingStatus.returned;
+    // Hidden listings are with a moderator: nothing to close either.
+    final returned = listing.status != ListingStatus.active;
     return GlassSurface(
       radius: 34,
       color: context.glass.panel,

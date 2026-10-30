@@ -13,6 +13,12 @@ service cloud.firestore {
     function signedIn() { return request.auth != null; }
     function isMe(uid) { return signedIn() && request.auth.uid == uid; }
 
+    // Blocking is one-way and silent: [other] has blocked the signed-in user,
+    // who may then neither write to them nor claim their listings.
+    function blockedBy(other) {
+      return exists(/databases/$(database)/documents/topildi_users/$(other)/blocked/$(request.auth.uid));
+    }
+
     // Telegram sign-in attempts (functions/src/login.ts): server only.
     match /topildi_tg_sessions/{sid} {
       allow read, write: if false;
@@ -39,6 +45,20 @@ service cloud.firestore {
           && request.resource.data.token == token
           && request.resource.data.platform in ['ios', 'android']
           && request.resource.data.lang in ['uz_Latn', 'uz_Cyrl', 'ru'];
+      }
+
+      // People this user has blocked, id = the blocked uid. The owner keeps
+      // the list; the blocked person may read only their own entry, which is
+      // what the chat needs to know that writing is closed.
+      match /blocked/{otherUid} {
+        allow read: if isMe(uid) || isMe(otherUid);
+        allow create, update: if isMe(uid)
+          && otherUid != uid
+          && request.resource.data.keys().hasOnly(['name', 'createdAt'])
+          && (!('name' in request.resource.data)
+              || (request.resource.data.name is string && request.resource.data.name.size() <= 40))
+          && request.resource.data.createdAt == request.time;
+        allow delete: if isMe(uid);
       }
 
       // Written by Cloud Functions (Admin SDK); the owner only marks them read.
@@ -82,8 +102,11 @@ service cloud.firestore {
         && validListing(request.resource.data);
       // The author may change the status (active -> returned), or edit an
       // active listing's content; type, author and dates stay as they are.
+      // 'hidden' (set by topildiOnReportCreated once three people reported the
+      // listing) is the server's alone: the author can neither set nor leave it.
       allow update: if (isMe(resource.data.authorId)
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt'])
+          && resource.data.status != 'hidden'
           && request.resource.data.status in ['active', 'returned'])
         || (isMe(resource.data.authorId)
           && resource.data.status == 'active'
@@ -135,6 +158,7 @@ service cloud.firestore {
         && listingOf(request.resource.data.listingId).authorId == request.resource.data.listingAuthorId
         && listingOf(request.resource.data.listingId).status == 'active'
         && request.resource.data.listingAuthorId != request.auth.uid
+        && !blockedBy(request.resource.data.listingAuthorId)
         && (request.resource.data.attempt == 1
             || get(claimPath(request.resource.data.listingId, request.resource.data.attempt - 1)).data.status
                in ['rejected', 'cancelled']);
@@ -184,9 +208,13 @@ service cloud.firestore {
 
       match /messages/{messageId} {
         function chat() { return get(/databases/$(database)/documents/topildi_chats/$(chatId)).data; }
+        function other() {
+          return chat().members[0] == request.auth.uid ? chat().members[1] : chat().members[0];
+        }
 
         allow read: if signedIn() && request.auth.uid in chat().members;
         allow create: if signedIn() && request.auth.uid in chat().members
+          && !blockedBy(other())
           && request.resource.data.keys().hasOnly(['senderId', 'text', 'kind', 'createdAt'])
           && request.resource.data.senderId == request.auth.uid
           && request.resource.data.text is string
@@ -195,6 +223,42 @@ service cloud.firestore {
           && ((request.resource.data.kind == 'text' && chat().returned == false)
               || (request.resource.data.kind == 'returned' && chat().finderId == request.auth.uid));
       }
+    }
+
+    // Shikoyatlar. The app only ever writes one, and reads back only its own
+    // (the sheet shows "already sent"); moderation happens in Cloud Functions
+    // and Telegram, which go through the Admin SDK and past these rules.
+    // Id {targetType}_{targetId}_{reporterUid}: one report per person per target.
+    match /topildi_reports/{reportId} {
+      function listingOf(id) { return get(/databases/$(database)/documents/topildi_listings/$(id)).data; }
+      function chatOf(id) { return get(/databases/$(database)/documents/topildi_chats/$(id)).data; }
+      function validReport(d) {
+        return d.keys().hasOnly(['targetType', 'targetId', 'reportedUid', 'reporterId',
+                                 'reason', 'comment', 'status', 'createdAt'])
+          && d.targetType in ['listing', 'chat']
+          && d.targetId is string && d.targetId.size() > 0
+          && d.reportedUid is string && d.reportedUid.size() > 0
+          && d.reason in ['spam', 'fake', 'scam', 'offensive', 'other']
+          && (!('comment' in d) || (d.comment is string && d.comment.size() <= 300))
+          && d.status == 'open'
+          && d.createdAt == request.time
+          && d.reporterId == request.auth.uid
+          && d.reportedUid != request.auth.uid
+          && reportId == d.targetType + '_' + d.targetId + '_' + request.auth.uid;
+      }
+      // Who is reported has to follow from the target: a listing's author, or
+      // the other member of a chat the reporter is in.
+      function validTarget(d) {
+        return (d.targetType == 'listing' && listingOf(d.targetId).authorId == d.reportedUid)
+          || (d.targetType == 'chat'
+              && request.auth.uid in chatOf(d.targetId).members
+              && d.reportedUid in chatOf(d.targetId).members);
+      }
+
+      // `resource == null` is the sheet asking whether it reported this before.
+      allow get: if signedIn() && (resource == null || isMe(resource.data.reporterId));
+      allow list, update, delete: if false;
+      allow create: if signedIn() && validReport(request.resource.data) && validTarget(request.resource.data);
     }
   }
 }

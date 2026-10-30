@@ -22,6 +22,8 @@ import '../../../../core/widgets/state_views.dart';
 import '../../../../core/widgets/t_avatar.dart';
 import '../../../../core/widgets/t_feedback.dart';
 import '../../../../core/widgets/t_refresh_scroll_view.dart';
+import '../../../block/domain/entities/blocked_user.dart';
+import '../../../block/domain/usecases/watch_blocked.dart';
 import '../../../listing/domain/entities/listing.dart';
 import '../../../listing/presentation/category_ui.dart';
 import '../../domain/entities/profile_summary.dart';
@@ -393,7 +395,9 @@ class _MineCard extends StatelessWidget {
     final text = Theme.of(context).textTheme;
     final l = m.listing;
     final returned = l.status == ListingStatus.returned;
-    final (tagLabel, tagBg, tagFg) = returned
+    final (tagLabel, tagBg, tagFg) = l.status == ListingStatus.hidden
+        ? (tr('Tekshiruvda'), tc.warningContainer, tc.warning)
+        : returned
         ? (tr('Qaytarildi'), tc.successContainer, tc.success)
         : m.pendingClaims > 0
         ? (
@@ -703,6 +707,26 @@ class _Settings extends StatelessWidget {
                 },
               ),
               separator,
+              _Tap(
+                label: tr('Bloklanganlar'),
+                onTap: () => context.push(Routes.blocked),
+                child: _BlockedCount(
+                  builder: (count) => row(
+                    icon: Symbols.block_rounded,
+                    label: tr('Bloklanganlar'),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (count > 0)
+                          Text('$count', style: body.copyWith(color: cs.onSurfaceVariant)),
+                        if (count > 0) const SizedBox(width: 4),
+                        chevron,
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              separator,
               Semantics(
                 toggled: notificationsOn,
                 label: tr('Bildirishnomalar'),
@@ -765,6 +789,28 @@ class _Settings extends StatelessWidget {
       ],
     );
   }
+}
+
+/// How many people are blocked, live, for the Sozlamalar row. Nothing is
+/// shown until the list arrives, so the row never flashes a wrong number.
+class _BlockedCount extends StatefulWidget {
+  const _BlockedCount({required this.builder});
+
+  final Widget Function(int count) builder;
+
+  @override
+  State<_BlockedCount> createState() => _BlockedCountState();
+}
+
+class _BlockedCountState extends State<_BlockedCount> {
+  late final Stream<List<BlockedUser>> _stream = getIt<WatchBlocked>()()
+      .map((r) => r.getOrElse((_) => const []));
+
+  @override
+  Widget build(BuildContext context) => StreamBuilder<List<BlockedUser>>(
+    stream: _stream,
+    builder: (context, snapshot) => widget.builder(snapshot.data?.length ?? 0),
+  );
 }
 
 /// Loading placeholder in the shape of the loaded page: tinted header with

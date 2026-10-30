@@ -530,6 +530,14 @@ class _MineCard extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     final tc = context.tc;
     final dark = Theme.of(context).brightness == Brightness.dark;
+    if (m.listing.status == ListingStatus.hidden) {
+      return GlassTag(
+        label: tr('Tekshiruvda'),
+        icon: Symbols.visibility_off_rounded,
+        color: tc.warning,
+        fill: tc.warningContainer.withValues(alpha: dark ? 0.85 : 0.9),
+      );
+    }
     if (m.listing.status == ListingStatus.returned) {
       return GlassTag(
         label: tr('Qaytarildi'),

@@ -6,6 +6,7 @@ import 'package:injectable/injectable.dart';
 
 import '../../../../core/error/failure.dart';
 import '../../../../core/view_state.dart';
+import '../../../block/domain/usecases/get_block_state.dart';
 import '../../../listing/domain/entities/listing.dart';
 import '../../../listing/domain/usecases/get_listing_detail.dart';
 import '../../domain/entities/chat.dart';
@@ -34,6 +35,8 @@ class ChatState extends Equatable {
     this.returning = false,
     this.returnedSummary,
     this.failure,
+    this.blockedByMe = false,
+    this.blockedMe = false,
   });
 
   final ViewState<ChatData> view;
@@ -47,33 +50,49 @@ class ChatState extends Equatable {
   final ReturnSummary? returnedSummary;
   final Failure? failure;
 
+  /// The signed-in user blocked the other member: writing is closed and the
+  /// bar offers "Blokdan chiqarish".
+  final bool blockedByMe;
+
+  /// The other member blocked them: writing is closed with no way back, and
+  /// the bar never says who blocked whom.
+  final bool blockedMe;
+
+  bool get canWrite => !blockedByMe && !blockedMe;
+
   ChatState copyWith({
     ViewState<ChatData>? view,
     Listing? listing,
     bool? returning,
     ReturnSummary? returnedSummary,
     Failure? failure,
+    bool? blockedByMe,
+    bool? blockedMe,
   }) => ChatState(
     view: view ?? this.view,
     listing: listing ?? this.listing,
     returning: returning ?? this.returning,
     returnedSummary: returnedSummary,
     failure: failure,
+    blockedByMe: blockedByMe ?? this.blockedByMe,
+    blockedMe: blockedMe ?? this.blockedMe,
   );
 
   @override
-  List<Object?> get props => [view, listing, returning, returnedSummary, failure];
+  List<Object?> get props => [view, listing, returning, returnedSummary, failure, blockedByMe, blockedMe];
 }
 
 @injectable
 class ChatCubit extends Cubit<ChatState> {
-  ChatCubit(this._watch, this._markRead, this._send, this._markReturned, this._listing) : super(const ChatState());
+  ChatCubit(this._watch, this._markRead, this._send, this._markReturned, this._listing, this._blockState)
+    : super(const ChatState());
 
   final WatchChat _watch;
   final MarkChatRead _markRead;
   final SendMessage _send;
   final MarkReturned _markReturned;
   final GetListingDetail _listing;
+  final GetBlockState _blockState;
   late String _chatId;
   final _subs = <StreamSubscription<void>>[];
   ChatThread? _thread;
@@ -114,7 +133,10 @@ class ChatCubit extends Cubit<ChatState> {
             .thread(chatId)
             .listen(
               (r) => r.match(_fail, (t) {
-                if (_thread == null) _loadListing(t.listingId);
+                if (_thread == null) {
+                  _loadListing(t.listingId);
+                  refreshBlock(t.other.id);
+                }
                 _thread = t;
                 _publish();
               }),
@@ -155,6 +177,17 @@ class ChatCubit extends Cubit<ChatState> {
     if (isClosed) return;
     // The card falls back to title and icon without it.
     result.match((_) {}, (l) => emit(state.copyWith(listing: l)));
+  }
+
+  /// Who has blocked whom, for the bottom bar. Asked when the chat opens
+  /// and again after blocking or unblocking from the menu.
+  Future<void> refreshBlock([String? otherId]) async {
+    final uid = otherId ?? _thread?.other.id;
+    if (uid == null || uid.isEmpty) return;
+    final result = await _blockState(uid);
+    if (isClosed) return;
+    // A state we could not read leaves the chat as it is.
+    result.match((_) {}, (s) => emit(state.copyWith(blockedByMe: s.byMe, blockedMe: s.ofMe)));
   }
 
   /// Marks the chat read when it opens and whenever a new message arrives.

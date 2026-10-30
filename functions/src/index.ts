@@ -16,8 +16,10 @@ import { onSchedule } from "firebase-functions/v2/scheduler";
 import { deleteAccount } from "./account";
 import { claimCreated, claimUpdated, Delivery, messageCreated, remindAfterMs, reminders, WaitingClaim } from "./events";
 import { claimSession, handleUpdate, startSession } from "./login";
+import { BotConfig, handleModeration, handleReport } from "./moderate";
 import { deliver } from "./notify";
-import { parseUpdate, TgUpdate } from "./telegram";
+import { parseCallbackData, ReportDoc } from "./report";
+import { parseCallback, parseUpdate, TgUpdate } from "./telegram";
 
 initializeApp();
 
@@ -97,6 +99,31 @@ export const topildiRemindPendingClaims = onSchedule("every 60 minutes", async (
 /** Bot username without "@" (functions/.env), for the t.me link. */
 const botUsername = defineString("TELEGRAM_BOT_USERNAME");
 
+/** Moderator chat for shikoyatlar (functions/.env); empty turns sending off. */
+const adminChatId = defineString("TELEGRAM_ADMIN_CHAT_ID", { default: "" });
+
+/**
+ * Bot token, for the calls the bot makes by itself (the sign-in replies ride
+ * back in the webhook's response and need none).
+ */
+const botToken = defineSecret("TELEGRAM_BOT_TOKEN");
+
+const botConfig = (): BotConfig => ({ token: botToken.value(), adminChatId: adminChatId.value() });
+
+/**
+ * A shikoyat from the app (report.ts, moderate.ts): the evidence is copied
+ * onto the report, the moderator chat hears about it, and a listing three
+ * different people reported is hidden.
+ */
+export const topildiOnReportCreated = onDocumentCreated(
+  { document: "topildi_reports/{reportId}", secrets: [botToken] },
+  async (event) => {
+    const report = event.data?.data() as ReportDoc | undefined;
+    if (!report) return;
+    await handleReport(event.params.reportId, report, botConfig());
+  },
+);
+
 /** Passed to setWebhook as secret_token; Telegram sends it back in a header. */
 const webhookSecret = defineSecret("TELEGRAM_WEBHOOK_SECRET");
 
@@ -104,9 +131,22 @@ export const topildiTgStart = onCall(() => startSession(botUsername.value()));
 
 export const topildiTgClaim = onCall((req) => claimSession(req.data?.sid, req.data?.secret));
 
-export const topildiTgWebhook = onRequest({ secrets: [webhookSecret] }, async (req, res) => {
+export const topildiTgWebhook = onRequest({ secrets: [webhookSecret, botToken] }, async (req, res) => {
   if (req.method !== "POST" || req.get("X-Telegram-Bot-Api-Secret-Token") !== webhookSecret.value()) {
     res.status(403).end();
+    return;
+  }
+  // A moderator's button under a shikoyat: answered through the Bot API, so
+  // the webhook's own response stays empty.
+  const press = parseCallback(req.body as TgUpdate);
+  if (press) {
+    const picked = parseCallbackData(press.data);
+    try {
+      if (picked) await handleModeration({ ...press, ...picked }, botConfig());
+    } catch (e) {
+      logger.error("Moderation press failed", e);
+    }
+    res.status(200).end();
     return;
   }
   const m = parseUpdate(req.body as TgUpdate);

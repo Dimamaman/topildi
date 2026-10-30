@@ -18,7 +18,24 @@ export type TgUpdate = {
     text?: string;
     contact?: { phone_number?: string; user_id?: number; first_name?: string };
   };
+  /** A moderator pressing a button under a shikoyat (see report.ts). */
+  callback_query?: {
+    id?: string;
+    message?: { chat?: { id?: number }; message_id?: number };
+    data?: string;
+  };
 };
+
+/** A pressed inline button, read by moderate.ts rather than by the sign-in. */
+export type IncomingCallback = { callbackId: string; chatId: number; messageId: number; data: string };
+
+export function parseCallback(update: TgUpdate): IncomingCallback | null {
+  const q = update.callback_query;
+  const chatId = q?.message?.chat?.id;
+  const messageId = q?.message?.message_id;
+  if (!q || typeof q.id !== "string" || typeof chatId !== "number" || typeof messageId !== "number") return null;
+  return { callbackId: q.id, chatId, messageId, data: typeof q.data === "string" ? q.data : "" };
+}
 
 export type Incoming =
   | { kind: "start"; chatId: number; sid: string; lang: BotLang }
