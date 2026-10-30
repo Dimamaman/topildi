@@ -10,6 +10,7 @@ import '../../../../core/di/injection.dart';
 import '../../../../core/l10n/tr.dart';
 import '../../../../core/push/push_service.dart';
 import '../../../../core/theme/t_text.dart';
+import '../../../../core/theme/topildi_theme.dart';
 import '../../../../core/utils/date_format.dart';
 import '../../../../core/view_state.dart';
 import '../../../../core/widgets/glass_surface.dart';
@@ -69,6 +70,8 @@ class _ChatColors {
     required this.hint,
     required this.myTime,
     required this.otherTime,
+    required this.myShadow,
+    required this.otherShadow,
   });
 
   /// Radial light at the top of the page.
@@ -79,6 +82,9 @@ class _ChatColors {
   final Color hint;
   final Color myTime, otherTime;
 
+  /// Drop shadow under my own bubble (no blue shadows on black).
+  final Color myShadow, otherShadow;
+
   static const _light = _ChatColors._(
     glow: Color(0xFFE3EBFC),
     glassHeader: Color(0xCCFFFFFF),
@@ -87,16 +93,20 @@ class _ChatColors {
     hint: Color(0xFF8A94A6),
     myTime: Color(0xBFFFFFFF),
     otherTime: Color(0xFF8A94A6),
+    myShadow: Color(0x382B5FD9),
+    otherShadow: Color(0x0D0F1420),
   );
 
   static const _dark = _ChatColors._(
-    glow: Color(0xFF182031),
-    glassHeader: Color(0xD1182031),
-    glassCard: Color(0xD1182031),
-    glassBar: Color(0xD1182031),
-    hint: Color(0xFF9AA6BB),
-    myTime: Color(0xB30B2A6B),
-    otherTime: Color(0xFF9AA6BB),
+    glow: Color(0xFF0A1430),
+    glassHeader: Color(0xD916171A),
+    glassCard: Color(0xD916171A),
+    glassBar: Color(0xD916171A),
+    hint: Color(0xFF8E95A3),
+    myTime: Color(0xBFFFFFFF),
+    otherTime: Color(0xFF8E95A3),
+    myShadow: Color(0x66000000),
+    otherShadow: Color(0x59000000),
   );
 
   static _ChatColors of(BuildContext context) =>
@@ -947,7 +957,7 @@ class _Bubble extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.fromLTRB(14, 9, 14, 7),
           decoration: BoxDecoration(
-            color: me ? cs.primary : cs.surfaceContainerLowest,
+            color: me ? context.tc.primaryFill : cs.surfaceContainerLowest,
             borderRadius: BorderRadius.only(
               topLeft: r,
               topRight: r,
@@ -956,14 +966,14 @@ class _Bubble extends StatelessWidget {
             ),
             boxShadow: [
               me
-                  ? const BoxShadow(
-                      color: Color(0x382B5FD9),
-                      offset: Offset(0, 6),
+                  ? BoxShadow(
+                      color: c.myShadow,
+                      offset: const Offset(0, 6),
                       blurRadius: 16,
                     )
-                  : const BoxShadow(
-                      color: Color(0x0D0F1420),
-                      offset: Offset(0, 2),
+                  : BoxShadow(
+                      color: c.otherShadow,
+                      offset: const Offset(0, 2),
                       blurRadius: 8,
                     ),
             ],

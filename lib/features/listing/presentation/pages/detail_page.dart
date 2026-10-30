@@ -812,7 +812,7 @@ class _ClaimsCard extends StatelessWidget {
                 height: 24,
                 padding: const EdgeInsets.symmetric(horizontal: 7),
                 alignment: Alignment.center,
-                decoration: BoxDecoration(color: cs.primary, borderRadius: BorderRadius.circular(999)),
+                decoration: BoxDecoration(color: context.tc.primaryFill, borderRadius: BorderRadius.circular(999)),
                 child: Text(
                   '$count',
                   style: TextStyle(fontSize: 13, height: 1, color: cs.onPrimary).inter(FontWeight.w700),
@@ -960,7 +960,7 @@ class _PillButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final enabled = onTap != null;
-    final background = bg ?? (enabled ? cs.primary : cs.surfaceContainerHighest);
+    final background = bg ?? (enabled ? context.tc.primaryFill : cs.surfaceContainerHighest);
     final foreground = fg ?? (enabled ? cs.onPrimary : cs.onSurfaceVariant);
     return _Tap(
       label: label,

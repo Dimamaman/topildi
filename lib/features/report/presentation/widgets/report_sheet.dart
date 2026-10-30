@@ -7,6 +7,7 @@ import '../../../../core/di/injection.dart';
 import '../../../../core/error/failure.dart';
 import '../../../../core/l10n/tr.dart';
 import '../../../../core/theme/t_text.dart';
+import '../../../../core/theme/topildi_theme.dart';
 import '../../../../core/usecase/usecase.dart';
 import '../../../../core/utils/date_format.dart';
 import '../../../../core/widgets/glass_empty_icon.dart';
@@ -467,7 +468,7 @@ class _Marker extends StatelessWidget {
       _StepMarker.done => Container(
         width: 30,
         height: 30,
-        decoration: BoxDecoration(color: cs.primary, shape: BoxShape.circle),
+        decoration: BoxDecoration(color: context.tc.primaryFill, shape: BoxShape.circle),
         child: Icon(Symbols.check_rounded, size: 18, color: cs.onPrimary),
       ),
       // The ring around it is the halo of the design, drawn as a spread
@@ -479,7 +480,7 @@ class _Marker extends StatelessWidget {
         decoration: BoxDecoration(
           color: cs.primaryContainer,
           shape: BoxShape.circle,
-          boxShadow: [BoxShadow(color: cs.primary.withValues(alpha: 0.12), spreadRadius: 5)],
+          boxShadow: [BoxShadow(color: context.primaryGlow(0.12), spreadRadius: 5)],
         ),
         child: SizedBox.square(
           dimension: 14,
@@ -497,7 +498,7 @@ class _Marker extends StatelessWidget {
         width: 30,
         height: 30,
         alignment: Alignment.center,
-        decoration: BoxDecoration(color: cs.primary, shape: BoxShape.circle),
+        decoration: BoxDecoration(color: context.tc.primaryFill, shape: BoxShape.circle),
         child: Icon(Symbols.verified_user_rounded, size: 17, fill: 1, color: cs.onPrimary),
       ),
       // Looked at, nothing found: the chain ends quietly, in grey.
@@ -606,7 +607,7 @@ class _CommentField extends StatelessWidget {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(22),
         boxShadow: focusNode.hasFocus
-            ? [BoxShadow(color: cs.primary.withValues(alpha: 0.10), blurRadius: 22, offset: const Offset(0, 8))]
+            ? [BoxShadow(color: context.primaryGlow(0.10), blurRadius: 22, offset: const Offset(0, 8))]
             : null,
       ),
       child: TextField(

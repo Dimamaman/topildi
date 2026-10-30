@@ -440,7 +440,7 @@ class _ClaimCard extends StatelessWidget {
       (cs.primaryContainer, cs.primary),
       (tc.successContainer, tc.success),
       (
-        Theme.of(context).brightness == Brightness.dark ? const Color(0xFF2E2742) : const Color(0xFFEBE6F3),
+        Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E1B26) : const Color(0xFFEBE6F3),
         Theme.of(context).brightness == Brightness.dark ? const Color(0xFFC2B5E8) : const Color(0xFF5B4A8A),
       ),
     ];
@@ -638,7 +638,7 @@ class _Vs extends StatelessWidget {
         height: 36,
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: dark ? const Color(0xFF2A3550) : Colors.white,
+          color: dark ? const Color(0xFF26282D) : Colors.white,
           shape: BoxShape.circle,
           boxShadow: const [BoxShadow(color: Color(0x260F1420), blurRadius: 12, offset: Offset(0, 4))],
         ),
@@ -646,7 +646,7 @@ class _Vs extends StatelessWidget {
           'VS',
           style: TextStyle(
             fontSize: 12,
-            color: dark ? const Color(0xFFC2CBDB) : const Color(0xFF556070),
+            color: dark ? const Color(0xFFD0D4DC) : const Color(0xFF556070),
           ).inter(FontWeight.w800),
         ),
       ),
@@ -814,8 +814,8 @@ class _RejectButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dark = Theme.of(context).brightness == Brightness.dark;
-    final bg = dark ? const Color(0xFF3A1C1A) : const Color(0xFFFDECEA);
-    final fg = dark ? const Color(0xFFFF8A80) : const Color(0xFFC2362B);
+    final bg = dark ? const Color(0xFF2A1211) : const Color(0xFFFDECEA);
+    final fg = dark ? const Color(0xFFFF6B5E) : const Color(0xFFC2362B);
     return Semantics(
       button: true,
       enabled: onTap != null,

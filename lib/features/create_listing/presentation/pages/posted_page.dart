@@ -17,6 +17,7 @@ import '../../../listing/presentation/category_ui.dart';
 import '../../domain/entities/create_draft.dart';
 import '../cubit/create_flow_cubit.dart';
 import '../widgets/create_ui.dart';
+import '../../../../core/theme/topildi_theme.dart';
 
 /// Eʼlon joylandi, "big headline + swipeable cards": the posted item with a
 /// check badge, a two-line headline, three "what happens next" cards that
@@ -479,7 +480,7 @@ class _StepCard extends StatelessWidget {
       curve: Curves.easeOut,
       builder: (context, t, _) => _build(
         cs,
-        bg: Color.lerp(cs.surfaceContainerLowest, cs.primary, t)!,
+        bg: Color.lerp(cs.surfaceContainerLowest, context.tc.primaryFill, t)!,
         fg: Color.lerp(cs.onSurface, cs.onPrimary, t)!,
         iconBg: Color.lerp(cs.primaryContainer, cs.onPrimary.withValues(alpha: dark ? 0.12 : 0.18), t)!,
         icon: Color.lerp(cs.primary, cs.onPrimary, t)!,
@@ -570,11 +571,16 @@ class _OpenButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
     return DecoratedBox(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(999),
-        boxShadow: [BoxShadow(color: cs.primary.withValues(alpha: 0.28), blurRadius: 28, offset: const Offset(0, 12))],
+        boxShadow: [
+          BoxShadow(
+            color: context.primaryGlow(0.28),
+            blurRadius: 28,
+            offset: const Offset(0, 12),
+          ),
+        ],
       ),
       child: FilledButton(
         onPressed: onTap,

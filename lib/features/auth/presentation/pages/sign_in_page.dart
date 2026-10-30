@@ -296,7 +296,7 @@ class _SignInViewState extends State<_SignInView> with TickerProviderStateMixin 
           final busy = state.phase != SignInPhase.idle || _finishing;
           final checking = state.phase == SignInPhase.checking || _finishing;
           return Scaffold(
-            backgroundColor: dark ? const Color(0xFF0F1420) : const Color(0xFFF4F6FA),
+            backgroundColor: dark ? const Color(0xFF000000) : const Color(0xFFF4F6FA),
             body: LayoutBuilder(
               builder: (context, box) {
                 final w = box.maxWidth;
@@ -318,7 +318,7 @@ class _SignInViewState extends State<_SignInView> with TickerProviderStateMixin 
                           painter: _RadarPainter(
                             centre: app,
                             scale: appSize / _appSize,
-                            color: dark ? const Color(0xFF8DB0FF) : cs.primary,
+                            color: dark ? const Color(0xFF4D7FFF) : cs.primary,
                             show: _radarIn,
                             turn: _radarTurn,
                           ),
@@ -455,11 +455,11 @@ class _Background extends StatelessWidget {
     const darkLight = RadialGradient(
       center: Alignment(0, -0.36),
       radius: 0.62,
-      colors: [Color(0x1F8DB0FF), Color(0x008DB0FF)],
+      colors: [Color(0xFF0A1430), Color(0x000A1430)],
     );
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: dark ? const Color(0xFF0F1420) : null,
+        color: dark ? const Color(0xFF000000) : null,
         gradient: dark
             ? null
             : const LinearGradient(
@@ -498,7 +498,7 @@ class _FlyingTile extends StatelessWidget {
     final s = tile.size;
     final r = BorderRadius.circular(s * 0.34);
     final base = dark ? const Color(0x14FFFFFF) : tile.color;
-    final ink = dark ? const Color(0xFF9FB3D9) : const Color(0xFF4F6288);
+    final ink = dark ? const Color(0xFF8E95A3) : const Color(0xFF4F6288);
     return Opacity(
       opacity: (tile.opacity * fade * dim).clamp(0.0, 1.0),
       child: Transform.translate(
@@ -660,7 +660,7 @@ class _TelegramButtonState extends State<_TelegramButton> {
             decoration: BoxDecoration(
               color: cs.primary,
               borderRadius: BorderRadius.circular(999),
-              boxShadow: [BoxShadow(color: cs.primary.withValues(alpha: 0.3), offset: const Offset(0, 12), blurRadius: 28)],
+              boxShadow: [BoxShadow(color: context.primaryGlow(0.3), offset: const Offset(0, 12), blurRadius: 28)],
             ),
             // 1px inner light along the top edge.
             foregroundDecoration: BoxDecoration(

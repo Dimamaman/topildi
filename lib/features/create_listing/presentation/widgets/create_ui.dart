@@ -7,6 +7,7 @@ import '../../../../core/widgets/glass_surface.dart';
 import '../../../../core/widgets/t_feedback.dart';
 import '../../../../core/l10n/tr.dart';
 import '../pages/create_flow_page.dart';
+import '../../../../core/theme/topildi_theme.dart';
 
 /// Colours of the create flow ("live card" design) that are not in the
 /// colour scheme, light and dark.
@@ -49,15 +50,15 @@ class CreateColors {
   );
 
   static const _dark = CreateColors._(
-    glow: Color(0xFF182031),
-    segment: Color(0xFF182031),
-    segmentThumb: Color(0xFF2A3550),
-    progressRest: Color(0xFF2A3550),
-    cardPhoto: Color(0xFF1F2940),
-    cardPhotoIcon: Color(0xFF5D6A84),
-    bar: Color(0xFF2A3550),
-    barSoft: Color(0xFF2A3550),
-    dashed: Color(0xFF5D6A84),
+    glow: Color(0xFF111214),
+    segment: Color(0xFF111214),
+    segmentThumb: Color(0xFF26282D),
+    progressRest: Color(0xFF26282D),
+    cardPhoto: Color(0xFF17181B),
+    cardPhotoIcon: Color(0xFF5F6672),
+    bar: Color(0xFF26282D),
+    barSoft: Color(0xFF26282D),
+    dashed: Color(0xFF5F6672),
   );
 
   static CreateColors of(BuildContext context) => Theme.of(context).brightness == Brightness.dark ? _dark : _light;
@@ -187,7 +188,7 @@ class CreateChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final (bg, fg, iconColor, border) = selected
-        ? (cs.primary, cs.onPrimary, cs.onPrimary, null)
+        ? (context.tc.primaryFill, cs.onPrimary, cs.onPrimary, null)
         : accent
         ? (cs.primaryContainer, cs.onPrimaryContainer, cs.onPrimaryContainer, null)
         : (cs.surfaceContainerLowest, cs.secondary, cs.primary, cs.outlineVariant);
@@ -484,10 +485,14 @@ class CreatePrimaryButton extends StatelessWidget {
             height: 56,
             padding: const EdgeInsets.symmetric(horizontal: 20),
             decoration: BoxDecoration(
-              color: cs.primary,
+              color: context.tc.primaryFill,
               borderRadius: BorderRadius.circular(999),
               boxShadow: [
-                BoxShadow(color: cs.primary.withValues(alpha: 0.28), offset: const Offset(0, 12), blurRadius: 28),
+                BoxShadow(
+                  color: context.primaryGlow(0.28),
+                  offset: const Offset(0, 12),
+                  blurRadius: 28,
+                ),
               ],
             ),
             alignment: Alignment.center,

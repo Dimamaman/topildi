@@ -34,11 +34,40 @@ class TopildiColors extends ThemeExtension<TopildiColors> {
     required this.warning,
     required this.warningContainer,
     required this.photoPlaceholder,
+    required this.primaryFill,
+    required this.surfaceGlow,
+    required this.onSurfaceSecondary,
+    required this.onSurfaceMuted,
+    required this.accentDot,
+    required this.glassFill,
+    required this.scrim,
   });
 
   final Color found, foundContainer, lost, lostContainer;
   final Color success, successContainer, warning, warningContainer;
   final Color photoPlaceholder;
+
+  /// Filled surfaces (buttons, FAB, my chat bubble, `Switch`). Darker than
+  /// [ColorScheme.primary] so white label text stays at AA on black.
+  final Color primaryFill;
+
+  /// Radial glow behind the top of a page.
+  final Color surfaceGlow;
+
+  /// Caption text one step above [ColorScheme.onSurfaceVariant].
+  final Color onSurfaceSecondary;
+
+  /// Placeholders, timestamps, disabled text.
+  final Color onSurfaceMuted;
+
+  /// Logo dot and decorative dots.
+  final Color accentDot;
+
+  /// Base fill of glass surfaces before the blur.
+  final Color glassFill;
+
+  /// Layer behind sheets and menus.
+  final Color scrim;
 
   static const light = TopildiColors(
     found: Color(0xFF157347),
@@ -50,18 +79,33 @@ class TopildiColors extends ThemeExtension<TopildiColors> {
     warning: Color(0xFF8A5A12),
     warningContainer: Color(0xFFFDF1D8),
     photoPlaceholder: Color(0xFFDCE4F2),
+    primaryFill: Color(0xFF2B5FD9),
+    surfaceGlow: Color(0xFFE3EBFC),
+    onSurfaceSecondary: Color(0xFF344055),
+    onSurfaceMuted: Color(0xFF8A94A6),
+    accentDot: Color(0xFFF3A77E),
+    glassFill: Color(0xB3FFFFFF),
+    scrim: Color(0x470F1420),
   );
 
+  // OLED dark (D2): no green — "found"/"success" are the brand blue.
   static const dark = TopildiColors(
-    found: Color(0xFF7ED6A5),
-    foundContainer: Color(0xFF17382A),
-    lost: Color(0xFFF3A77E),
-    lostContainer: Color(0xFF43281A),
-    success: Color(0xFF7ED6A5),
-    successContainer: Color(0xFF17382A),
-    warning: Color(0xFFF2C46D),
-    warningContainer: Color(0xFF3D2E12),
-    photoPlaceholder: Color(0xFF2A3550),
+    found: Color(0xFF4D7FFF),
+    foundContainer: Color(0xFF14234A),
+    lost: Color(0xFFFF9F6E),
+    lostContainer: Color(0xFF2A1A12),
+    success: Color(0xFF4D7FFF),
+    successContainer: Color(0xFF14234A),
+    warning: Color(0xFFF2C46B),
+    warningContainer: Color(0xFF2A2210),
+    photoPlaceholder: Color(0xFF17181B),
+    primaryFill: Color(0xFF3A6AF0),
+    surfaceGlow: Color(0xFF0A1430),
+    onSurfaceSecondary: Color(0xFFD0D4DC),
+    onSurfaceMuted: Color(0xFF5F6672),
+    accentDot: Color(0xFFF3A77E),
+    glassFill: Color(0xD916171A),
+    scrim: Color(0x99000000),
   );
 
   @override
@@ -75,6 +119,13 @@ class TopildiColors extends ThemeExtension<TopildiColors> {
     Color? warning,
     Color? warningContainer,
     Color? photoPlaceholder,
+    Color? primaryFill,
+    Color? surfaceGlow,
+    Color? onSurfaceSecondary,
+    Color? onSurfaceMuted,
+    Color? accentDot,
+    Color? glassFill,
+    Color? scrim,
   }) =>
       TopildiColors(
         found: found ?? this.found,
@@ -86,6 +137,13 @@ class TopildiColors extends ThemeExtension<TopildiColors> {
         warning: warning ?? this.warning,
         warningContainer: warningContainer ?? this.warningContainer,
         photoPlaceholder: photoPlaceholder ?? this.photoPlaceholder,
+        primaryFill: primaryFill ?? this.primaryFill,
+        surfaceGlow: surfaceGlow ?? this.surfaceGlow,
+        onSurfaceSecondary: onSurfaceSecondary ?? this.onSurfaceSecondary,
+        onSurfaceMuted: onSurfaceMuted ?? this.onSurfaceMuted,
+        accentDot: accentDot ?? this.accentDot,
+        glassFill: glassFill ?? this.glassFill,
+        scrim: scrim ?? this.scrim,
       );
 
   @override
@@ -101,12 +159,28 @@ class TopildiColors extends ThemeExtension<TopildiColors> {
       warning: Color.lerp(warning, other.warning, t)!,
       warningContainer: Color.lerp(warningContainer, other.warningContainer, t)!,
       photoPlaceholder: Color.lerp(photoPlaceholder, other.photoPlaceholder, t)!,
+      primaryFill: Color.lerp(primaryFill, other.primaryFill, t)!,
+      surfaceGlow: Color.lerp(surfaceGlow, other.surfaceGlow, t)!,
+      onSurfaceSecondary: Color.lerp(onSurfaceSecondary, other.onSurfaceSecondary, t)!,
+      onSurfaceMuted: Color.lerp(onSurfaceMuted, other.onSurfaceMuted, t)!,
+      accentDot: Color.lerp(accentDot, other.accentDot, t)!,
+      glassFill: Color.lerp(glassFill, other.glassFill, t)!,
+      scrim: Color.lerp(scrim, other.scrim, t)!,
     );
   }
 }
 
 extension TopildiThemeX on BuildContext {
   TopildiColors get tc => Theme.of(this).extension<TopildiColors>()!;
+
+  /// Glow under a filled blue element. The dark theme has no blue shadows —
+  /// black at 40%, which over an OLED page reads as no shadow at all.
+  Color primaryGlow(double opacity) {
+    final cs = Theme.of(this).colorScheme;
+    return cs.brightness == Brightness.dark
+        ? const Color(0x66000000)
+        : cs.primary.withValues(alpha: opacity);
+  }
 }
 
 const _lightScheme = ColorScheme(
@@ -137,30 +211,31 @@ const _lightScheme = ColorScheme(
   scrim: Color(0xFF0F1420),
 );
 
+// OLED dark (D2): pure black page, near-black cards, brand blue that reads on black.
 const _darkScheme = ColorScheme(
   brightness: Brightness.dark,
-  primary: Color(0xFF8DB0FF),
-  onPrimary: Color(0xFF0B2A6B),
-  primaryContainer: Color(0xFF233A72),
-  onPrimaryContainer: Color(0xFFD6E2FF),
-  secondary: Color(0xFFC2CBDB),
-  onSecondary: Color(0xFF0F1420),
-  error: Color(0xFFFF8A80),
-  onError: Color(0xFF0F1420),
-  errorContainer: Color(0xFF4A1D1A),
-  onErrorContainer: Color(0xFFFFDAD5),
-  surface: Color(0xFF0F1420),
-  onSurface: Color(0xFFE6EBF5),
-  onSurfaceVariant: Color(0xFF9AA6BB),
-  surfaceContainerLowest: Color(0xFF182031),
-  surfaceContainerLow: Color(0xFF182031),
-  surfaceContainer: Color(0xFF141A28),
-  surfaceContainerHigh: Color(0xFF212A3D),
-  surfaceContainerHighest: Color(0xFF2A3550),
-  outline: Color(0xFF5D6A84),
-  outlineVariant: Color(0xFF2A3550),
-  inverseSurface: Color(0xFFE6EBF5),
-  onInverseSurface: Color(0xFF172033),
+  primary: Color(0xFF4D7FFF),
+  onPrimary: Color(0xFFFFFFFF),
+  primaryContainer: Color(0xFF14234A),
+  onPrimaryContainer: Color(0xFFB9CDFF),
+  secondary: Color(0xFFD0D4DC),
+  onSecondary: Color(0xFF000000),
+  error: Color(0xFFFF6B5E),
+  onError: Color(0xFF000000),
+  errorContainer: Color(0xFF2A1211),
+  onErrorContainer: Color(0xFFFF6B5E),
+  surface: Color(0xFF000000),
+  onSurface: Color(0xFFF2F4F8),
+  onSurfaceVariant: Color(0xFF8E95A3),
+  surfaceContainerLowest: Color(0xFF111214),
+  surfaceContainerLow: Color(0xFF111214),
+  surfaceContainer: Color(0xFF111214),
+  surfaceContainerHigh: Color(0xFF17181B),
+  surfaceContainerHighest: Color(0xFF1E1F23),
+  outline: Color(0xFF26282D),
+  outlineVariant: Color(0xFF26282D),
+  inverseSurface: Color(0xFFF2F4F8),
+  onInverseSurface: Color(0xFF111214),
   inversePrimary: Color(0xFF2B5FD9),
   scrim: Color(0xFF000000),
 );
@@ -202,7 +277,13 @@ ThemeData _build(ColorScheme cs, TopildiColors ext) {
       titleTextStyle: text.titleLarge,
     ),
     filledButtonTheme: FilledButtonThemeData(
-      style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(TSize.button), shape: r12, textStyle: text.labelLarge!.copyWith(fontSize: 16)),
+      style: FilledButton.styleFrom(
+        backgroundColor: ext.primaryFill,
+        foregroundColor: cs.onPrimary,
+        minimumSize: const Size.fromHeight(TSize.button),
+        shape: r12,
+        textStyle: text.labelLarge!.copyWith(fontSize: 16),
+      ),
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(TSize.button), shape: r12, side: BorderSide(color: cs.outline), textStyle: text.labelLarge!.copyWith(fontSize: 16)),
@@ -256,6 +337,20 @@ ThemeData _build(ColorScheme cs, TopildiColors ext) {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(TRadius.md)),
     ),
     dividerTheme: DividerThemeData(color: cs.outlineVariant, thickness: 1, space: 1),
+    floatingActionButtonTheme: FloatingActionButtonThemeData(
+      backgroundColor: ext.primaryFill,
+      foregroundColor: cs.onPrimary,
+    ),
+    switchTheme: SwitchThemeData(
+      trackColor: WidgetStateProperty.resolveWith(
+        (states) => states.contains(WidgetState.selected) ? ext.primaryFill : cs.surfaceContainerHigh,
+      ),
+      trackOutlineColor: WidgetStateProperty.resolveWith(
+        (states) => states.contains(WidgetState.selected) ? Colors.transparent : cs.outline,
+      ),
+      thumbColor: const WidgetStatePropertyAll(Colors.white),
+    ),
+    progressIndicatorTheme: ProgressIndicatorThemeData(color: cs.primary),
   );
 }
 

@@ -104,7 +104,7 @@ class TButton extends StatelessWidget {
           style: FilledButton.styleFrom(
             overlayColor: Colors.transparent,
             minimumSize: minSize,
-            disabledBackgroundColor: loading ? cs.primary : cs.surfaceContainerHigh,
+            disabledBackgroundColor: loading ? context.tc.primaryFill : cs.surfaceContainerHigh,
             disabledForegroundColor: loading ? cs.onPrimary : cs.onSurfaceVariant,
           ),
           child: child(cs.onPrimary),

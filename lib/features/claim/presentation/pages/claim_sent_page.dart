@@ -17,6 +17,7 @@ import '../../../listing/domain/entities/listing.dart';
 import '../../../listing/presentation/category_ui.dart';
 import '../../domain/entities/claim.dart';
 import '../cubit/claim_sent_cubit.dart';
+import '../../../../core/theme/topildi_theme.dart';
 
 /// What [ClaimSentPage] shows: the listing the claim is about and the claim
 /// itself (followed live for the author's answer). Both are null only when
@@ -403,7 +404,7 @@ class _Muted {
   final Color ring, icon, title, note;
 
   static const _light = _Muted(Color(0xFFDCE2EC), Color(0xFFB4BDCC), Color(0xFF8A94A6), Color(0xFFB4BDCC));
-  static const _dark = _Muted(Color(0xFF3A4A6E), Color(0xFF3A4A6E), Color(0xFF9AA6BB), Color(0xFF5D6A84));
+  static const _dark = _Muted(Color(0xFF5F6672), Color(0xFF5F6672), Color(0xFF8E95A3), Color(0xFF5F6672));
 
   static _Muted of(BuildContext context) => Theme.of(context).brightness == Brightness.dark ? _dark : _light;
 }
@@ -511,7 +512,7 @@ class _MarkIcon extends StatelessWidget {
         decoration: BoxDecoration(
           color: cs.primaryContainer,
           shape: BoxShape.circle,
-          boxShadow: [BoxShadow(color: cs.primary.withValues(alpha: 0.12), spreadRadius: 5)],
+          boxShadow: [BoxShadow(color: context.primaryGlow(0.12), spreadRadius: 5)],
         ),
         alignment: Alignment.center,
         child: _Spinner(color: cs.primary),

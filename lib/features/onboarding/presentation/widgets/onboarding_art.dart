@@ -7,6 +7,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import '../../../../core/l10n/tr.dart';
 import '../../../../core/theme/t_text.dart';
 import '../../../../core/widgets/glass_surface.dart';
+import '../../../../core/theme/topildi_theme.dart';
 
 /// 390×360 glass scene for onboarding slide [index]: a soft blue light
 /// with the slide's props laid out at their design coordinates. Chips and
@@ -23,7 +24,7 @@ class OnboardingArt extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dark = Theme.of(context).brightness == Brightness.dark;
-    final glow = dark ? const Color(0xFF8DB0FF) : const Color(0xFFE3EBFC);
+    final glow = dark ? const Color(0xFF4D7FFF) : const Color(0xFFE3EBFC);
     return ExcludeSemantics(
       child: SizedBox(
         width: width,
@@ -74,7 +75,7 @@ class OnboardingArt extends StatelessWidget {
             width: 230,
             height: 270,
             decoration: BoxDecoration(
-              color: dark ? const Color(0xE6182031) : Colors.white,
+              color: dark ? const Color(0xE616171A) : Colors.white,
               borderRadius: BorderRadius.circular(30),
               boxShadow: [
                 BoxShadow(
@@ -94,14 +95,14 @@ class OnboardingArt extends StatelessWidget {
                   child: Container(
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
-                      color: dark ? const Color(0xFF332D2A) : const Color(0xFFEFE4D8),
+                      color: dark ? const Color(0xFF221E1B) : const Color(0xFFEFE4D8),
                       borderRadius: BorderRadius.circular(22),
                     ),
                     child: Icon(
                       Symbols.account_balance_wallet_rounded,
                       size: 64,
                       weight: 300,
-                      color: dark ? const Color(0xFF9AA6BB) : const Color(0xFF4F6288),
+                      color: dark ? const Color(0xFF8E95A3) : const Color(0xFF4F6288),
                     ),
                   ),
                 ),
@@ -140,7 +141,7 @@ class OnboardingArt extends StatelessWidget {
             shape: BoxShape.circle,
             color: cs.primary,
             boxShadow: [
-              BoxShadow(color: cs.primary.withValues(alpha: 0.4), blurRadius: 30, offset: const Offset(0, 16)),
+              BoxShadow(color: context.primaryGlow(0.4), blurRadius: 30, offset: const Offset(0, 16)),
             ],
           ),
           child: Icon(Symbols.photo_camera_rounded, size: 38, color: cs.onPrimary),
@@ -198,9 +199,9 @@ class OnboardingArt extends StatelessWidget {
           children: [
             row(cs.primaryContainer),
             const SizedBox(height: 10),
-            row(dark ? const Color(0xFF332D2A) : const Color(0xFFEFE4D8), indent: 24, opacity: 1),
+            row(dark ? const Color(0xFF221E1B) : const Color(0xFFEFE4D8), indent: 24, opacity: 1),
             const SizedBox(height: 10),
-            row(dark ? const Color(0xFF222C40) : const Color(0xFFE6EDF2)),
+            row(dark ? const Color(0xFF17181B) : const Color(0xFFE6EDF2)),
           ],
         ),
       ),
@@ -214,7 +215,7 @@ class OnboardingArt extends StatelessWidget {
             height: 34,
             padding: const EdgeInsets.symmetric(horizontal: 12),
             decoration: BoxDecoration(
-              color: dark ? const Color(0xFF212A3D) : Colors.white,
+              color: dark ? const Color(0xFF17181B) : Colors.white,
               borderRadius: BorderRadius.circular(999),
               boxShadow: [
                 BoxShadow(
@@ -279,12 +280,12 @@ class OnboardingArt extends StatelessWidget {
                       begin: const Alignment(-0.34, -1),
                       end: const Alignment(0.34, 1),
                       colors: dark
-                          ? const [Color(0xF2182031), Color(0xCC233A72)]
+                          ? const [Color(0xF216171A), Color(0xCC14234A)]
                           : const [Color(0xF2FFFFFF), Color(0xCCE3EBFC)],
                     ),
                     border: Border(top: BorderSide(color: dark ? const Color(0x38FFFFFF) : Colors.white)),
                     boxShadow: [
-                      BoxShadow(color: cs.primary.withValues(alpha: 0.18), blurRadius: 36, offset: const Offset(0, 16)),
+                      BoxShadow(color: context.primaryGlow(0.18), blurRadius: 36, offset: const Offset(0, 16)),
                     ],
                   ),
                   child: Icon(Symbols.verified_user_rounded, size: 76, weight: 300, color: cs.primary),
@@ -303,7 +304,7 @@ class OnboardingArt extends StatelessWidget {
             angle: _deg(-6),
             child: GlassSurface(
               radius: 18,
-              color: dark ? const Color(0xE6182031) : const Color(0xEBFFFFFF),
+              color: dark ? const Color(0xE616171A) : const Color(0xEBFFFFFF),
               padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 14),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -346,7 +347,7 @@ class OnboardingArt extends StatelessWidget {
                 color: cs.primary,
                 borderRadius: BorderRadius.circular(999),
                 boxShadow: [
-                  BoxShadow(color: cs.primary.withValues(alpha: 0.35), blurRadius: 24, offset: const Offset(0, 12)),
+                  BoxShadow(color: context.primaryGlow(0.35), blurRadius: 24, offset: const Offset(0, 12)),
                 ],
               ),
               child: Row(
@@ -370,10 +371,10 @@ class OnboardingArt extends StatelessWidget {
 
   static double _deg(double d) => d * math.pi / 180;
 
-  static Color _glassFill(bool dark) => dark ? const Color(0xE6182031) : const Color(0xE6FFFFFF);
+  static Color _glassFill(bool dark) => dark ? const Color(0xE616171A) : const Color(0xE6FFFFFF);
 
   static Color _skeleton(bool dark, int level) => dark
-      ? (level == 0 ? const Color(0xFF222C40) : const Color(0xFF1D2638))
+      ? (level == 0 ? const Color(0xFF17181B) : const Color(0xFF17181B))
       : (level == 0 ? const Color(0xFFE6E9EF) : const Color(0xFFEEF1F6));
 
   static Widget _bar(double w, double h, Color c) => Container(

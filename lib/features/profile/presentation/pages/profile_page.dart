@@ -128,7 +128,8 @@ class _Header extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 46, 16, 16),
       decoration: BoxDecoration(
-        color: cs.primaryContainer,
+        // On OLED black the header is the page glow, not a lit blue card.
+        color: Theme.of(context).brightness == Brightness.dark ? context.tc.surfaceGlow : cs.primaryContainer,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(48), bottom: Radius.circular(36)),
       ),
       child: Column(
@@ -542,7 +543,7 @@ class _NoListings extends StatelessWidget {
                       color: cs.primary,
                       borderRadius: BorderRadius.circular(999),
                       boxShadow: [
-                        BoxShadow(color: cs.primary.withValues(alpha: 0.25), blurRadius: 18, offset: const Offset(0, 8)),
+                        BoxShadow(color: context.primaryGlow(0.25), blurRadius: 18, offset: const Offset(0, 8)),
                       ],
                     ),
                     child: Row(
@@ -739,7 +740,7 @@ class _Settings extends StatelessWidget {
                     label: tr('Bildirishnomalar'),
                     trailing: CupertinoSwitch(
                       value: notificationsOn,
-                      activeTrackColor: Theme.of(context).colorScheme.primary,
+                      activeTrackColor: context.tc.primaryFill,
                       onChanged: cubit.setNotifications,
                     ),
                   ),

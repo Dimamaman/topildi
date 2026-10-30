@@ -241,7 +241,7 @@ class _SourceTile extends StatelessWidget {
             width: CreateTypeStep._tile,
             height: CreateTypeStep._tile,
             decoration: BoxDecoration(
-              color: primary ? cs.primary : cs.surfaceContainerLowest,
+              color: primary ? context.tc.primaryFill : cs.surfaceContainerLowest,
               borderRadius: BorderRadius.circular(24),
               border: primary ? null : Border.all(color: cs.outlineVariant),
             ),
@@ -384,7 +384,7 @@ class _PhotoThumb extends StatelessWidget {
                         margin: const EdgeInsets.all(6),
                         width: 24,
                         height: 24,
-                        decoration: const BoxDecoration(color: Color(0xB30F1420), shape: BoxShape.circle),
+                        decoration: const BoxDecoration(color: Color(0xB3000000), shape: BoxShape.circle),
                         child: const Icon(Symbols.close_rounded, size: 16, color: Colors.white),
                       ),
                     ),

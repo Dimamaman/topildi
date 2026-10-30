@@ -413,7 +413,7 @@ class _Orbit extends StatelessWidget {
             height: size,
             child: CustomPaint(
               painter: _RingsPainter(
-                outer: dark ? const Color(0xFF3A4A6E) : cs.inversePrimary,
+                outer: dark ? const Color(0xFF5F6672) : cs.inversePrimary,
                 inner: cs.primary.withValues(alpha: 0.18),
                 inset: 40 * k,
               ),

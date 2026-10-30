@@ -554,7 +554,7 @@ class _Row extends StatelessWidget {
                   width: 28,
                   height: 28,
                   decoration: i.done
-                      ? BoxDecoration(color: cs.primary, shape: BoxShape.circle)
+                      ? BoxDecoration(color: context.tc.primaryFill, shape: BoxShape.circle)
                       : BoxDecoration(
                           shape: BoxShape.circle,
                           border: Border.all(color: CreateColors.of(context).dashed, width: 2),
@@ -803,10 +803,14 @@ class _SlideToPublishState extends State<_SlideToPublish> with SingleTickerProvi
               child: Container(
                 height: _height,
                 decoration: BoxDecoration(
-                  color: cs.primary,
+                  color: context.tc.primaryFill,
                   borderRadius: BorderRadius.circular(999),
                   boxShadow: [
-                    BoxShadow(color: cs.primary.withValues(alpha: 0.3), offset: const Offset(0, 12), blurRadius: 28),
+                    BoxShadow(
+                      color: context.primaryGlow(0.3),
+                      offset: const Offset(0, 12),
+                      blurRadius: 28,
+                    ),
                   ],
                 ),
                 child: AnimatedBuilder(

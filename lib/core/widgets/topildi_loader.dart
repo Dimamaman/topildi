@@ -238,7 +238,7 @@ class _LoaderLayer extends StatelessWidget {
                 child: AnimatedOpacity(
                   opacity: on ? 1 : 0,
                   duration: const Duration(milliseconds: 250),
-                  child: ColoredBox(color: dark ? const Color(0x730F1420) : const Color(0x73F4F6FA)),
+                  child: ColoredBox(color: dark ? const Color(0x73000000) : const Color(0x73F4F6FA)),
                 ),
               ),
             ),
@@ -292,15 +292,15 @@ class _Capsule extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dark = Theme.of(context).brightness == Brightness.dark;
-    final primary = dark ? const Color(0xFF8DB0FF) : const Color(0xFF2B5FD9);
-    final error = dark ? const Color(0xFFFF8A80) : const Color(0xFFC2362B);
+    final primary = dark ? const Color(0xFF4D7FFF) : const Color(0xFF2B5FD9);
+    final error = dark ? const Color(0xFFFF6B5E) : const Color(0xFFC2362B);
     final color = switch (view.phase) {
       _Phase.done => primary,
       _Phase.error => error,
       _Phase.loading => tone == LoaderTone.danger ? error : primary,
     };
-    final title = dark ? const Color(0xFFE6EBF5) : const Color(0xFF172033);
-    final muted = dark ? const Color(0xFF9AA6BB) : const Color(0xFF556070);
+    final title = dark ? const Color(0xFFF2F4F8) : const Color(0xFF172033);
+    final muted = dark ? const Color(0xFF8E95A3) : const Color(0xFF556070);
     final subtitle = view.subtitle;
     return Semantics(
       liveRegion: true,
@@ -313,7 +313,7 @@ class _Capsule extends StatelessWidget {
             height: 60,
             padding: const EdgeInsets.only(left: 12, right: 14),
             decoration: BoxDecoration(
-              color: dark ? const Color(0xDB182031) : const Color(0xDBFFFFFF),
+              color: dark ? const Color(0xDB16171A) : const Color(0xDBFFFFFF),
               borderRadius: BorderRadius.circular(999),
               border: Border.all(color: dark ? const Color(0x1FFFFFFF) : const Color(0x99FFFFFF)),
             ),

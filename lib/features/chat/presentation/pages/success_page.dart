@@ -543,7 +543,7 @@ class _Confetti extends StatelessWidget {
   ];
   static const _sizes = [Size(10, 4), Size(7, 7), Size(5, 12)];
   static const _light = [Color(0xFF2B5FD9), Color(0xFF8DB0FF), Color(0xFFF3A77E), Color(0xFFFBD38D), Color(0xFFB9CDF7)];
-  static const _dark = [Color(0xFF8DB0FF), Color(0xFFB9CDF7), Color(0xFFF3A77E), Color(0xFFFBD38D), Color(0xFF8DB0FF)];
+  static const _dark = [Color(0xFF4D7FFF), Color(0xFFB9CDF7), Color(0xFFF3A77E), Color(0xFFFBD38D), Color(0xFF4D7FFF)];
   static const _center = Offset(335, 150);
 
   @override

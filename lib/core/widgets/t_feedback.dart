@@ -32,7 +32,7 @@ abstract final class TFeedback {
     // Snackbar sits on inverseSurface, so the icon uses the opposite theme's colour.
     final iconColor = isSuccess
         ? (dark ? TopildiColors.light.found : TopildiColors.dark.found)
-        : (dark ? const Color(0xFFC2362B) : const Color(0xFFFF8A80));
+        : (dark ? const Color(0xFFC2362B) : const Color(0xFFFF6B5E));
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
@@ -114,7 +114,7 @@ class _GlassAlert extends StatelessWidget {
     // Destructive: red label on the neutral capsule (iOS); otherwise the primary capsule.
     final confirm = _AlertButton(
       label: confirmLabel,
-      fill: destructive ? g.quiet : cs.primary,
+      fill: destructive ? g.quiet : context.tc.primaryFill,
       color: destructive ? cs.error : cs.onPrimary,
       onTap: () => Navigator.of(context).pop(true),
     );

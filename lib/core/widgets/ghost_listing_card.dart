@@ -25,25 +25,25 @@ class GhostListingCard extends StatelessWidget {
     final dark = Theme.of(context).brightness == Brightness.dark;
     final small = size == GhostCardSize.small;
     final radius = small ? 20.0 : 28.0;
-    final line1 = dark ? const Color(0xFF222C40) : const Color(0xFFE3E8F0);
-    final line2 = dark ? const Color(0xFF1D2638) : const Color(0xFFECEFF5);
+    final line1 = dark ? const Color(0xFF17181B) : const Color(0xFFE3E8F0);
+    final line2 = dark ? const Color(0xFF17181B) : const Color(0xFFECEFF5);
     final photo = Container(
       height: small ? 66 : 120,
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: dark ? (small ? const Color(0xFF1D2638) : const Color(0xFF182031)) : const Color(0xFFEAEEF5),
+        color: dark ? (small ? const Color(0xFF17181B) : const Color(0xFF111214)) : const Color(0xFFEAEEF5),
         borderRadius: BorderRadius.circular(small ? 14 : 20),
       ),
-      child: Icon(icon, size: small ? 26 : 44, color: dark ? const Color(0xFF3A4A6E) : const Color(0xFFB4BDCC)),
+      child: Icon(icon, size: small ? 26 : 44, color: dark ? const Color(0xFF5F6672) : const Color(0xFFB4BDCC)),
     );
     final card = SizedBox(
       width: small ? 96 : null,
       height: small ? 112 : null,
       child: CustomPaint(
         painter: DashedRRectPainter(
-          color: dark ? const Color(0xFF2A3550) : const Color(0xFFC7D2E6),
+          color: dark ? const Color(0xFF26282D) : const Color(0xFFC7D2E6),
           fill: dark
-              ? (small ? const Color(0x990F1420) : const Color(0x99182031))
+              ? (small ? const Color(0x99000000) : const Color(0x9916171A))
               : (small ? const Color(0xB3F4F6FA) : const Color(0x99FFFFFF)),
           radius: radius,
           width: 2,

@@ -10,6 +10,7 @@ import '../../../../core/theme/t_text.dart';
 import '../../../../core/widgets/glass_surface.dart';
 import '../widgets/onboarding_art.dart';
 import '../../../../core/l10n/tr.dart';
+import '../../../../core/theme/topildi_theme.dart';
 
 /// Room kept free at the bottom for the dots and the button (20 + 8 + 20 + 56).
 const _bottomBar = 104.0;
@@ -131,12 +132,12 @@ class _Background extends StatelessWidget {
   Widget build(BuildContext context) {
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: dark ? const Color(0xFF0F1420) : const Color(0xFFF4F6FA),
+        color: dark ? const Color(0xFF000000) : const Color(0xFFF4F6FA),
         // CSS `circle at 50% 0%` to 50% of the farthest corner (≈433 on 390×844).
         gradient: RadialGradient(
           center: Alignment.topCenter,
           radius: 1.11,
-          colors: dark ? const [Color(0xFF182031), Color(0x00182031)] : const [Color(0xFFE3EBFC), Color(0x00E3EBFC)],
+          colors: dark ? const [Color(0xFF0A1430), Color(0x000A1430)] : const [Color(0xFFE3EBFC), Color(0x00E3EBFC)],
         ),
       ),
     );
@@ -255,7 +256,7 @@ class _SkipButton extends StatelessWidget {
           child: SizedBox(
             height: 40,
             child: GlassSurface(
-              color: dark ? const Color(0xE6182031) : const Color(0xCCFFFFFF),
+              color: dark ? const Color(0xE616171A) : const Color(0xCCFFFFFF),
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Center(
                 widthFactor: 1,
@@ -298,7 +299,7 @@ class _CtaButton extends StatelessWidget {
             color: cs.primary,
             borderRadius: BorderRadius.circular(999),
             boxShadow: [
-              BoxShadow(color: cs.primary.withValues(alpha: 0.28), blurRadius: 28, offset: const Offset(0, 12)),
+              BoxShadow(color: context.primaryGlow(0.28), blurRadius: 28, offset: const Offset(0, 12)),
             ],
           ),
           child: Row(
@@ -345,7 +346,7 @@ class _Dots extends StatelessWidget {
               width: i == index ? 24 : 8,
               height: 8,
               decoration: BoxDecoration(
-                color: i == index ? cs.primary : (dark ? const Color(0xFF2A3550) : const Color(0xFFD3D9E4)),
+                color: i == index ? cs.primary : (dark ? const Color(0xFF26282D) : const Color(0xFFD3D9E4)),
                 borderRadius: BorderRadius.circular(999),
               ),
             ),

@@ -308,6 +308,33 @@ Ilova birinchi marta TestFlight ga chiqdi: `Topildi`, `1.0.0 (1)`, bundle `com.t
 - Tester TestFlight da ilovani koʻrmasa: qurilmadagi Apple ID (Sozlamalar → Media va xaridlar) taklif yuborilgan email bilan bir xil boʻlishi, ichki tester esa avval App Store Connect taklifini qabul qilgan boʻlishi kerak. Taklif xatidagi **View in TestFlight** → **Accept** → **Install**. Ilova iOS 15.0+ talab qiladi.
 - Deploy da `Quota exceeded for total allowable CPU per project per region` (Cloud Run, us-central1, loyiha FoodZeen bilan umumiy): yangilanmagan funksiyalar eski revision bilan ishlayveradi, 5–10 daqiqadan keyin faqat oʻshalarni qayta deploy qilish kifoya. Takrorlansa — Cloud Run Admin API kvotasini oshirish kerak.
 
+### 14. 2026-10-30 — tungi rejim "OLED qora" (D2)
+
+Qorongʻi tema eski "Koʻk tun" (D1) palitrasidan **OLED qora** ga oʻtkazildi (topshiriq: `32-tungi-rejim-oled`). Yorugʻ tema tegilmadi, splash (brend ekrani) ham oʻzgarmadi.
+
+**Tokenlar** (`lib/core/theme/topildi_theme.dart`):
+- `_darkScheme`: `surface` #000000, karta/sheet/appbar (`surfaceContainerLowest`) #111214, `surfaceContainerHigh` #17181b, `outline`/`outlineVariant` #26282d, `onSurface` #f2f4f8, `onSurfaceVariant` #8e95a3, `primary` #4d7fff, `primaryContainer` #14234a / #b9cdff, `error` #ff6b5e / #2a1211.
+- `TopildiColors` ga yangi tokenlar: `primaryFill` (#3a6af0 — toʻldirilgan tugma, FAB, `Switch`, mening pufakcham; oq matn bilan 4.7:1), `surfaceGlow` (#0a1430), `onSurfaceSecondary`, `onSurfaceMuted` (#5f6672), `accentDot`, `glassFill`, `scrim`.
+- Qorongʻi temada **yashil yoʻq**: `found`/`success` brend koʻki (#4d7fff / #14234a), `lost` #ff9f6e / #2a1a12, `warning` #f2c46b / #2a2210.
+- `_build` ga `FilledButton` fon rangi, `floatingActionButtonTheme`, `switchTheme` (hammasi `primaryFill`) qoʻshildi. Profildagi `CupertinoSwitch` ham `primaryFill`.
+
+**Qolgan joylar:** `TGlass._dark` (shisha `rgba(22,23,26,·)`, oq ramkalar, qora soyalar), `TSurfaces._dark` (neytral qora yuzalar), hamda widgetlardagi eski D1 hex qiymatlari "Eski → yangi" jadvali boʻyicha almashtirildi (chat, onboarding, claims, create, loader, sign-in, ghost karta, xarita nuqtalari). Koʻk soyalar qorongʻi temada qora soyaga aylantirildi (chat pufakchasi, `create_preview_card`). Profil sarlavhasi qorongʻi temada `primaryContainer` oʻrniga `surfaceGlow`.
+
+**Ikkinchi oʻtish — ekranma-ekran koʻrib chiqish.** Simulyatorda (iPhone 15 Pro, qorongʻi) aylanib chiqildi: Lenta, Eʼlon + pull-down menyu, Shikoyat sheeti, Yangi eʼlon 1–3 qadam (xato holati bilan), Yashirin belgi sheeti, Koʻrib chiqish, Bildirishnomalar, Soʻrovlar (boʻsh), Chatlar (boʻsh), Profil, "Nimadir xato ketdi". Chat, Soʻrovlar (toʻliq), tasdiq dialogi, bloklash sheeti va Mening eʼlonlarim test muhitidagi mock maʼlumot bilan vaqtinchalik golden orqali olindi (keyin oʻchirildi, repoda qolmadi).
+
+Topilgan va tuzatilgan kamchiliklar:
+- Koʻp toʻldirilgan koʻk yuzalar hali `cs.primary` (#4d7fff) edi — oq matn bilan atigi 3.6:1. `primaryFill` ga oʻtkazildi: eʼlondagi asosiy tugma va soʻrovlar soni belgisi, `TSheetButton`, `TButton` ning yuklanish holati, tasdiq dialogidagi tugma, shikoyat sheetidagi qadam doiralari, Koʻrib chiqishdagi qadam doiralari va surish yoʻlagi, Yangi eʼlon tugmalari va tanlangan chiplar, "Kamera" plitkasi, Mening eʼlonlarimdagi "Eʼlon berish".
+- Shikoyat sheetidagi oʻchiq "Yuborish" tugmasi oʻqilmas edi (butun tugma `Opacity(0.45)` — matn 1.5:1). Endi fon sahifa ustida 45% ga tushadi, matn esa 75% da qoladi (≈5.5:1).
+- Qorongʻi temada qolgan **koʻk soyalar** olib tashlandi: `context.primaryGlow(opacity)` yordamchisi qoʻshildi (qorongʻida `rgba(0,0,0,0.4)`), chat pufakchasi va `create_preview_card` esa alohida tuzatildi.
+- Profil sarlavhasi `primaryContainer` oʻrniga `surfaceGlow` (dizayndagidek deyarli qora).
+- Xaritadagi "Topilgan" nuqtasi hali yashil edi (#4cbf85) — koʻk qilindi.
+
+**Tekshirildi:** `flutter analyze` toza; `flutter test` — 116 oʻtdi, faqat eski `auth_flow_test.dart` yiqiladi (5-boʻlimda yozilgan, bu ishga aloqasi yoʻq); yorugʻ ↔ qorongʻi almashuvi ilovani qayta ishga tushirmasdan ishlaydi.
+
+**Qilinmadi:** Eʼlon joylandi, Buyum qaytdi, Onboarding, Kirish, Xarita va Filtr sheeti qorongʻi rejimda koʻzdan kechirilmadi — ularda faqat kod boʻyicha eski palitra va koʻk soya qolmagani tekshirildi. Eʼlon joylash oxirigacha bajarilmadi (haqiqiy maʼlumot yaratmaslik uchun).
+
+> `ios/Podfile.lock` ham oʻzgardi: `flutter build ios` paytida `device_info_plus` va `package_info_plus` podlari lockga qoʻshildi (temaga aloqasi yoʻq).
+
 ### Maxfiylik qoidalari (saqlanadi)
 
 - **Telefon raqami** Firestore'ga hech qachon yozilmaydi — na eʼlonda, na so'rovda, na chatda.

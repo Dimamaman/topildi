@@ -358,7 +358,7 @@ class _AnswerField extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final dark = Theme.of(context).brightness == Brightness.dark;
-    final placeholder = dark ? const Color(0xFF6B778C) : const Color(0xFF8A94A6);
+    final placeholder = dark ? const Color(0xFF5F6672) : const Color(0xFF8A94A6);
     final text = TextStyle(fontSize: 17, height: 23 / 17, color: cs.onSurface).inter(FontWeight.w400);
     return ListenableBuilder(
       listenable: focus,
@@ -549,7 +549,7 @@ class _KeysState extends State<_Keys> with SingleTickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final usedColor = widget.dark ? const Color(0xFF3A4A6E) : const Color(0xFFB4BDCC);
+    final usedColor = widget.dark ? const Color(0xFF5F6672) : const Color(0xFFB4BDCC);
     const tilt = [-12.0, 0.0, 12.0];
     // Keys are used up from the right.
     final firstUsed = ClaimTarget.maxAttempts - _used;

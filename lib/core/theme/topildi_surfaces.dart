@@ -47,19 +47,20 @@ class TSurfaces {
     hint: Color(0xFF8DB0FF),
   );
 
+  // OLED dark (D2): neutral near-black surfaces, no green or purple tints.
   static const _dark = TSurfaces._(
-    placeholders: [Color(0xFF2A3550), Color(0xFF22392F), Color(0xFF3A3226), Color(0xFF2F2B45)],
-    placeholderIcon: Color(0xFF9AA6BB),
-    skeleton: Color(0xFF232D44),
-    skeletonSoft: Color(0xFF1B2335),
-    map: Color(0xFF141B29),
-    road: Color(0xFF232D44),
+    placeholders: [Color(0xFF17181B), Color(0xFF1B1C20), Color(0xFF1E1F23), Color(0xFF141518)],
+    placeholderIcon: Color(0xFF5F6672),
+    skeleton: Color(0xFF17181B),
+    skeletonSoft: Color(0xFF111214),
+    map: Color(0xFF0B0C0E),
+    road: Color(0xFF17181B),
     photoChip: Color(0x99000000),
-    primaryTint: Color(0xFF16203A),
-    park: Color(0xFF1A2F26),
-    water: Color(0xFF172846),
-    separator: Color(0xFF2A3550),
-    hint: Color(0xFF5F7FC4),
+    primaryTint: Color(0xFF101A33),
+    park: Color(0xFF14161A),
+    water: Color(0xFF101A33),
+    separator: Color(0xFF26282D),
+    hint: Color(0xFF4D7FFF),
   );
 
   static TSurfaces of(BuildContext context) =>

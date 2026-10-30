@@ -112,7 +112,15 @@ class _CreatePreviewCardState extends State<CreatePreviewCard> with SingleTicker
             decoration: BoxDecoration(
               color: cs.surfaceContainerLowest,
               borderRadius: BorderRadius.circular(26),
-              boxShadow: const [BoxShadow(color: Color(0x291D45A8), offset: Offset(0, 20), blurRadius: 44)],
+              boxShadow: [
+                BoxShadow(
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? const Color(0x66000000)
+                      : const Color(0x291D45A8),
+                  offset: const Offset(0, 20),
+                  blurRadius: 44,
+                ),
+              ],
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,

@@ -468,7 +468,7 @@ class _Stamp extends StatelessWidget {
       child: CustomPaint(
         painter: DashedRRectPainter(
           color: cs.primary,
-          fill: dark ? const Color(0xE6233A72) : const Color(0xE6E3EBFC),
+          fill: dark ? const Color(0xE614234A) : const Color(0xE6E3EBFC),
           radius: 60,
           width: 3,
         ),
@@ -583,7 +583,7 @@ class _AddButton extends StatelessWidget {
         child: SizedBox(
           height: 56,
           child: GlassSurface(
-            color: cs.primary.withValues(alpha: dark ? 0.92 : 0.9),
+            color: context.tc.primaryFill.withValues(alpha: dark ? 0.95 : 0.9),
             child: ValueListenableBuilder<bool>(
               valueListenable: extended,
               builder: (context, ext, _) => TweenAnimationBuilder<double>(

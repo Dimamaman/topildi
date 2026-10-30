@@ -45,7 +45,7 @@ class _PinColors {
   final Color found, lost, ring, halo;
 
   static _PinColors of(BuildContext context) => Theme.of(context).brightness == Brightness.dark
-      ? const _PinColors(Color(0xFF4CBF85), Color(0xFFE88A57), Color(0xFF0F1420), Color(0x338DB0FF))
+      ? const _PinColors(Color(0xFF4D7FFF), Color(0xFFFF9F6E), Color(0xFF000000), Color(0x334D7FFF))
       : const _PinColors(Color(0xFF1E8E5A), Color(0xFFD9692F), Color(0xFFFFFFFF), Color(0x2E2B5FD9));
 }
 
