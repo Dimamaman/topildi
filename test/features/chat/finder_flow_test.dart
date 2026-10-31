@@ -4,6 +4,7 @@ import 'package:injectable/injectable.dart';
 import 'package:topildi/app/app.dart';
 import 'package:topildi/app/routes.dart';
 import 'package:topildi/core/di/injection.dart';
+import 'package:topildi/features/listing/presentation/widgets/returned_strip.dart';
 
 /// Lets route transitions finish, then the mock latency elapse.
 Future<void> _settle(WidgetTester t) async {
@@ -90,8 +91,13 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Lentaga qaytish'));
     await _settle(tester);
-    // Back on the feed, and the returned listing has left it.
+    // Back on the feed. The returned listing has left the grid and now
+    // appears once more, in the proof strip above it.
     expect(find.text('Kalitlar toʻplami, 3 dona'), findsOneWidget);
-    expect(find.text('Qora charm hamyon'), findsNothing);
+    expect(find.text('Qora charm hamyon'), findsOneWidget);
+    expect(
+      find.descendant(of: find.byType(ReturnedStrip), matching: find.text('Qora charm hamyon')),
+      findsOneWidget,
+    );
   });
 }

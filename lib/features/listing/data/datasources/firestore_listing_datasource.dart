@@ -74,6 +74,19 @@ class FirestoreListingDataSource implements ListingRemoteDataSource {
   }
 
   @override
+  Future<List<ListingModel>> fetchReturned({int limit = 12}) async {
+    // Ordered by `updatedAt`, which the closing write set; see
+    // [listingFromFirestore]. Over-fetched because the repository still
+    // drops documents and blocked authors.
+    final snap = await _col
+        .where('status', isEqualTo: ListingStatus.returned.name)
+        .orderBy('updatedAt', descending: true)
+        .limit(limit * 3)
+        .get();
+    return [for (final d in snap.docs) listingFromFirestore(d.id, d.data())];
+  }
+
+  @override
   Future<List<ListingModel>> fetchByAuthor(String authorId) async {
     final snap = await _col.where('authorId', isEqualTo: authorId).orderBy('happenedAt', descending: true).get();
     return [for (final d in snap.docs) listingFromFirestore(d.id, d.data())];

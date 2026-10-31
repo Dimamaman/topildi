@@ -21,6 +21,7 @@ import '../category_ui.dart';
 import '../cubit/feed_cubit.dart';
 import '../widgets/feed_empty_state.dart';
 import '../widgets/filters_sheet.dart';
+import '../widgets/returned_strip.dart';
 import '../../../../core/theme/t_text.dart';
 import '../../../../core/l10n/tr.dart';
 
@@ -79,6 +80,9 @@ class _HomeViewState extends State<_HomeView> {
                 ),
                 SliverToBoxAdapter(child: GlassLargeTitle(tr('Lenta'))),
                 SliverPersistentHeader(pinned: true, delegate: _PinnedTabs(offset: _offset)),
+                // Above the feed and outside _content: the proof is worth
+                // most when the feed below it is still loading or empty.
+                if (state.showReturned) SliverToBoxAdapter(child: ReturnedStrip(items: state.returned)),
                 ..._content(context, state),
               ],
             ),

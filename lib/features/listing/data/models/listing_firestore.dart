@@ -31,6 +31,7 @@ ListingModel listingFromFirestore(String id, Map<String, dynamic> d, {String hid
   T byName<T extends Enum>(List<T> values, Object? name, T fallback) =>
       values.firstWhere((v) => v.name == name, orElse: () => fallback);
   final photos = [for (final p in (d['photoUrls'] as List?) ?? const []) p as String];
+  final status = byName(ListingStatus.values, d['status'], ListingStatus.active);
   return ListingModel(
     id: id,
     type: byName(ListingType.values, d['type'], ListingType.found),
@@ -52,6 +53,9 @@ ListingModel listingFromFirestore(String id, Map<String, dynamic> d, {String hid
     photos: photos,
     photoCount: photos.isEmpty ? 1 : photos.length,
     tint: (d['tint'] as num?)?.toInt() ?? 0,
-    status: byName(ListingStatus.values, d['status'], ListingStatus.active),
+    status: status,
+    // The status change is the listing's last write, so `updatedAt` is the
+    // moment it was returned. Nothing else writes to a closed listing.
+    returnedAt: status == ListingStatus.returned ? (d['updatedAt'] as Timestamp?)?.toDate() : null,
   );
 }

@@ -96,6 +96,16 @@ abstract final class TDate {
     return withTimeForOld ? '${dayMonth(d)}, ${_hm(d)}' : dayMonth(d);
   }
 
+  /// "Hozirgina" · "3 soat oldin" · "2 kun oldin". For something that just
+  /// happened, where the distance matters more than the date.
+  static String ago(DateTime d, {DateTime? now}) {
+    final diff = (now ?? DateTime.now()).difference(d);
+    if (diff.inMinutes < 1) return tr('Hozirgina');
+    if (diff.inMinutes < 60) return tr('{n} daqiqa oldin', {'n': diff.inMinutes});
+    if (diff.inHours < 24) return tr('{n} soat oldin', {'n': diff.inHours});
+    return tr('{n} kun oldin', {'n': diff.inDays});
+  }
+
   /// "Bugun" · "Kecha" · "21-oktabr" (no time).
   static String day(DateTime d, {DateTime? now}) {
     final diff = _daysAgo(d, now);

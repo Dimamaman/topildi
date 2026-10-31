@@ -373,9 +373,101 @@ Topilgan va tuzatilgan kamchiliklar:
 
 `topildi` functions deploy qilingan (2026-10-28). Deploy uchun `cd functions && npm run deploy` ishlatiladi — global `firebase` CLI eski Node bilan qurilgan va funksiyalarni yuklay olmaydi.
 
-1. APNs `.p8` kalit Firebase'ga yuklanganini va Xcode'da **Push Notifications** yoqilganini tekshirish.
+**Aniqlandi (2026-10-31): push kelmasligining sababi — production APNs kaliti yo'q.**
+Functions loglarida (`npx firebase functions:log --project foodai-73d66`) har bir hodisa uchun
+`{"message":"push failed","code":"messaging/third-party-auth-error"}` chiqadi — bu FCM APNs'ga
+ulana olmagani. Firebase Console → Cloud Messaging → Apple app configuration da
+`topildi (ios)` uchun faqat **Development** APNs auth key turibdi
+(Key ID `7B957SA98Y`, Team ID `7DA9YV7633`), "No production APNs auth key".
+Team ID va bundle ID (`com.topildi.topildi`) Xcode loyihasidagi `DEVELOPMENT_TEAM` bilan mos —
+demak kalitning o'zi to'g'ri, faqat production uyasi bo'sh. 2026-10-30 dagi sinovlar
+TestFlight buildida bo'lgani uchun tokenlar production APNs'ga tegishli va kalit topilmagan.
+
+Qolgan hamma bo'g'in ishlayapti: triggerlar ishga tushadi, `notifications` yoziladi
+(demak Bildirishnomalar sahifasi to'ladi), qurilma tokeni
+`topildi_users/{uid}/devices/{token}` ga saqlanadi. Faqat APNs'ga topshirish bosqichi yiqiladi.
+
+**Haqiqiy sabab (2026-10-31): kalit faqat Sandbox uchun yaratilgan.**
+`.p8` production uyasiga ham yuklandi, lekin push baribir kelmadi
+(06:51 da yana `third-party-auth-error`). Kalit APNs'da to'g'ridan-to'g'ri sinab ko'rildi
+(ES256 JWT + soxta device token; Apple avval JWT'ni tekshiradi):
+
+| Kalit | `api.push.apple.com` (prod) | `api.sandbox.push.apple.com` |
+|---|---|---|
+| `7B957SA98Y` | 403 `BadEnvironmentKeyInToken` | 400 `BadDeviceToken` |
+| `GUTVJ6ATF8` | 403 `BadEnvironmentKeyInToken` | 400 `BadDeviceToken` |
+| `4RATX4YVY7` | 403 `InvalidProviderToken` | 403 `InvalidProviderToken` |
+| `V2YY7GCVJY` | 403 `InvalidProviderToken` | 403 `InvalidProviderToken` |
+
+Sandbox'dagi `BadDeviceToken` — kalit **qabul qilindi**, faqat soxta token rad etildi.
+Production'dagi `BadEnvironmentKeyInToken` — kalit production muhitiga yaroqsiz.
+Apple endi APNs kalitini yaratishda muhit tanlatadi (Sandbox / Production / ikkalasi);
+bu ikkala kalit ham **Sandbox** qilib yaratilgan. Oxirgi ikkisi bu jamoaning APNs kaliti emas.
+TestFlight buildi production APNs'ga ulanadi — shuning uchun hech qachon ishlamagan.
+
+**✅ Hal qilindi (2026-10-31).** Apple'da *Sandbox & Production* muhiti bilan yangi APNs
+kaliti yaratildi — `GJG9MK5C63` (`~/Downloads/AuthKey_GJG9MK5C63.p8`) — va Firebase'dagi
+ikkala uyaga ham qo'yildi. Tekshiruv ikkala muhitda ham `400 BadDeviceToken` qaytardi,
+yaʼni kalit qabul qilinadi. Shundan keyin `topildiOnMessageCreated` 07:00:59 da (UTC)
+`push failed` ogohlantirishisiz o'tdi — push yetib bordi.
+
+Kalitni sinash skripti: ES256 JWT tuzib, soxta device token bilan
+`api.push.apple.com` va `api.sandbox.push.apple.com` ga so'rov yuboradi.
+Javoblarning maʼnosi: `BadDeviceToken` — kalit yaroqli;
+`BadEnvironmentKeyInToken` — kalit bu muhitga yaratilmagan;
+`InvalidProviderToken` — kalit bu jamoaniki emas yoki APNs yoqilmagan.
+
+Eski qurilma tokenlari o'chirilmagan (`third-party-auth-error` ∈ `staleTokenErrors` emas),
+shuning uchun ilovani qayta o'rnatish shart emas.
+
+1. ~~**O'sha `.p8` faylni production uyasiga ham yuklash**~~ (Console'dagi "No production APNs auth
+   key" qatoridagi *Upload*). Bitta `.p8` auth key ikkala muhitga ham yaroqli — sertifikatdan
+   farqi shu; Firebase'ning yangi konsoli shunchaki ikkita uya ko'rsatadi.
+2. `ios/Runner/Runner.entitlements` da `aps-environment` = `development`, va uchala
+   konfiguratsiya (Debug / Release / Profile) shu bitta faylni ishlatadi
+   (`CODE_SIGN_ENTITLEMENTS`). O'zgartirilmadi — kalit tuzatilgach push ishladi, yaʼni
+   Xcode arxivlashda bu qiymatni distribution profildan olib almashtirar ekan.
+   Agar kelajakda dev buildda ishlab TestFlight'da ishlamasa, shu yerga qaytish kerak:
+   alohida `RunnerRelease.entitlements` qilib, Release konfiguratsiyasiga ulash.
 2. Haqiqiy iPhone'da ikki akkaunt bilan sinov (simulatorda push to'liq ishlamaydi): har bir hodisa, push bosilganda to'g'ri ekran (ilova yopiq / fonda / ochiq), chiqqandan keyin push kelmasligi, til almashganda push tili.
 6. Keyin: ilova ikonkasidagi badge soni (hozir yuborilmaydi), o'xshash eʼlon topilganda bildirishnoma.
+
+### 2.1. "Egasiga qaytdi" tasmasi (2026-10-31)
+
+Lentaning tepasida, chiplar ostida turadigan gorizontal tasma: qaytarilgan
+buyumlar ijtimoiy isbot sifatida. **Kod tayyor, dizayn kutilmoqda.**
+
+Qarorlar: kartochka **bosilmaydi** (qaytarilgan eʼlonda ochiladigan sahifa
+yo'q), **ism ko'rsatilmaydi** (`ReturnedItem` da muallif maydoni umuman yo'q),
+`documents` toifasi chiqarib tashlanadi (qaytarilgan pasport qayta eʼlon
+qilinmaydi), va eʼlon soni **3 tadan kam bo'lsa tasma butunlay chizilmaydi**
+(`FeedState.minReturned`) — bo'sh devor ilovaga qarshi dalil bo'ladi.
+
+Qo'shilgan: `ReturnedItem` entitysi, `ListingRemoteDataSource.fetchReturned`,
+`ListingRepository.getReturned` (bloklanganlar va hujjatlar shu yerda
+filtrlanadi), `GetReturnedItems`, `FeedState.returned` / `showReturned`,
+`ReturnedStrip` widgeti, `TDate.ago`.
+
+`returnedAt` eʼlon hujjatida saqlanmaydi — `updatedAt` dan o'qiladi
+(`listingFromFirestore`), chunki status o'zgarishi yopilgan eʼlonga
+yoziladigan oxirgi yozuv. Yangi maydon ham, rules o'zgarishi ham kerak
+bo'lmadi.
+
+**Indeks deploy qilindi (2026-10-31):** `status` ASC + `updatedAt` DESC,
+`npx -y firebase-tools@15 deploy --only firestore:indexes --project foodai-73d66`.
+Deploydan oldin tekshirildi: bazada faqat `topildi_*` indekslari bor
+(FoodZeen'da kompozit indeks yo'q), shuning uchun o'chib ketadigan begona
+indeks bo'lmadi — qo'shildi: 1, o'chirildi: 0, jami 8 ta.
+
+**Dizayn:** `docs/design/returned-strip-prompt.md` — boshqa AI ga beriladigan
+tayyor brief (maʼlumot shartnomasi, ranglar, tipografika, 130% matn sharti).
+Hozirgi `ReturnedStrip` — ishlaydigan vaqtinchalik ko'rinish; dizayn kelganda
+faqat shu widget almashtiriladi, maʼlumot qatlami o'zgarmaydi.
+
+Testlar: `test/features/listing/returned_items_test.dart` (hujjatlar va
+bloklangan muallif filtri, limit, offline), `feed_cubit_test.dart` (3 ta
+chegara), `finder_flow_test.dart` yangilandi — qaytarilgan eʼlon griddan
+chiqib, tasmada paydo bo'lishi tekshiriladi.
 
 ### 3. Bildirishnomalar sahifasi
 

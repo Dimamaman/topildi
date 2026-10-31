@@ -159,6 +159,8 @@ import 'package:topildi/features/listing/domain/usecases/get_listings.dart'
     as _i1022;
 import 'package:topildi/features/listing/domain/usecases/get_map_listings.dart'
     as _i619;
+import 'package:topildi/features/listing/domain/usecases/get_returned_items.dart'
+    as _i398;
 import 'package:topildi/features/listing/domain/usecases/manage_listing.dart'
     as _i487;
 import 'package:topildi/features/listing/domain/usecases/watch_listings.dart'
@@ -622,6 +624,9 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i619.GetMapListings>(
       () => _i619.GetMapListings(gh<_i856.ListingRepository>()),
     );
+    gh.factory<_i398.GetReturnedItems>(
+      () => _i398.GetReturnedItems(gh<_i856.ListingRepository>()),
+    );
     gh.factory<_i487.DeleteListing>(
       () => _i487.DeleteListing(gh<_i856.ListingRepository>()),
     );
@@ -678,14 +683,17 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i843.WatchPendingClaims>(
       () => _i843.WatchPendingClaims(gh<_i28.ClaimRepository>()),
     );
-    gh.factory<_i516.FeedCubit>(
-      () =>
-          _i516.FeedCubit(gh<_i1022.GetListings>(), gh<_i592.WatchListings>()),
-    );
     gh.factory<_i446.MapCubit>(
       () => _i446.MapCubit(
         gh<_i619.GetMapListings>(),
         gh<_i305.LocationService>(),
+        gh<_i592.WatchListings>(),
+      ),
+    );
+    gh.factory<_i516.FeedCubit>(
+      () => _i516.FeedCubit(
+        gh<_i1022.GetListings>(),
+        gh<_i398.GetReturnedItems>(),
         gh<_i592.WatchListings>(),
       ),
     );

@@ -9,6 +9,7 @@ import '../../../../core/session/session.dart';
 import '../../../../core/usecase/usecase.dart';
 import '../../../block/data/datasources/block_remote_datasource.dart';
 import '../../domain/entities/listing.dart';
+import '../../domain/entities/returned_item.dart';
 import '../../domain/repositories/listing_repository.dart';
 import '../../../../core/error/firebase_failure.dart';
 import '../datasources/listing_remote_datasource.dart';
@@ -37,6 +38,39 @@ class ListingRepositoryImpl implements ListingRepository {
           .map((m) => m.toEntity())
           .toList();
       return right(ListingPage(items: items, total: items.length));
+    } catch (e) {
+      return left(failureOf(e));
+    }
+  }
+
+  /// Items whose listing was closed as returned, for the feed's strip.
+  ///
+  /// Two things never reach it: a blocked author's listing, as everywhere
+  /// else, and anything in [ItemCategory.documents] — a passport or a
+  /// licence that has found its owner must not be advertised again, however
+  /// happy the ending.
+  @override
+  FutureEither<List<ReturnedItem>> getReturned({int limit = 12}) async {
+    if (!await _network.isConnected) return left(const NetworkFailure());
+    try {
+      final blocked = await _blockedIds();
+      final items = (await _source.fetchReturned(limit: limit))
+          .where((m) => m.returnedAt != null)
+          .where((m) => !blocked.contains(m.author.id))
+          .where((m) => m.category != ItemCategory.documents)
+          .take(limit)
+          .map(
+            (m) => ReturnedItem(
+              id: m.id,
+              title: m.title,
+              category: m.category,
+              district: m.district,
+              returnedAt: m.returnedAt!,
+              photo: m.photos.isEmpty ? null : m.photos.first,
+            ),
+          )
+          .toList();
+      return right(items);
     } catch (e) {
       return left(failureOf(e));
     }

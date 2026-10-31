@@ -21,6 +21,7 @@ class ListingModel {
     this.district = 'Chilonzor',
     this.lat = 41.2856,
     this.lng = 69.2034,
+    this.returnedAt,
   });
 
   /// Centre of the approximate (~300 m) area, never the exact pin.
@@ -38,7 +39,13 @@ class ListingModel {
   final List<String> photos;
   final ListingStatus status;
 
-  ListingModel copyWith({String? id, List<String>? photos, ListingStatus? status}) => ListingModel(
+  /// When the status became [ListingStatus.returned]; null while it is not.
+  /// A storage field, kept out of [Listing]: only the feed's returned strip
+  /// reads it.
+  final DateTime? returnedAt;
+
+  ListingModel copyWith({String? id, List<String>? photos, ListingStatus? status, DateTime? returnedAt}) =>
+      ListingModel(
         id: id ?? this.id,
         type: type,
         category: category,
@@ -56,6 +63,7 @@ class ListingModel {
         district: district,
         lat: lat,
         lng: lng,
+        returnedAt: returnedAt ?? this.returnedAt,
       );
 
   Listing toEntity() => Listing(

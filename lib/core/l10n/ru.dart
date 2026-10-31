@@ -3,6 +3,9 @@
 /// a translation here.
 const ruStrings = <String, String>{
   // Common
+  'Egasiga qaytdi': 'Вернулось владельцу',
+  'Egasiga qaytgan buyumlar': 'Вещи, вернувшиеся владельцам',
+  'bu hafta {n}': 'за неделю {n}',
   'Tez orada': 'Скоро',
   'Bu boʻlim ustida ishlayapmiz.': 'Мы работаем над этим разделом.',
   'Orqaga': 'Назад',

@@ -196,6 +196,7 @@ class ListingMockDataSource implements ListingRemoteDataSource {
         hiddenDetail: 'Brelokda kichik qoʻngʻiroqcha',
         tint: 1,
         status: ListingStatus.returned,
+        returnedAt: at(3, 12, 0),
       ),
       ListingModel(
         id: 'l_old2',
@@ -209,6 +210,7 @@ class ListingMockDataSource implements ListingRemoteDataSource {
         hiddenDetail: 'Ichida rangli qalamlar',
         tint: 2,
         status: ListingStatus.returned,
+        returnedAt: at(9, 17, 10),
       ),
       ListingModel(
         id: 'l_mine_lost',
@@ -558,6 +560,7 @@ class ListingMockDataSource implements ListingRemoteDataSource {
         hiddenDetail: 'Ichida bolalar surati',
         tint: 0,
         status: ListingStatus.returned,
+        returnedAt: at(13, 11, 0),
       ),
       ListingModel(
         id: 'l_old4',
@@ -574,6 +577,7 @@ class ListingMockDataSource implements ListingRemoteDataSource {
         hiddenDetail: 'Orqa tomonida qalam izi',
         tint: 3,
         status: ListingStatus.returned,
+        returnedAt: at(18, 15, 30),
       ),
     ];
   }
@@ -592,6 +596,13 @@ class ListingMockDataSource implements ListingRemoteDataSource {
         .where((m) => !m.happenedAt.isBefore(from) && m.happenedAt.isBefore(to))
         .toList()
       ..sort((a, b) => b.happenedAt.compareTo(a.happenedAt));
+  }
+
+  @override
+  Future<List<ListingModel>> fetchReturned({int limit = 12}) async {
+    await Future<void>.delayed(_latency);
+    return _items.where((m) => m.status == ListingStatus.returned && m.returnedAt != null).toList()
+      ..sort((a, b) => b.returnedAt!.compareTo(a.returnedAt!));
   }
 
   @override
@@ -658,7 +669,10 @@ class ListingMockDataSource implements ListingRemoteDataSource {
   Future<void> setStatus(String id, ListingStatus status) async {
     final i = _items.indexWhere((e) => e.id == id);
     if (i >= 0) {
-      _items[i] = _items[i].copyWith(status: status);
+      _items[i] = _items[i].copyWith(
+        status: status,
+        returnedAt: status == ListingStatus.returned ? DateTime.now() : null,
+      );
       _changes.add(null);
     }
   }

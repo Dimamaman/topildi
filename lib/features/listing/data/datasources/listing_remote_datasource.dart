@@ -13,6 +13,11 @@ abstract interface class ListingRemoteDataSource {
   /// repository.
   Future<List<ListingModel>> fetch(ListingQuery query);
 
+  /// Listings closed as returned to their owner, most recently returned
+  /// first, at most [limit]. Any city and any type: the strip is about the
+  /// app as a whole, not about the feed's current filter.
+  Future<List<ListingModel>> fetchReturned({int limit});
+
   /// Every listing written by [authorId] (any status), newest first.
   Future<List<ListingModel>> fetchByAuthor(String authorId);
 
