@@ -173,6 +173,8 @@ import 'package:topildi/features/listing/presentation/cubit/filters_cubit.dart'
     as _i534;
 import 'package:topildi/features/listing/presentation/cubit/map_cubit.dart'
     as _i446;
+import 'package:topildi/features/listing/presentation/seen_returned.dart'
+    as _i412;
 import 'package:topildi/features/notifications/data/datasources/firestore_notification_datasource.dart'
     as _i865;
 import 'package:topildi/features/notifications/data/datasources/notification_mock_datasource.dart'
@@ -189,12 +191,16 @@ import 'package:topildi/features/notifications/presentation/cubit/notifications_
     as _i567;
 import 'package:topildi/features/profile/data/datasources/account_remote_datasource.dart'
     as _i523;
+import 'package:topildi/features/profile/data/datasources/consent_remote_datasource.dart'
+    as _i788;
 import 'package:topildi/features/profile/data/repositories/profile_repository_impl.dart'
     as _i708;
 import 'package:topildi/features/profile/domain/repositories/profile_repository.dart'
     as _i749;
 import 'package:topildi/features/profile/domain/usecases/profile_usecases.dart'
     as _i126;
+import 'package:topildi/features/profile/presentation/cubit/name_consent_cubit.dart'
+    as _i247;
 import 'package:topildi/features/profile/presentation/cubit/profile_cubit.dart'
     as _i533;
 import 'package:topildi/features/report/data/datasources/firestore_report_datasource.dart'
@@ -245,6 +251,10 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.lazySingleton<_i1037.KeyValueStore>(
       () => _i1037.MemoryKeyValueStore(),
+      registerFor: {_test},
+    );
+    gh.lazySingleton<_i788.ConsentRemoteDataSource>(
+      () => _i788.MockConsentDataSource(),
       registerFor: {_test},
     );
     gh.lazySingleton<_i206.NotificationRemoteDataSource>(
@@ -428,6 +438,16 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i271.ThemeCubit>(
       () => _i271.ThemeCubit(gh<_i1037.KeyValueStore>()),
     );
+    gh.lazySingleton<_i412.SeenReturned>(
+      () => _i412.SeenReturned(gh<_i1037.KeyValueStore>()),
+    );
+    gh.lazySingleton<_i788.ConsentRemoteDataSource>(
+      () => _i788.FirestoreConsentDataSource(
+        gh<_i974.FirebaseFirestore>(),
+        gh<_i59.FirebaseAuth>(),
+      ),
+      registerFor: {_prod},
+    );
     gh.lazySingleton<_i1040.NotificationRepository>(
       () => _i985.NotificationRepositoryImpl(
         gh<_i206.NotificationRemoteDataSource>(),
@@ -479,6 +499,36 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i554.Session>(),
       ),
     );
+    gh.lazySingleton<_i749.ProfileRepository>(
+      () => _i708.ProfileRepositoryImpl(
+        gh<_i395.ListingRemoteDataSource>(),
+        gh<_i1026.ClaimRemoteDataSource>(),
+        gh<_i554.Session>(),
+        gh<_i263.NetworkInfo>(),
+        gh<_i1037.KeyValueStore>(),
+        gh<_i73.PushService>(),
+        gh<_i523.AccountRemoteDataSource>(),
+        gh<_i788.ConsentRemoteDataSource>(),
+      ),
+    );
+    gh.factory<_i126.GetMyProfile>(
+      () => _i126.GetMyProfile(gh<_i749.ProfileRepository>()),
+    );
+    gh.factory<_i126.SetNotifications>(
+      () => _i126.SetNotifications(gh<_i749.ProfileRepository>()),
+    );
+    gh.factory<_i126.GetShowNameOnReturns>(
+      () => _i126.GetShowNameOnReturns(gh<_i749.ProfileRepository>()),
+    );
+    gh.factory<_i126.SetShowNameOnReturns>(
+      () => _i126.SetShowNameOnReturns(gh<_i749.ProfileRepository>()),
+    );
+    gh.factory<_i126.SignOut>(
+      () => _i126.SignOut(gh<_i749.ProfileRepository>()),
+    );
+    gh.factory<_i126.DeleteAccount>(
+      () => _i126.DeleteAccount(gh<_i749.ProfileRepository>()),
+    );
     gh.lazySingleton<_i679.AuthRepository>(
       () => _i1033.FirebaseAuthRepository(
         gh<_i59.FirebaseAuth>(),
@@ -493,17 +543,6 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.factory<_i567.NotificationBadgeCubit>(
       () => _i567.NotificationBadgeCubit(gh<_i582.WatchUnreadNotifications>()),
-    );
-    gh.lazySingleton<_i749.ProfileRepository>(
-      () => _i708.ProfileRepositoryImpl(
-        gh<_i395.ListingRemoteDataSource>(),
-        gh<_i1026.ClaimRemoteDataSource>(),
-        gh<_i554.Session>(),
-        gh<_i263.NetworkInfo>(),
-        gh<_i1037.KeyValueStore>(),
-        gh<_i73.PushService>(),
-        gh<_i523.AccountRemoteDataSource>(),
-      ),
     );
     gh.lazySingleton<_i16.ReportRepository>(
       () => _i207.ReportRepositoryImpl(
@@ -581,6 +620,12 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i956.WatchChats>(
       () => _i956.WatchChats(gh<_i956.ChatRepository>()),
     );
+    gh.factory<_i247.NameConsentCubit>(
+      () => _i247.NameConsentCubit(
+        gh<_i126.GetShowNameOnReturns>(),
+        gh<_i126.SetShowNameOnReturns>(),
+      ),
+    );
     gh.factory<_i320.CheckReported>(
       () => _i320.CheckReported(gh<_i16.ReportRepository>()),
     );
@@ -592,18 +637,6 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.factory<_i80.SuccessCubit>(
       () => _i80.SuccessCubit(gh<_i581.GetReturnSummary>()),
-    );
-    gh.factory<_i126.GetMyProfile>(
-      () => _i126.GetMyProfile(gh<_i749.ProfileRepository>()),
-    );
-    gh.factory<_i126.SetNotifications>(
-      () => _i126.SetNotifications(gh<_i749.ProfileRepository>()),
-    );
-    gh.factory<_i126.SignOut>(
-      () => _i126.SignOut(gh<_i749.ProfileRepository>()),
-    );
-    gh.factory<_i126.DeleteAccount>(
-      () => _i126.DeleteAccount(gh<_i749.ProfileRepository>()),
     );
     gh.factory<_i570.ProfileSetupCubit>(
       () => _i570.ProfileSetupCubit(
@@ -697,6 +730,16 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i592.WatchListings>(),
       ),
     );
+    gh.factory<_i533.ProfileCubit>(
+      () => _i533.ProfileCubit(
+        gh<_i126.GetMyProfile>(),
+        gh<_i126.SetNotifications>(),
+        gh<_i126.SetShowNameOnReturns>(),
+        gh<_i126.SignOut>(),
+        gh<_i592.WatchListings>(),
+        gh<_i843.WatchPendingClaims>(),
+      ),
+    );
     gh.factory<_i358.ChatCubit>(
       () => _i358.ChatCubit(
         gh<_i894.WatchChat>(),
@@ -728,15 +771,6 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i176.ClaimCubit>(
       () =>
           _i176.ClaimCubit(gh<_i164.GetClaimTarget>(), gh<_i774.SubmitClaim>()),
-    );
-    gh.factory<_i533.ProfileCubit>(
-      () => _i533.ProfileCubit(
-        gh<_i126.GetMyProfile>(),
-        gh<_i126.SetNotifications>(),
-        gh<_i126.SignOut>(),
-        gh<_i592.WatchListings>(),
-        gh<_i843.WatchPendingClaims>(),
-      ),
     );
     gh.factory<_i142.PendingClaimsCubit>(
       () => _i142.PendingClaimsCubit(gh<_i843.WatchPendingClaims>()),

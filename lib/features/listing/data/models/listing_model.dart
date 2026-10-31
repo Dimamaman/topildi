@@ -22,6 +22,7 @@ class ListingModel {
     this.lat = 41.2856,
     this.lng = 69.2034,
     this.returnedAt,
+    this.finderName,
   });
 
   /// Centre of the approximate (~300 m) area, never the exact pin.
@@ -44,6 +45,10 @@ class ListingModel {
   /// reads it.
   final DateTime? returnedAt;
 
+  /// Who returned it, as "Ism F." — written by Cloud Functions only, and
+  /// only when that person consented. Null everywhere else.
+  final String? finderName;
+
   ListingModel copyWith({String? id, List<String>? photos, ListingStatus? status, DateTime? returnedAt}) =>
       ListingModel(
         id: id ?? this.id,
@@ -64,6 +69,7 @@ class ListingModel {
         lat: lat,
         lng: lng,
         returnedAt: returnedAt ?? this.returnedAt,
+        finderName: finderName,
       );
 
   Listing toEntity() => Listing(

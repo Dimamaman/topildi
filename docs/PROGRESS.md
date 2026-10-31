@@ -335,6 +335,101 @@ Topilgan va tuzatilgan kamchiliklar:
 
 > `ios/Podfile.lock` ham oʻzgardi: `flutter build ios` paytida `device_info_plus` va `package_info_plus` podlari lockga qoʻshildi (temaga aloqasi yoʻq).
 
+### 15. 2026-10-31 — "Egasiga qaytdi" stories (RD3·E) va topuvchi ismi (rozilik bilan)
+
+Topshiriq: `~/Downloads/TOPSHIRIQ-qaytgan-buyum-stories.md` (+ `topildi-qaytgan-stories.zip`).
+Brief'dan oʻzgarish: 2.1 boʻlimdagi "buyumlar bosilmaydi" qarori bekor qilindi —
+tasma elementi endi bosiladi va **faqat maʼlumot koʻrsatadigan** stories
+ekranini ochadi (javob, yoqtirish, ulashish, profil — yoʻq).
+
+**Stories ekrani** (`lib/features/listing/presentation/pages/returned_stories_page.dart`):
+- Har bir buyum 5 soniya, keyin avtomatik keyingisi; oxirgisidan keyin yopiladi.
+  Oʻng 2/3 — keyingi, chap 1/3 — oldingi (birinchisida qayta boshlaydi),
+  bosib turish — pauza (tepa/pastki qism 150 ms da yashirinadi), pastga surish
+  — yopiladi, ✕ — yopiladi.
+- Fon: vertikal rasm (balandlik ≥ 1.5 × kenglik) — `BoxFit.cover` butun ekran;
+  kvadrat/yotiq — rasm ekran kengligida, tepasi/pasti rasmning oʻz ikki rangidan
+  (asosiy rang → eng qorongʻi keng tarqalgan rang, ikkalasi 25% qoraytirilgan);
+  rasmsiz — koʻk gradient va 200×200 shisha plitkada kategoriya ikonkasi.
+  Rasm oʻlchanmaguncha: gradient + kichik spinner, progress chizigʻi toʻxtab turadi.
+- Tepada progress chiziqlari, `verified` nishoni bilan "Egasiga qaytdi · {vaqt}"
+  ("Hozirgina" / "2 soat" / "Kecha" / "3 kun") va ✕; pastda nom (22/700, 4 qator),
+  topuvchi qatori va kategoriya + tuman chiplari (blur 12).
+- Ochilish: bosilgan doira toʻliq ekranga oʻsadi (`ReturnedStoriesTransition`,
+  300 ms) va yopilganda qaytib kichrayadi; "Kamroq harakat" yoqilgan boʻlsa —
+  fade, avtomatik oʻtish saqlanadi. Yoʻl: `Routes.returnedStories`, elementlar
+  `extra` orqali (`ReturnedStoriesArgs`, bosilgan doiraning `Rect` i bilan).
+- `ReturnedStrip` elementi endi `Semantics(button: true)` va
+  `HapticFeedback.selectionClick` bilan ochadi.
+- **Koʻrilgan story halqasi soʻnadi** (Instagram'dagidek, egasining taklifi):
+  koʻrilmagani `primary`, koʻrilgani `outlineVariant`. Rozetka oʻzgarmaydi —
+  u "yangi" emas, "egasiga qaytdi" degani. Holat faqat qurilmada:
+  `SeenReturned` (`lib/features/listing/presentation/seen_returned.dart`) +
+  `StoreKeys.seenReturned`, oxirgi 40 ta id (`capacity`), `ValueNotifier`
+  orqali tasma darhol yangilanadi. Story ekranga chiqishi bilan belgilanadi
+  (5 soniyani kutmasdan), `ReturnedStoriesArgs.onSeen` orqali — lekin kadr
+  oxirida (`addPostFrameCallback`): qurilmada birinchi story `initState` dan
+  xabar berib, hali qurilayotgan tasmani qayta chizishga majbur qilgan edi
+  ("setState() called during build"). `returned_strip_test.dart` shu xatoni
+  ushlaydi (tuzatish olib tashlansa — yiqiladi).
+
+**Topuvchi ismi — rozilik.** Faqat **topuvchi** ismi va faqat oʻzi rozi boʻlsa;
+**egasining ismi hech qachon** koʻrsatilmaydi; standart holat — oʻchiq.
+- `ReturnedItem.finderName` / `ListingModel.finderName` ←
+  `topildi_listings/{id}.finderDisplayName` (faqat server yozadi).
+- Foydalanuvchi profilida `showNameOnReturns` (`topildi_users/{uid}`), ilovada
+  `StoreKeys.showNameOnReturns` da keshlanadi, kirishda (`_loadProfile`) oʻqiladi,
+  chiqishda (`Session.clearProfile`) oʻchiriladi.
+- Soʻraladigan joy: "Buyum egasiga qaytdi!" (BQ1) ekranida hisoblagich kartasi
+  ostida — `NameConsentCard` + `NameConsentCubit` (darhol saqlanadi, yozuv
+  oʻtmasa kalit oʻz holiga qaytadi). Profil → Sozlamalarda "Qaytarganlarimda
+  ismim koʻrinsin" qatori (`ProfileCubit.setShowNameOnReturns`).
+- Oflayn yoqib boʻlmaydi: server tasdiqlamaguncha qurilmaga ham yozilmaydi —
+  kalit hech qachon eʼlonlarda yoʻq ismni vaʼda qilmaydi.
+
+**Backend** (`functions/src/returns.ts`, deploy qilinmagan):
+- `topildiOnListingReturned` — eʼlon `returned` boʻlganda topuvchini aniqlaydi
+  (chat `finderId`/`names`, chatsiz yopilgan `found` eʼlonda — muallif; chatsiz
+  `lost` eʼlonda topuvchi yoʻq), `topildi_returns/{listingId}` ga yozadi va
+  rozilik boʻlsa `finderDisplayName` ni qoʻyadi. Oʻz yozuvi ikkinchi marta
+  ishga tushganda birinchi qatorda qaytadi (status oʻzgarmagan).
+- `topildiOnNameConsentChanged` — kalit oʻzgarganda shu odam qaytargan barcha
+  eʼlonlarda ismni qoʻshadi yoki `FieldValue.delete()` bilan olib tashlaydi
+  (400 talik batch).
+- `topildi_returns` — faqat server uchun (`allow read, write: if false`):
+  roziligi qaytarib olinganda hamma eʼlonni topish uchun kerak, lekin
+  topuvchining uid'i hech qachon hamma oʻqiydigan hujjatga tushmaydi.
+- Hisob oʻchirilganda (`account.ts`) bu yozuvlar ham oʻchadi va boshqaning
+  eʼlonidagi ism tozalanadi.
+- Rules: `topildi_users` ning kalitlariga `showNameOnReturns` (bool) qoʻshildi;
+  `finderDisplayName` hech bir kalit roʻyxatida yoʻq — demak uni ilova yoza
+  olmaydi.
+
+**Deploy qilindi (2026-10-31, egasining ruxsati bilan):** rules —
+`npx -y firebase-tools@15 deploy --only firestore:rules --project foodai-73d66`;
+funksiyalar — `cd functions && npm run deploy`: `topildiOnListingReturned` va
+`topildiOnNameConsentChanged` yangi yaratildi, qolgan 10 tasi yangilandi
+(hammasi `Successful`). Yangi indeks kerak boʻlmadi (`topildi_returns` da
+bitta maydon boʻyicha soʻrov — avtomatik indeks).
+
+**Tekshirildi:** `flutter analyze` toza; `flutter test` — 144 oʻtdi, faqat eski
+`auth_flow_test.dart` yiqiladi (5-boʻlim). Yangi testlar:
+`test/features/listing/returned_stories_test.dart` (bitta story nimani
+koʻrsatadi, rozilik bor/yoʻq holati, 5 soniya, chap/oʻng, bosib turish, ✕,
+avtomatik yopilish, 360px va 130% matnda joylashuv),
+`seen_returned_test.dart` (standart boʻsh, saqlanishi, 40 talik chegara),
+`returned_strip_test.dart` (lentadan story ochish va yopish, halqa holati),
+`returned_items_test.dart` (`finderDisplayName` ning oʻtishi, muallif ismi
+oʻrnini bosmasligi), `push_settings_test.dart` (standart oʻchiq, avval server
+keyin qurilma, oflayn), `functions/src/test/returns.test.ts` (topuvchini
+aniqlash va ism qoidasi) — `npm test` 61 oʻtdi. Simulyatorda koʻrilmadi.
+
+**Yangi bogʻliqlik yoʻq.** Topshiriqda `palette_generator` taklif qilingan edi,
+lekin u pub.dev da **discontinued**. Ranglar oʻz kodimizda hisoblanadi
+(`_Media._twoColours`): rasm bir marta 48×48 kanvasga chiziladi, piksellar
+har kanal 4 bitli savatlarga ajratiladi, eng koʻp uchragani — tepa rang, eng
+koʻp uchragan 8 tasining eng qorongʻisi — past rang.
+
 ### Maxfiylik qoidalari (saqlanadi)
 
 - **Telefon raqami** Firestore'ga hech qachon yozilmaydi — na eʼlonda, na so'rovda, na chatda.
@@ -438,7 +533,9 @@ Lentaning tepasida, chiplar ostida turadigan gorizontal tasma: qaytarilgan
 buyumlar ijtimoiy isbot sifatida. **Kod tayyor, dizayn kutilmoqda.**
 
 Qarorlar: kartochka **bosilmaydi** (qaytarilgan eʼlonda ochiladigan sahifa
-yo'q), **ism ko'rsatilmaydi** (`ReturnedItem` da muallif maydoni umuman yo'q),
+yo'q — *bu qaror 15-bo'limda bekor qilindi: endi stories ekrani ochiladi*),
+**ism ko'rsatilmaydi** (`ReturnedItem` da muallif maydoni umuman yo'q —
+*15-bo'limda topuvchi uchun rozilik bilan qo'shildi; ega hech qachon emas*),
 `documents` toifasi chiqarib tashlanadi (qaytarilgan pasport qayta eʼlon
 qilinmaydi), va eʼlon soni **3 tadan kam bo'lsa tasma butunlay chizilmaydi**
 (`FeedState.minReturned`) — bo'sh devor ilovaga qarshi dalil bo'ladi.

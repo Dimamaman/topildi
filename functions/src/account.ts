@@ -7,7 +7,7 @@
  * stays, with no Topildi data left, and its sessions are revoked.
  */
 import { getAuth } from "firebase-admin/auth";
-import { getFirestore } from "firebase-admin/firestore";
+import { FieldValue, getFirestore } from "firebase-admin/firestore";
 import { getStorage } from "firebase-admin/storage";
 import { logger } from "firebase-functions";
 
@@ -19,6 +19,8 @@ export const accountPaths = {
   chats: "topildi_chats",
   /** Shikoyatlar the user sent; those sent about them stay as evidence. */
   reports: "topildi_reports",
+  /** Who returned which item (returns.ts): server-only. */
+  returns: "topildi_returns",
   /** FoodZeen's profiles: `users/{uid}`, `users/{uid}/recipes`. */
   foodzeenUsers: "users",
 } as const;
@@ -43,6 +45,17 @@ export async function deleteAccount(uid: string): Promise<{ authDeleted: boolean
   const claims = [...(await ids(accountPaths.claims, "claimantId")), ...(await ids(accountPaths.claims, "listingAuthorId"))];
   const chats = await ids(accountPaths.chats, "members", "array-contains");
   const reports = await ids(accountPaths.reports, "reporterId");
+  // Items this user returned for someone else: the listing stays (it is not
+  // theirs), but it must stop carrying their name.
+  const returns = await ids(accountPaths.returns, "finderId");
+  for (const ref of returns) {
+    const listingId = String((await ref.get()).get("listingId") ?? ref.id);
+    await db
+      .collection(accountPaths.listings)
+      .doc(listingId)
+      .update({ finderDisplayName: FieldValue.delete() })
+      .catch(() => undefined);
+  }
 
   const bucket = getStorage().bucket();
   for (const prefix of storagePrefixes(uid, listings.map((r) => r.id), claims.map((r) => r.id))) {
@@ -51,7 +64,7 @@ export async function deleteAccount(uid: string): Promise<{ authDeleted: boolean
 
   // Recursive: messages, the hidden detail, devices, notifications and the
   // user's own `blocked` list go with them.
-  for (const ref of [...chats, ...claims, ...listings, ...reports, db.collection(paths.users).doc(uid)]) {
+  for (const ref of [...chats, ...claims, ...listings, ...reports, ...returns, db.collection(paths.users).doc(uid)]) {
     await db.recursiveDelete(ref);
   }
 
@@ -73,6 +86,7 @@ export async function deleteAccount(uid: string): Promise<{ authDeleted: boolean
     claims: claims.length,
     chats: chats.length,
     reports: reports.length,
+    returns: returns.length,
     authDeleted: !usedByFoodzeen,
   });
   return { authDeleted: !usedByFoodzeen };

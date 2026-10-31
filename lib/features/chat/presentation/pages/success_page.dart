@@ -19,6 +19,8 @@ import '../../../../core/widgets/state_views.dart';
 import '../../../../core/widgets/t_feedback.dart';
 import '../../../create_listing/presentation/widgets/create_ui.dart';
 import '../../../listing/presentation/category_ui.dart';
+import '../../../profile/presentation/cubit/name_consent_cubit.dart';
+import '../../../profile/presentation/widgets/name_consent_card.dart';
 import '../../domain/entities/chat.dart';
 import '../cubit/success_cubit.dart';
 
@@ -33,8 +35,12 @@ class SuccessPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => getIt<SuccessCubit>()..load(chatId),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(create: (_) => getIt<SuccessCubit>()..load(chatId)),
+        // Asked right here, under the counter, and only of the finder.
+        BlocProvider(create: (_) => getIt<NameConsentCubit>()..load()),
+      ],
       child: BlocBuilder<SuccessCubit, ViewState<ReturnSummary>>(
         builder: (context, state) => switch (state) {
           ViewLoaded(:final data) => _SuccessView(summary: data),
@@ -176,6 +182,14 @@ class _SuccessViewState extends State<_SuccessView> with SingleTickerProviderSta
                           child: _Rise(
                             animation: _interval(250, 550),
                             child: _CounterCard(count: s.returnedCount, countUp: _interval(300, 700)),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          child: _Rise(
+                            animation: _interval(300, 620),
+                            child: NameConsentCard(displayName: s.finderName),
                           ),
                         ),
                         if (s.ownerNote case final ownerNote?) ...[

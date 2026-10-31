@@ -21,6 +21,7 @@ class ProfileSummary extends Equatable {
     required this.returned,
     required this.gotBack,
     required this.notificationsOn,
+    this.showNameOnReturns = false,
     this.avatarPath,
     this.avatarTone = 0,
     this.avatarEmoji,
@@ -40,6 +41,9 @@ class ProfileSummary extends Equatable {
   final int gotBack;
   final bool notificationsOn;
 
+  /// Whether "Topuvchi: {Ism F.}" appears under the items this user returned.
+  final bool showNameOnReturns;
+
   int get total => active.length + returned.length;
 
   @override
@@ -50,6 +54,7 @@ class ProfileSummary extends Equatable {
     returned,
     gotBack,
     notificationsOn,
+    showNameOnReturns,
     avatarPath,
     avatarTone,
     avatarEmoji,

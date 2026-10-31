@@ -14,6 +14,9 @@ abstract final class Routes {
   static const myListings = '/my-listings';
   static const blocked = '/blocked';
 
+  /// "Egasiga qaytdi" as stories; the items themselves come in `extra`.
+  static const returnedStories = '/returned';
+
   static const create = '/create';
   static const createDetails = '/create/details';
   static const createLocation = '/create/location';

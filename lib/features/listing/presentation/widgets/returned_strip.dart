@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 import 'package:material_symbols_icons/symbols.dart';
+
+import '../../../../app/routes.dart';
+import '../../../../core/di/injection.dart';
 
 import '../../../../core/l10n/tr.dart';
 import '../../../../core/theme/t_text.dart';
@@ -7,16 +12,18 @@ import '../../../../core/theme/topildi_theme.dart';
 import '../../../../core/utils/date_format.dart';
 import '../../domain/entities/returned_item.dart';
 import '../category_ui.dart';
+import '../pages/returned_stories_page.dart';
+import '../seen_returned.dart';
 
 /// "Egasiga qaytdi": the proof row above the feed, in the shape of stories.
 ///
-/// Nothing here is tappable at all. A returned listing has no page worth
-/// reaching — no claim to send, no chat to join — so a tap would be a dead
-/// end, and the row carries no control of its own either: it is small, it
-/// narrows with the category chips and it leaves on its own once there is
-/// too little to show, so a dismiss button would only be one more way to
-/// lose it for good. For the same reason no item names anyone:
-/// [ReturnedItem] carries no author at all.
+/// An item opens [ReturnedStoriesPage], which only shows: the listing itself
+/// is over, so there is no claim to send and no chat to join, and the stories
+/// screen carries no action either. The row has no control of its own — it is
+/// small, it narrows with the category chips and it leaves on its own once
+/// there is too little to show, so a dismiss button would only be one more
+/// way to lose it for good. The owner is never named anywhere in it; the
+/// person who returned the item is, and only if they asked to be.
 ///
 /// Whether the row appears is not its own decision: the feed asks
 /// `FeedState.showReturned` first.
@@ -29,6 +36,7 @@ class ReturnedStrip extends StatelessWidget {
   static const maxItems = 10;
 
   static const _itemWidth = 72.0, _avatar = 58.0, _ringPad = 3.0, _ring = 2.0;
+
   /// Top 6, not the design's 14: the pinned chip header already ends with
   /// 8 of its own, and the grid below adds 6 more to this bottom 10 — so the
   /// gaps the design asks for (14 above, 16 below) come out right on screen.
@@ -40,8 +48,7 @@ class ReturnedStrip extends StatelessWidget {
   /// The row's height at [scaler]: avatar, gap, title line, time line. Both
   /// text lines grow with the text size, so this cannot be a constant — at
   /// 130% a fixed height clips the time (see home_layout_test).
-  static double _rowHeight(TextScaler scaler) =>
-      _avatarExtent + 4 + scaler.scale(16) * 2 + 2;
+  static double _rowHeight(TextScaler scaler) => _avatarExtent + 4 + scaler.scale(16) * 2 + 2;
 
   /// Items returned within the last seven days, for the header's count.
   int get _thisWeek {
@@ -100,7 +107,7 @@ class ReturnedStrip extends StatelessWidget {
                 clipBehavior: Clip.none,
                 itemCount: shown.length,
                 separatorBuilder: (_, _) => const SizedBox(width: 10),
-                itemBuilder: (context, i) => _Item(item: shown[i], pageColor: cs.surface),
+                itemBuilder: (context, i) => _Item(items: shown, index: i, pageColor: cs.surface),
               ),
             ),
           ],
@@ -110,60 +117,102 @@ class ReturnedStrip extends StatelessWidget {
   }
 }
 
-class _Item extends StatelessWidget {
-  const _Item({required this.item, required this.pageColor});
+class _Item extends StatefulWidget {
+  const _Item({required this.items, required this.index, required this.pageColor});
 
-  final ReturnedItem item;
+  /// The whole row: the stories screen carries on from the one tapped.
+  final List<ReturnedItem> items;
+  final int index;
 
   /// Behind the badge, so it cuts a notch out of the ring.
   final Color pageColor;
+
+  @override
+  State<_Item> createState() => _ItemState();
+}
+
+class _ItemState extends State<_Item> {
+  /// Where this circle sits on screen, so the stories screen can grow out of
+  /// it and shrink back into it.
+  final _avatarKey = GlobalKey();
+
+  final _seen = getIt<SeenReturned>();
+
+  ReturnedItem get _item => widget.items[widget.index];
+
+  void _open() {
+    HapticFeedback.selectionClick();
+    final box = _avatarKey.currentContext?.findRenderObject() as RenderBox?;
+    final source = box == null ? null : box.localToGlobal(Offset.zero) & box.size;
+    context.push(
+      Routes.returnedStories,
+      extra: ReturnedStoriesArgs(items: widget.items, index: widget.index, source: source, onSeen: _seen.mark),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final tc = context.tc;
     final text = Theme.of(context).textTheme;
+    final item = _item;
     return Semantics(
+      button: true,
       label: '${item.title}, ${item.district}, ${TDate.ago(item.returnedAt)}',
       excludeSemantics: true,
-      child: SizedBox(
-        width: ReturnedStrip._itemWidth,
-        child: Column(
-          children: [
-            SizedBox(
-              width: ReturnedStrip._avatarExtent,
-              height: ReturnedStrip._avatarExtent,
-              child: Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  Container(
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(color: cs.primary, width: ReturnedStrip._ring),
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: _open,
+        child: SizedBox(
+          width: ReturnedStrip._itemWidth,
+          child: Column(
+            children: [
+              SizedBox(
+                key: _avatarKey,
+                width: ReturnedStrip._avatarExtent,
+                height: ReturnedStrip._avatarExtent,
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    // Blue while the story is unwatched, quiet grey once it
+                    // has been — as stories read everywhere else. The rosette
+                    // stays: it says the item got home, not that it is new.
+                    ValueListenableBuilder(
+                      valueListenable: _seen.seen,
+                      builder: (context, seen, child) => Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: seen.contains(item.id) ? cs.outlineVariant : cs.primary,
+                            width: ReturnedStrip._ring,
+                          ),
+                        ),
+                        padding: const EdgeInsets.all(ReturnedStrip._ringPad),
+                        child: child,
+                      ),
+                      child: _Avatar(item: item),
                     ),
-                    padding: const EdgeInsets.all(ReturnedStrip._ringPad),
-                    child: _Avatar(item: item),
-                  ),
-                  Positioned(right: -3, bottom: -3, child: _Badge(pageColor: pageColor)),
-                ],
+                    Positioned(right: -3, bottom: -3, child: _Badge(pageColor: widget.pageColor)),
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              item.title,
-              style: text.labelMedium,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.center,
-            ),
-            Text(
-              TDate.agoShort(item.returnedAt),
-              style: text.bodySmall?.copyWith(color: tc.onSurfaceMuted),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.center,
-            ),
-          ],
+              const SizedBox(height: 4),
+              Text(
+                item.title,
+                style: text.labelMedium,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+              ),
+              Text(
+                TDate.agoShort(item.returnedAt),
+                style: text.bodySmall?.copyWith(color: tc.onSurfaceMuted),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -183,24 +232,14 @@ class _Avatar extends StatelessWidget {
       child: ColoredBox(
         color: tc.photoPlaceholder,
         child: photo == null
-            ? Center(
-                child: Icon(
-                  item.category.icon,
-                  size: 27,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-              )
+            ? Center(child: Icon(item.category.icon, size: 27, color: Theme.of(context).colorScheme.onSurfaceVariant))
             : Image.network(
                 photo,
                 fit: BoxFit.cover,
                 width: ReturnedStrip._avatar,
                 height: ReturnedStrip._avatar,
                 errorBuilder: (context, _, _) => Center(
-                  child: Icon(
-                    item.category.icon,
-                    size: 27,
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+                  child: Icon(item.category.icon, size: 27, color: Theme.of(context).colorScheme.onSurfaceVariant),
                 ),
               ),
       ),

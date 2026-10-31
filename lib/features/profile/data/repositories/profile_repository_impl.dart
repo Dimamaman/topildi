@@ -14,10 +14,20 @@ import '../../../listing/domain/entities/listing.dart';
 import '../../domain/entities/profile_summary.dart';
 import '../../domain/repositories/profile_repository.dart';
 import '../datasources/account_remote_datasource.dart';
+import '../datasources/consent_remote_datasource.dart';
 
 @LazySingleton(as: ProfileRepository)
 class ProfileRepositoryImpl implements ProfileRepository {
-  ProfileRepositoryImpl(this._listings, this._claims, this._session, this._network, this._kv, this._push, this._account);
+  ProfileRepositoryImpl(
+    this._listings,
+    this._claims,
+    this._session,
+    this._network,
+    this._kv,
+    this._push,
+    this._account,
+    this._consent,
+  );
 
   final ListingRemoteDataSource _listings;
   final ClaimRemoteDataSource _claims;
@@ -26,8 +36,12 @@ class ProfileRepositoryImpl implements ProfileRepository {
   final KeyValueStore _kv;
   final PushService _push;
   final AccountRemoteDataSource _account;
+  final ConsentRemoteDataSource _consent;
 
   bool get _notificationsOn => _kv.getBool(StoreKeys.notificationsOn) ?? true;
+
+  /// Off unless the user turned it on — a name is never shown by default.
+  bool get _showName => _kv.getBool(StoreKeys.showNameOnReturns) ?? false;
 
   @override
   FutureEither<ProfileSummary> getMine() async {
@@ -51,6 +65,7 @@ class ProfileRepositoryImpl implements ProfileRepository {
         returned: returned.where((m) => m.listing.isFound).toList(),
         gotBack: returned.where((m) => !m.listing.isFound).length,
         notificationsOn: _notificationsOn,
+        showNameOnReturns: _showName,
         avatarPath: _session.avatarPath,
         avatarTone: _session.avatarTone,
         avatarEmoji: _session.avatarEmoji,
@@ -64,6 +79,23 @@ class ProfileRepositoryImpl implements ProfileRepository {
   FutureEither<void> setNotifications(bool on) async {
     await _kv.setBool(StoreKeys.notificationsOn, on);
     on ? await _push.start() : await _push.stop();
+    return right(null);
+  }
+
+  @override
+  FutureEither<bool> getShowNameOnReturns() async => right(_showName);
+
+  @override
+  FutureEither<void> setShowNameOnReturns(bool on) async {
+    if (!await _network.isConnected) return left(const NetworkFailure());
+    try {
+      await _consent.setShowNameOnReturns(on);
+    } catch (e) {
+      return left(failureOf(e));
+    }
+    // Only once the server has it: the switch must never show a consent the
+    // listings do not have.
+    await _kv.setBool(StoreKeys.showNameOnReturns, on);
     return right(null);
   }
 

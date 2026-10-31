@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
@@ -26,6 +27,7 @@ import '../features/claim/presentation/pages/claims_page.dart';
 import '../features/listing/presentation/pages/detail_page.dart';
 import '../features/listing/presentation/pages/home_page.dart';
 import '../features/listing/presentation/pages/map_page.dart';
+import '../features/listing/presentation/pages/returned_stories_page.dart';
 import 'routes.dart';
 import 'shell.dart';
 
@@ -76,6 +78,24 @@ GoRouter createRouter({String initialLocation = Routes.splash}) => GoRouter(
     GoRoute(path: Routes.notifications, builder: (_, _) => const NotificationsPage()),
     GoRoute(path: Routes.myListings, builder: (_, _) => const MyListingsPage()),
     GoRoute(path: Routes.blocked, builder: (_, _) => const BlockedPage()),
+    // The tapped circle grows into the screen, so this page comes in over
+    // the feed rather than pushing it aside.
+    GoRoute(
+      path: Routes.returnedStories,
+      pageBuilder: (_, state) {
+        final args = state.extra as ReturnedStoriesArgs? ?? const ReturnedStoriesArgs(items: []);
+        return CustomTransitionPage(
+          key: state.pageKey,
+          opaque: false,
+          barrierColor: Colors.transparent,
+          transitionDuration: const Duration(milliseconds: 300),
+          reverseTransitionDuration: const Duration(milliseconds: 250),
+          transitionsBuilder: (context, animation, _, child) =>
+              ReturnedStoriesTransition(animation: animation, source: args.source, child: child),
+          child: ReturnedStoriesPage(args: args),
+        );
+      },
+    ),
     // Create flow shares one CreateFlowCubit across its steps.
     ShellRoute(
       builder: (_, _, child) => BlocProvider(create: (_) => getIt<CreateFlowCubit>(), child: child),

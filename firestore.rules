@@ -32,9 +32,15 @@ service cloud.firestore {
       allow read: if signedIn();
       allow create, update: if isMe(uid)
         && request.resource.data.keys().hasOnly(
-             ['firstName', 'avatarUrl', 'avatarEmoji', 'avatarTone', 'returnedCount', 'createdAt', 'updatedAt'])
+             ['firstName', 'avatarUrl', 'avatarEmoji', 'avatarTone', 'returnedCount',
+              'showNameOnReturns', 'createdAt', 'updatedAt'])
         && (!('firstName' in request.resource.data)
-            || (request.resource.data.firstName is string && request.resource.data.firstName.size() <= 30));
+            || (request.resource.data.firstName is string && request.resource.data.firstName.size() <= 30))
+        // "Qaytarganlarimda ismim koʻrinsin": the only consent the app keeps.
+        // topildiOnNameConsentChanged copies it onto, or off, every listing
+        // this person returned (functions/src/returns.ts).
+        && (!('showNameOnReturns' in request.resource.data)
+            || request.resource.data.showNameOnReturns is bool);
       allow delete: if isMe(uid);
 
       // Push targets, id = the FCM token. Owner only: never public.
@@ -70,6 +76,13 @@ service cloud.firestore {
       }
     }
 
+    // Who returned which item (functions/src/returns.ts). Server only: it is
+    // what lets consent be taken back everywhere at once, and it must never
+    // become a public map from a returned listing to the person who found it.
+    match /topildi_returns/{listingId} {
+      allow read, write: if false;
+    }
+
     match /topildi_listings/{id} {
       function validListing(d) {
         return d.keys().hasOnly(['type', 'category', 'title', 'description', 'areaName', 'city', 'district',
@@ -84,6 +97,13 @@ service cloud.firestore {
           && d.happenedAt is timestamp
           && d.photoUrls is list && d.photoUrls.size() <= 6;
       }
+
+      // 'finderDisplayName' is the server's alone (functions/src/returns.ts):
+      // it is absent from every key list here, so no client can write a name
+      // onto a returned listing — or keep one there after consent is taken
+      // back. It is only ever set while the listing is 'returned', and
+      // validListing runs on create and on edits of an 'active' listing, so
+      // its hasOnly never meets the field.
 
       // The finder closes the listing from the chat of an accepted claim;
       // for a "lost" listing that is not the author.

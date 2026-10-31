@@ -21,6 +21,22 @@ class SetNotifications implements UseCase<void, bool> {
 }
 
 @injectable
+class GetShowNameOnReturns implements UseCase<bool, NoParams> {
+  const GetShowNameOnReturns(this._repository);
+  final ProfileRepository _repository;
+  @override
+  FutureEither<bool> call(NoParams params) => _repository.getShowNameOnReturns();
+}
+
+@injectable
+class SetShowNameOnReturns implements UseCase<void, bool> {
+  const SetShowNameOnReturns(this._repository);
+  final ProfileRepository _repository;
+  @override
+  FutureEither<void> call(bool params) => _repository.setShowNameOnReturns(params);
+}
+
+@injectable
 class SignOut implements UseCase<void, NoParams> {
   const SignOut(this._repository);
   final ProfileRepository _repository;

@@ -20,6 +20,7 @@ import { claimSession, handleUpdate, startSession } from "./login";
 import { BotConfig, callBot, handleModeration, handleReport } from "./moderate";
 import { deliver } from "./notify";
 import { isReopened, parseCallbackData, ReportDoc } from "./report";
+import { consentChanged, listingReturned } from "./returns";
 import { parseCallback, parseUpdate, TgUpdate } from "./telegram";
 
 initializeApp();
@@ -144,6 +145,29 @@ export const topildiOnReportReopened = onDocumentUpdated(
     await handleReport(event.params.reportId, after as ReportDoc, botConfig());
   },
 );
+
+/**
+ * A listing was closed as returned: who returned it is remembered, and their
+ * name goes onto the listing only if they allowed it (returns.ts).
+ */
+export const topildiOnListingReturned = onDocumentUpdated("topildi_listings/{listingId}", async (event) => {
+  const before = event.data?.before.data();
+  const after = event.data?.after.data();
+  if (!before || !after) return;
+  await listingReturned(event.params.listingId, before, after);
+});
+
+/**
+ * "Qaytarganlarimda ismim koʻrinsin" moved: the name appears on, or leaves,
+ * every item this person returned.
+ */
+export const topildiOnNameConsentChanged = onDocumentUpdated("topildi_users/{uid}", async (event) => {
+  const before = event.data?.before.data();
+  const after = event.data?.after.data();
+  if (!before || !after) return;
+  const changed = await consentChanged(event.params.uid, before, after);
+  if (changed > 0) logger.info("Name consent applied", { uid: event.params.uid, listings: changed });
+});
 
 /** Passed to setWebhook as secret_token; Telegram sends it back in a header. */
 const webhookSecret = defineSecret("TELEGRAM_WEBHOOK_SECRET");

@@ -84,7 +84,7 @@ class _ProfileView extends StatelessWidget {
                     _side,
                     math.max(120, MediaQuery.paddingOf(context).bottom + 24),
                   ),
-                  sliver: SliverToBoxAdapter(child: _Settings(notificationsOn: data.notificationsOn)),
+                  sliver: SliverToBoxAdapter(child: _Settings(notificationsOn: data.notificationsOn, showNameOnReturns: data.showNameOnReturns)),
                 ),
               ],
             ),
@@ -575,9 +575,9 @@ class _NoListings extends StatelessWidget {
 }
 
 class _Settings extends StatelessWidget {
-  const _Settings({required this.notificationsOn});
+  const _Settings({required this.notificationsOn, required this.showNameOnReturns});
 
-  final bool notificationsOn;
+  final bool notificationsOn, showNameOnReturns;
 
   static const _themes = [(ThemeMode.system, 'Tizim'), (ThemeMode.light, 'Yorugʻ'), (ThemeMode.dark, 'Qorongʻi')];
 
@@ -723,6 +723,27 @@ class _Settings extends StatelessWidget {
                         if (count > 0) const SizedBox(width: 4),
                         chevron,
                       ],
+                    ),
+                  ),
+                ),
+              ),
+              separator,
+              // Only the finder's own name, and only on what they returned;
+              // the owner's name is not a setting because it is never shown.
+              Semantics(
+                toggled: showNameOnReturns,
+                label: tr('Qaytarganlarimda ismim koʻrinsin'),
+                excludeSemantics: true,
+                child: GestureDetector(
+                  onTap: () => cubit.setShowNameOnReturns(!showNameOnReturns),
+                  behavior: HitTestBehavior.opaque,
+                  child: row(
+                    icon: Symbols.badge_rounded,
+                    label: tr('Qaytarganlarimda ismim koʻrinsin'),
+                    trailing: CupertinoSwitch(
+                      value: showNameOnReturns,
+                      activeTrackColor: context.tc.primaryFill,
+                      onChanged: cubit.setShowNameOnReturns,
                     ),
                   ),
                 ),

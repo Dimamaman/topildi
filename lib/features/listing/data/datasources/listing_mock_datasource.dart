@@ -197,6 +197,7 @@ class ListingMockDataSource implements ListingRemoteDataSource {
         tint: 1,
         status: ListingStatus.returned,
         returnedAt: at(3, 12, 0),
+        finderName: 'Dinmuhammad D.',
       ),
       ListingModel(
         id: 'l_old2',
@@ -561,6 +562,7 @@ class ListingMockDataSource implements ListingRemoteDataSource {
         tint: 0,
         status: ListingStatus.returned,
         returnedAt: at(13, 11, 0),
+        finderName: 'Sardor A.',
       ),
       ListingModel(
         id: 'l_old4',

@@ -7,6 +7,7 @@ import 'package:topildi/core/storage/stores.dart';
 import 'package:topildi/features/claim/data/datasources/claim_remote_datasource.dart';
 import 'package:topildi/features/listing/data/datasources/listing_remote_datasource.dart';
 import 'package:topildi/features/profile/data/datasources/account_remote_datasource.dart';
+import 'package:topildi/features/profile/data/datasources/consent_remote_datasource.dart';
 import 'package:topildi/features/profile/data/repositories/profile_repository_impl.dart';
 
 class _Push extends Mock implements PushService {}
@@ -28,6 +29,7 @@ void main() {
   late ProfileRepositoryImpl repo;
   late _Network network;
   late _Account account;
+  late MockConsentDataSource consent;
 
   setUp(() {
     push = _Push();
@@ -39,7 +41,8 @@ void main() {
     network = _Network();
     account = _Account();
     when(() => network.isConnected).thenAnswer((_) async => true);
-    repo = ProfileRepositoryImpl(_Listings(), _Claims(), session, network, kv, push, account);
+    consent = MockConsentDataSource();
+    repo = ProfileRepositoryImpl(_Listings(), _Claims(), session, network, kv, push, account, consent);
   });
 
   test('the Bildirishnomalar switch registers and unregisters the device', () async {
@@ -49,6 +52,25 @@ void main() {
 
     await repo.setNotifications(true);
     verify(push.start).called(1);
+  });
+
+  group('“Qaytarganlarimda ismim koʻrinsin”', () {
+    test('a name is never shown until the person turns it on', () async {
+      expect((await repo.getShowNameOnReturns()).getOrElse((_) => true), isFalse);
+    });
+
+    test('the server hears first, then the device remembers', () async {
+      await repo.setShowNameOnReturns(true);
+      expect(consent.showNameOnReturns, isTrue);
+      expect(kv.getBool(StoreKeys.showNameOnReturns), isTrue);
+      expect((await repo.getShowNameOnReturns()).getOrElse((_) => false), isTrue);
+    });
+
+    test('offline it stays off: the switch must not promise what no listing carries', () async {
+      when(() => network.isConnected).thenAnswer((_) async => false);
+      expect((await repo.setShowNameOnReturns(true)).isLeft(), isTrue);
+      expect(kv.getBool(StoreKeys.showNameOnReturns), isNull);
+    });
   });
 
   test('sign-out removes the device first, while the rules still allow it', () async {

@@ -57,5 +57,8 @@ ListingModel listingFromFirestore(String id, Map<String, dynamic> d, {String hid
     // The status change is the listing's last write, so `updatedAt` is the
     // moment it was returned. Nothing else writes to a closed listing.
     returnedAt: status == ListingStatus.returned ? (d['updatedAt'] as Timestamp?)?.toDate() : null,
+    // Server-only (functions/src/returns.ts); absent until the finder says
+    // their name may be shown, and cleared again the moment they take it back.
+    finderName: d['finderDisplayName'] as String?,
   );
 }

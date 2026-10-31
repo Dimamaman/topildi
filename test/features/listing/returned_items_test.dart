@@ -78,6 +78,34 @@ void main() {
     });
   });
 
+  group('the finder is named only when the server wrote the name', () {
+    test('finderDisplayName comes off the document', () {
+      final back = listingFromFirestore('l1', {
+        'status': 'returned',
+        'updatedAt': Timestamp.fromDate(DateTime(2026, 10, 29, 14, 30)),
+        'finderDisplayName': 'Dinmuhammad D.',
+      });
+      expect(back.finderName, 'Dinmuhammad D.');
+    });
+
+    test('without it the story carries no name at all', () {
+      final back = listingFromFirestore('l1', {
+        'status': 'returned',
+        'updatedAt': Timestamp.fromDate(DateTime(2026, 10, 29, 14, 30)),
+      });
+      expect(back.finderName, isNull);
+    });
+
+    test('the owner is never a candidate: only the finder has a field', () {
+      final back = listingFromFirestore('l1', {
+        'status': 'returned',
+        'authorName': 'Sardor A.',
+        'updatedAt': Timestamp.fromDate(DateTime(2026, 10, 29, 14, 30)),
+      });
+      expect(back.finderName, isNull);
+    });
+  });
+
   group('ListingRepositoryImpl.getReturned', () {
     late _MockSource source;
     late _MockBlocks blocks;
@@ -164,6 +192,33 @@ void main() {
       when(() => source.fetchReturned(limit: any(named: 'limit')))
           .thenAnswer((_) async => [for (var i = 0; i < 20; i++) row('r$i', category: ItemCategory.keys)]);
       expect(await items(), hasLength(12));
+    });
+
+    test('the finder name reaches the strip as the document had it', () async {
+      when(() => source.fetchReturned(limit: any(named: 'limit'))).thenAnswer(
+        (_) async => [
+          ListingModel(
+            id: 'a',
+            type: ListingType.found,
+            category: ItemCategory.keys,
+            title: 'Kalit',
+            description: '',
+            areaName: 'Chilonzor-9',
+            district: 'Chilonzor',
+            happenedAt: DateTime(2026, 10, 1),
+            author: const PublicUser(id: 'u1', displayName: 'Sardor A.'),
+            hiddenDetail: '',
+            status: ListingStatus.returned,
+            returnedAt: DateTime(2026, 10, 29),
+            finderName: 'Dinmuhammad D.',
+          ),
+          row('b', category: ItemCategory.keys),
+        ],
+      );
+      final list = await items();
+      expect(list.first.finderName, 'Dinmuhammad D.');
+      // The author's name is never used as a stand-in for a missing consent.
+      expect(list.last.finderName, isNull);
     });
 
     test('offline fails instead of showing an empty strip', () async {

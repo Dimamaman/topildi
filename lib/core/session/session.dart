@@ -64,7 +64,16 @@ abstract class Session {
 
   /// Forgets the cached profile (on sign-out).
   Future<void> clearProfile() async {
-    for (final k in [StoreKeys.firstName, StoreKeys.lastName, StoreKeys.avatarPath, StoreKeys.avatarTone, StoreKeys.avatarEmoji]) {
+    for (final k in [
+      StoreKeys.firstName,
+      StoreKeys.lastName,
+      StoreKeys.avatarPath,
+      StoreKeys.avatarTone,
+      StoreKeys.avatarEmoji,
+      // Consent belongs to the person, not to the device: the next one to
+      // sign in here starts with their name hidden again.
+      StoreKeys.showNameOnReturns,
+    ]) {
       await kv.remove(k);
     }
   }

@@ -8,6 +8,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:injectable/injectable.dart';
 
 import '../../../../core/di/firebase_module.dart';
+import '../../../../core/storage/stores.dart';
 import '../../../../core/error/failure.dart';
 import '../../../../core/error/firebase_failure.dart';
 import '../../../../core/l10n/tr.dart';
@@ -104,6 +105,9 @@ class FirebaseAuthRepository implements AuthRepository {
     await _session.setName(first, '');
     await _session.setAvatar(data?['avatarUrl'] as String?);
     await _session.setAvatarStyle(tone: (data?['avatarTone'] as num?)?.toInt() ?? 0, emoji: data?['avatarEmoji'] as String?);
+    // The consent switch reads this from the device; the profile is where it
+    // comes back after a reinstall.
+    await _session.kv.setBool(StoreKeys.showNameOnReturns, data?['showNameOnReturns'] as bool? ?? false);
     return const AuthResult(needsProfile: false);
   }
 

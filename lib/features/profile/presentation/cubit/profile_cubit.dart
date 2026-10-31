@@ -33,6 +33,7 @@ class ProfileCubit extends Cubit<ProfileState> {
   ProfileCubit(
     this._get,
     this._setNotifications,
+    this._setShowName,
     this._signOut,
     WatchListings watch,
     WatchPendingClaims pending,
@@ -49,6 +50,7 @@ class ProfileCubit extends Cubit<ProfileState> {
 
   final GetMyProfile _get;
   final SetNotifications _setNotifications;
+  final SetShowNameOnReturns _setShowName;
   final SignOut _signOut;
   late final StreamSubscription<void> _sub;
   late final StreamSubscription<void> _pendingSub;
@@ -65,6 +67,13 @@ class ProfileCubit extends Cubit<ProfileState> {
 
   Future<void> setNotifications(bool on) async {
     await _setNotifications(on);
+    await load(silent: true);
+  }
+
+  /// "Qaytarganlarimda ismim koʻrinsin". Turning it off takes the name off
+  /// every story this user is on, so the profile is read again afterwards.
+  Future<void> setShowNameOnReturns(bool on) async {
+    await _setShowName(on);
     await load(silent: true);
   }
 

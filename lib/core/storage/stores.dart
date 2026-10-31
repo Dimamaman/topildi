@@ -104,6 +104,14 @@ abstract final class StoreKeys {
   static const themeMode = 'theme_mode';
   static const language = 'language';
   static const notificationsOn = 'notifications_on';
+
+  /// Ids of returned items whose story has been watched, newest last; the
+  /// feed's strip greys their ring (see SeenReturned).
+  static const seenReturned = 'seen_returned';
+
+  /// Whether the signed-in user lets their name be shown on the items they
+  /// returned. Off unless they turned it on; mirrors `topildi_users/{uid}`.
+  static const showNameOnReturns = 'show_name_on_returns';
   static const phone = 'phone';
   static const authToken = 'auth_token';
 }

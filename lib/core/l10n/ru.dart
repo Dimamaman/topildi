@@ -937,4 +937,14 @@ const ruStrings = <String, String>{
       'Добавить можно через «Заблокировать» в меню чата или объявления.',
   'Foydalanuvchi': 'Пользователь',
   'Tekshiruvda': 'На проверке',
+
+  // "Egasiga qaytdi" stories and the finder-name consent
+  'Oldingi': 'Назад',
+  'Topuvchi: {name}': 'Нашёл: {name}',
+  '{time} egasiga qaytdi': 'вернулось владельцу: {time}',
+  'Ismim koʻrinsin': 'Показывать моё имя',
+  '“Egasiga qaytdi” lentasida: {name}': 'В ленте «Вернулось владельцу»: {name}',
+  'Egasining ismi hech qachon koʻrsatilmaydi. Keyin Profil → Sozlamalarda oʻzgartirish mumkin.':
+      'Имя владельца не показывается никогда. Изменить можно в Профиль → Настройки.',
+  'Qaytarganlarimda ismim koʻrinsin': 'Показывать моё имя в возвращённых вещах',
 };

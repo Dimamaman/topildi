@@ -67,6 +67,7 @@ class ListingRepositoryImpl implements ListingRepository {
               district: m.district,
               returnedAt: m.returnedAt!,
               photo: m.photos.isEmpty ? null : m.photos.first,
+              finderName: m.finderName,
             ),
           )
           .toList();
