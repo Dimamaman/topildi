@@ -126,4 +126,41 @@ void main() {
       isA<FeedState>().having((s) => s.view, 'view', isA<ViewLoaded<ListingPage>>()),
     ],
   );
+
+  ReturnedItem returnedOf(int i, ItemCategory category) => ReturnedItem(
+    id: 'c$i',
+    title: 'Buyum $i',
+    category: category,
+    district: 'Chilonzor',
+    returnedAt: DateTime(2026, 10, 30 - i),
+  );
+
+  blocTest<FeedCubit, FeedState>(
+    'a category chip narrows the strip, and can hide it',
+    setUp: () {
+      when(() => repo.getListings(any())).thenAnswer((_) async => right(const ListingPage(items: [], total: 0)));
+      when(() => repo.getReturned(limit: any(named: 'limit'))).thenAnswer(
+        (_) async => right([
+          returnedOf(1, ItemCategory.keys),
+          returnedOf(2, ItemCategory.keys),
+          returnedOf(3, ItemCategory.keys),
+          returnedOf(4, ItemCategory.bags),
+        ]),
+      );
+    },
+    build: () => _cubit(repo),
+    act: (c) async {
+      // The constructor's load is in flight; wait for it before asserting.
+      await c.loadReturned();
+      expect(c.state.visibleReturned, hasLength(4));
+      expect(c.state.showReturned, isTrue);
+      c.setCategory(ItemCategory.keys);
+      expect(c.state.showReturned, isTrue, reason: '3 ta kalit yetadi');
+      // One bag is not enough to stand as proof on its own.
+      c.setCategory(ItemCategory.bags);
+      expect(c.state.visibleReturned, hasLength(1));
+      expect(c.state.showReturned, isFalse);
+    },
+  );
+
 }

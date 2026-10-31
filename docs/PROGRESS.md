@@ -459,15 +459,59 @@ Deploydan oldin tekshirildi: bazada faqat `topildi_*` indekslari bor
 (FoodZeen'da kompozit indeks yo'q), shuning uchun o'chib ketadigan begona
 indeks bo'lmadi — qo'shildi: 1, o'chirildi: 0, jami 8 ta.
 
-**Dizayn:** `docs/design/returned-strip-prompt.md` — boshqa AI ga beriladigan
-tayyor brief (maʼlumot shartnomasi, ranglar, tipografika, 130% matn sharti).
-Hozirgi `ReturnedStrip` — ishlaydigan vaqtinchalik ko'rinish; dizayn kelganda
-faqat shu widget almashtiriladi, maʼlumot qatlami o'zgarmaydi.
+**Dizayn keldi va qo'llandi (2026-10-31).** Brief:
+`docs/design/returned-strip-prompt.md`; javob: `~/Downloads/topildi-egasiga-qaytdi.html`
+va `TOPSHIRIQ-egasiga-qaytdi-lentasi.md`. Tanlangan shakl — **stories qatori**:
+72px element, 58px doira rasm, 2px `primary` halqa, o'ng pastda `verified`
+rozetkasi (ichida oq galochka, tashqarisi sahifa fonida — halqani kesadi),
+ostida nom (labelMedium, 1 qator) va vaqt ("oldin" so'zisiz: "2 soat", "1 kun").
+Sarlavha qatorida "Egasiga qaytdi · bu hafta {n}" (hisob faqat n ≥ 3 bo'lsa).
+
+**✕ (yashirish) olib tashlandi (2026-10-31, egasining qarori).** Dizayner uni
+o'z taklifi sifatida qo'shgan edi (brief'da yo'q edi), lekin zanjiri yomon
+chiqdi: avval "Yashirildi / Qaytarish" snackbari o'chmay qoldi (✕ bosib 7 soniya
+kutilganda ham turaverdi — taxminiy sabab: Flutter yordamchi texnologiya
+yoqilganda `SnackBar` taymerini ishga tushirmaydi, simulatorni boshqaradigan
+vosita esa accessibility orqali ishlaydi; **tasdiqlanmagan**, haqiqiy qurilmada
+tekshirish kerak, chunki `TFeedback` ilovaning boshqa joylarida ham ishlatiladi).
+Snackbar olib tashlangach, bitta tasodifiy bosish tasmani 30 kunga, qaytarish
+yo'lisiz yo'qotadigan bo'ldi — sinov paytida uni simulyatorning `NSUserDefaults`
+faylidan `flutter.proof_strip_hidden_at` kalitini qo'lda o'chirib tiklashga to'g'ri
+keldi. Shuning uchun tugma butunlay olib tashlandi: tasma allaqachon kichkina,
+3 tadan kam bo'lsa o'zi yashirinadi va kategoriya bilan torayadi — yashirish
+tugmasi ortiqcha holat va ortiqcha xavf edi.
+
+O'chirilganlar: `_HideButton`, `onHide`, `FeedState.stripHidden`,
+`FeedCubit.hideStrip/showStrip/stripHiddenFor`, `FeedCubit` ning `KeyValueStore`
+bog'liqligi, `StoreKeys.proofStripHiddenAt`, `home_page.dart` dagi `_hideStrip`.
+`AnimatedSize` qoldi — endi u maʼlumot kelganda tasmani ochadi va kategoriya
+tanlanganda 3 tadan kam qolsa yopadi.
+
+Kategoriya chipi tanlansa tasma shu toifa bilan torayadi (`FeedState.visibleReturned`);
+3 tadan kam qolsa yana yo'qoladi.
+
+Ikki chekinish: `clothes` uchun loyihaning o'z ikonkasi (`Symbols.apparel_rounded`)
+qoldirildi, topshiriqdagi `checkroom` emas — ikonkalar `category_ui.dart` dan
+keladi va faqat tasma uchun boshqasini qo'yish ilovada nomuvofiqlik yaratadi.
+Tasmaning tepa paddingi 14 emas, **6**: pinned chiplar sarlavhasi allaqachon
+8 bilan tugaydi, grid esa 6 qo'shadi — ekranda dizayndagi 14/16 chiqadi.
+
+Qurilmada tekshirildi (iPhone 15 Pro simulyatori, haqiqiy Firestore maʼlumoti):
+yorug' va qorong'i tema, rasmli va rasmsiz elementlar, uzun nomlar.
+
+**Ochiq savol:** 72px kenglikda nom ~9-10 belgidan keyin kesiladi
+("Qora c…", "Ererererer…"). Eʼlon sarlavhasi 60 belgigacha bo'lishi mumkin,
+shuning uchun ko'p nom o'qilmaydi. Variantlar: nomga 2 qator berish
+(+~16pt balandlik) yoki nom o'rniga toifa nomini ko'rsatish. Hozircha
+topshiriqdagidek 1 qator.
 
 Testlar: `test/features/listing/returned_items_test.dart` (hujjatlar va
 bloklangan muallif filtri, limit, offline), `feed_cubit_test.dart` (3 ta
-chegara), `finder_flow_test.dart` yangilandi — qaytarilgan eʼlon griddan
-chiqib, tasmada paydo bo'lishi tekshiriladi.
+chegara, kategoriya filtri, yashirishning saqlanishi va 30 kundan keyin
+qaytishi), `finder_flow_test.dart` yangilandi — qaytarilgan eʼlon griddan
+chiqib, tasmada paydo bo'lishi tekshiriladi. `home_layout_test` (360/393,
+130% matn) tasma bilan birga o'tadi — bir marta 9px toshish bo'lgan, element
+balandligi endi `TextScaler` dan hisoblanadi.
 
 ### 3. Bildirishnomalar sahifasi
 

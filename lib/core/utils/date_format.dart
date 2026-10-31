@@ -106,6 +106,16 @@ abstract final class TDate {
     return tr('{n} kun oldin', {'n': diff.inDays});
   }
 
+  /// "Hozirgina" · "3 soat" · "2 kun". [ago] without the trailing "oldin",
+  /// for places too narrow to spare the word (the feed's returned strip).
+  static String agoShort(DateTime d, {DateTime? now}) {
+    final diff = (now ?? DateTime.now()).difference(d);
+    if (diff.inMinutes < 1) return tr('Hozirgina');
+    if (diff.inMinutes < 60) return tr('{n} daqiqa', {'n': diff.inMinutes});
+    if (diff.inHours < 24) return tr('{n} soat', {'n': diff.inHours});
+    return tr('{n} kun', {'n': diff.inDays});
+  }
+
   /// "Bugun" · "Kecha" · "21-oktabr" (no time).
   static String day(DateTime d, {DateTime? now}) {
     final diff = _daysAgo(d, now);

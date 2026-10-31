@@ -82,7 +82,19 @@ class _HomeViewState extends State<_HomeView> {
                 SliverPersistentHeader(pinned: true, delegate: _PinnedTabs(offset: _offset)),
                 // Above the feed and outside _content: the proof is worth
                 // most when the feed below it is still loading or empty.
-                if (state.showReturned) SliverToBoxAdapter(child: ReturnedStrip(items: state.returned)),
+                // AnimatedSize grows it in when the items land, and folds it
+                // away when a category chip leaves too few, so the feed
+                // below never jumps.
+                SliverToBoxAdapter(
+                  child: AnimatedSize(
+                    duration: const Duration(milliseconds: 250),
+                    curve: Curves.easeInOut,
+                    alignment: Alignment.topCenter,
+                    child: state.showReturned
+                        ? ReturnedStrip(items: state.visibleReturned)
+                        : const SizedBox(width: double.infinity),
+                  ),
+                ),
                 ..._content(context, state),
               ],
             ),

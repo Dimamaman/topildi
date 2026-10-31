@@ -26,15 +26,23 @@ class FeedState extends Equatable {
   final String search;
   final ViewState<ListingPage> view;
 
-  /// Recently returned items, newest first. Not filtered by [filter]: the
-  /// strip is proof about the whole app, not about this corner of it.
+  /// Recently returned items, newest first. Held unfiltered; the feed's
+  /// category chips narrow it in [visibleReturned]. The type segment does
+  /// not: a returned item is proof either way.
   final List<ReturnedItem> returned;
+
+  /// What the strip would show under the current category chips.
+  List<ReturnedItem> get visibleReturned {
+    final cats = filter.categories;
+    if (cats.isEmpty) return returned;
+    return [for (final i in returned) if (cats.contains(i.category)) i];
+  }
 
   /// Fewer than this and the strip stays off the feed entirely — a wall with
   /// two items on it argues against the app rather than for it.
   static const minReturned = 3;
 
-  bool get showReturned => returned.length >= minReturned;
+  bool get showReturned => visibleReturned.length >= minReturned;
 
   ListingQuery get query =>
       ListingQuery(type: type, filter: filter, search: search);

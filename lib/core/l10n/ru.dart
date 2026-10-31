@@ -4,8 +4,11 @@
 const ruStrings = <String, String>{
   // Common
   'Egasiga qaytdi': 'Вернулось владельцу',
+  '{n} daqiqa': '{n} мин',
+  '{n} soat': '{n} ч',
+  '{n} kun': '{n} дн',
   'Egasiga qaytgan buyumlar': 'Вещи, вернувшиеся владельцам',
-  'bu hafta {n}': 'за неделю {n}',
+  'bu hafta {n}': 'на этой неделе: {n}',
   'Tez orada': 'Скоро',
   'Bu boʻlim ustida ishlayapmiz.': 'Мы работаем над этим разделом.',
   'Orqaga': 'Назад',
