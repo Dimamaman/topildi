@@ -531,6 +531,36 @@ Qarorlar: **Click va Payme ikkalasi**, tariflar **1 / 3 / 7 kun** (taxminan 10 0
 
 - `objective_c` (`path_provider_foundation` orqali) native assets ishlatadi. Xcode'dan to'g'ridan-to'g'ri yoki eski kesh bilan yig'ilsa: simulyatorda `DOBJC_initializeApi … Failed to load`, qurilmada `objective_c.framework … invalid signature` (ad-hoc imzo, eski `_CodeSignature`).
 - Yechim: `rm -rf ~/Library/Developer/Xcode/DerivedData/Runner-*`, `flutter clean && flutter pub get`, so'ng `flutter run` (tavsiya) yoki Xcode → Clean Build Folder.
+- **⚠️ Arxivlashdan oldin HAR SAFAR tozalash (2026-10-31).** App Store Connect
+  yuklashni rad etdi: `Invalid executable … objective_c … references an
+  unsupported platform in the arm64 slice … Simulator platforms aren't
+  permitted` (kod 91169). Sabab: native assets freymvorklari bitta umumiy
+  papkaga chiqadi — `build/native_assets/ios/` — va u **oxirgi build qaysi
+  platforma uchun bo'lsa, o'shaniki bo'lib qoladi**. Simulatorda ishlagandan
+  keyin arxivlansa, Xcode Dart kodini qurilma uchun qayta quradi, lekin
+  `objective_c.framework` ni o'sha papkadan tekshirmasdan ko'chiradi.
+  Apple Silicon'da ikkalasi ham `arm64`, shuning uchun `lipo` farqni
+  ko'rsatmaydi — farq `LC_BUILD_VERSION` dagi platformada:
+  `IOSSIMULATOR` ↔ `IOS`.
+
+  Tozalash (arxivdan oldin, simulatorda ishlagan bo'lsangiz — majburiy):
+
+  ```
+  rm -rf .dart_tool/hooks_runner build/native_assets
+  flutter clean && flutter pub get
+  ```
+
+  Tekshirish (arxivlashdan oldin `flutter build ios --release --no-codesign`
+  qilib, keyin):
+
+  ```
+  vtool -show-build-version build/ios/iphoneos/Runner.app/Frameworks/objective_c.framework/objective_c
+  ```
+
+  `platform IOS` bo'lishi kerak. 2026-10-31 da tozalangandan keyin `.app`
+  ichidagi 42 ta freymvorkning hammasi tekshirildi: `IOS` yoki
+  `LC_VERSION_MIN_IPHONEOS` (ikkalasi ham qurilma), birortasi ham simulator emas.
+
 - Deploy buyruqlari: Cloud Functions — `cd functions && npm run deploy` (global `firebase` CLI eski Node bilan qurilgan, funksiyalarni yuklay olmaydi); Firestore — `firebase deploy --only firestore:rules,firestore:indexes --project foodai-73d66`; Storage — `npx -y firebase-tools@15 deploy --only storage --project foodai-73d66`.
 
 ### 5. Mayda kamchiliklar
